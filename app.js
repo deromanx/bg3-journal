@@ -44,12 +44,13 @@ function showView(view) {
     btn.classList.toggle('active', btn.dataset.view === view);
   });
   const isJournal = view === 'journal';
-  document.getElementById('welcome').classList.toggle('hidden',
-    !isJournal || currentId !== null);
+  const showWelcome = isJournal && currentId === null;
+  document.getElementById('welcome').classList.toggle('hidden', !showWelcome);
   document.getElementById('session-view').classList.toggle('hidden',
     !isJournal || currentId === null);
   document.getElementById('stats-view').classList.toggle('hidden', view !== 'stats');
   document.getElementById('milestones-view').classList.toggle('hidden', view !== 'milestones');
+  document.getElementById('hero-band').classList.toggle('hidden', showWelcome);
 
   if (view === 'stats')      renderStats();
   if (view === 'milestones') renderMilestones();
@@ -84,6 +85,7 @@ function loadSession(id) {
   document.getElementById('stats-view').classList.add('hidden');
   document.getElementById('milestones-view').classList.add('hidden');
   document.getElementById('welcome').classList.add('hidden');
+  document.getElementById('hero-band').classList.remove('hidden');
 
   document.querySelectorAll('.session-item').forEach(el => {
     el.classList.toggle('active', +el.dataset.id === id);
