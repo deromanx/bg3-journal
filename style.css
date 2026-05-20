@@ -297,21 +297,53 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 /* ── 歡迎畫面 ──────────────────────────────────────────── */
 #welcome {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
   height: 100%;
+  overflow-y: auto;
   position: relative;
   z-index: 1;
 }
 
-.welcome-inner { text-align: center; }
+#welcome::-webkit-scrollbar { width: 4px; }
+#welcome::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); }
+#welcome::-webkit-scrollbar-thumb { background: rgba(139,90,40,0.25); border-radius: 2px; }
 
-.welcome-emblem {
-  font-size: 64px;
-  opacity: 0.1;
+/* 主視覺英雄橫幅 */
+.welcome-hero {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  border-bottom: 2px solid rgba(139,90,40,0.22);
+}
+
+.welcome-cover-img {
+  width: 100%;
+  height: 44vh;
+  object-fit: cover;
+  object-position: center 18%;
   display: block;
-  margin-bottom: 22px;
-  color: var(--ink);
+  filter: brightness(0.92) contrast(1.05) saturate(1.08);
+}
+
+.welcome-cover-fade {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 55%;
+  background: linear-gradient(to bottom,
+    rgba(245,236,216,0) 0%,
+    rgba(245,236,216,0.75) 70%,
+    rgba(245,236,216,1) 100%
+  );
+}
+
+.welcome-inner {
+  text-align: center;
+  padding: 36px 40px 60px;
+  width: 100%;
 }
 
 .welcome-title {
@@ -319,7 +351,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   font-size: 30px;
   font-weight: 700;
   color: var(--ink-mid);
-  opacity: 0.6;
+  opacity: 0.75;
   letter-spacing: 4px;
   margin-bottom: 8px;
 }
@@ -328,7 +360,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   font-family: 'Cinzel', serif;
   font-size: 12.5px;
   color: var(--ink-light);
-  opacity: 0.5;
+  opacity: 0.55;
   letter-spacing: 5px;
   margin-bottom: 40px;
 }
@@ -338,7 +370,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .cast-divider {
   font-size: 11px;
   color: var(--ink-light);
-  opacity: 0.42;
+  opacity: 0.45;
   letter-spacing: 3px;
   margin-bottom: 12px;
 }
@@ -347,22 +379,22 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   font-size: 14px;
   font-weight: 600;
   color: var(--ink-mid);
-  opacity: 0.5;
+  opacity: 0.65;
   letter-spacing: 1.5px;
   margin-bottom: 5px;
 }
 
 .cast-roles {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--ink-light);
-  opacity: 0.38;
+  opacity: 0.55;
   letter-spacing: 0.5px;
 }
 
 .welcome-hint {
   font-size: 12px;
   color: var(--ink-light);
-  opacity: 0.36;
+  opacity: 0.40;
   letter-spacing: 2.5px;
 }
 
@@ -734,17 +766,17 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .sub-title {
   font-family: 'Cinzel', serif;
-  font-size: 12.5px;
+  font-size: 13.5px;
   letter-spacing: 8px;
-  color: var(--ink-light);
+  color: var(--ink-mid);
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .sub-note {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--ink-light);
-  opacity: 0.42;
+  opacity: 0.60;
   letter-spacing: 0.5px;
   margin-top: 8px;
 }
@@ -808,11 +840,11 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .stats-section-title {
   font-family: 'Cinzel', serif;
-  font-size: 11px;
+  font-size: 13px;
   letter-spacing: 4px;
-  color: var(--ink-light);
+  color: var(--ink-mid);
   margin-bottom: 18px;
-  border-bottom: 1px solid rgba(139,90,40,0.18);
+  border-bottom: 1px solid rgba(139,90,40,0.20);
   padding-bottom: 8px;
 }
 
@@ -976,51 +1008,51 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .ms-dot {
   flex-shrink: 0;
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   margin-left: -44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 16px;
+  font-size: 18px;
   background: var(--parchment-mid);
-  border: 1.5px solid rgba(139,90,40,0.28);
+  border: 1.5px solid rgba(139,90,40,0.30);
   border-radius: 50%;
   z-index: 1;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .ms-content {
   flex: 1;
-  background: rgba(255,255,255,0.28);
-  border: 1px solid rgba(139,90,40,0.14);
-  padding: 14px 18px;
+  background: rgba(255,255,255,0.32);
+  border: 1px solid rgba(139,90,40,0.18);
+  padding: 18px 22px;
 }
 
 .ms-date {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--ink-light);
-  opacity: 0.52;
+  opacity: 0.72;
   letter-spacing: 1.5px;
-  margin-bottom: 5px;
-}
-
-.ms-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--ink-mid);
   margin-bottom: 7px;
 }
 
+.ms-title {
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 9px;
+}
+
 .ms-desc {
-  font-size: 13px;
-  color: var(--ink-light);
-  line-height: 1.65;
-  margin-bottom: 10px;
+  font-size: 15px;
+  color: var(--ink-mid);
+  line-height: 1.70;
+  margin-bottom: 12px;
 }
 
 .ms-link {
-  font-size: 12px;
+  font-size: 13.5px;
   color: var(--crimson);
   letter-spacing: 0.5px;
   transition: opacity var(--ease);
@@ -1238,58 +1270,56 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .dc-name-wrap {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
   margin-bottom: 14px;
 }
 
 .dc-char {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
-  color: var(--gold);
+  color: var(--gold-bright);
   letter-spacing: 0.5px;
 }
 
 .dc-player {
-  font-size: 11px;
-  color: var(--gold-dim);
-  opacity: 0.7;
+  font-size: 13px;
+  color: rgba(217,176,122,0.80);
 }
 
 .dc-skull {
-  font-size: 26px;
+  font-size: 28px;
   display: block;
   margin-bottom: 8px;
-  opacity: 0.55;
+  opacity: 0.70;
 }
 
 .death-card.dc-high .dc-skull,
 .death-card.dc-max .dc-skull {
-  opacity: 0.8;
+  opacity: 0.90;
 }
 
 .dc-count {
   font-family: 'Cinzel', serif;
-  font-size: 38px;
+  font-size: 40px;
   font-weight: 700;
   line-height: 1;
-  color: var(--gold-dim);
-  margin-bottom: 4px;
+  color: rgba(217,176,122,0.85);
+  margin-bottom: 5px;
 }
 
 .death-card.dc-high .dc-count {
-  color: #c87878;
+  color: #d48a8a;
 }
 
 .death-card.dc-max .dc-count {
-  color: var(--crimson-lt);
-  text-shadow: 0 0 20px rgba(168,40,40,0.3);
+  color: #e06060;
+  text-shadow: 0 0 20px rgba(168,40,40,0.35);
 }
 
 .dc-unit {
-  font-size: 10.5px;
+  font-size: 12px;
   letter-spacing: 1.5px;
-  color: var(--gold-dim);
-  opacity: 0.55;
+  color: rgba(217,176,122,0.70);
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -1339,40 +1369,38 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .dr-char {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
-  color: var(--gold);
+  color: var(--gold-bright);
 }
 
 .dr-player {
-  font-size: 11px;
-  color: var(--gold-dim);
-  opacity: 0.65;
+  font-size: 13px;
+  color: rgba(217,176,122,0.80);
 }
 
 .dr-record {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   justify-content: flex-end;
   white-space: nowrap;
 }
 
 .dr-w {
   font-weight: 700;
-  font-size: 13.5px;
+  font-size: 15px;
   color: var(--gold-bright);
 }
 
 .dr-l {
-  font-size: 13.5px;
-  color: var(--gold-dim);
-  opacity: 0.60;
+  font-size: 15px;
+  color: rgba(217,176,122,0.72);
 }
 
 .dr-bar-wrap {
-  height: 6px;
-  background: rgba(139,90,40,0.12);
-  border: 1px solid rgba(139,90,40,0.15);
+  height: 7px;
+  background: rgba(139,90,40,0.14);
+  border: 1px solid rgba(139,90,40,0.18);
   overflow: hidden;
 }
 
@@ -1383,18 +1411,18 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .dr-pct {
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 600;
-  color: var(--gold-dim);
+  color: rgba(217,176,122,0.85);
   text-align: right;
   white-space: nowrap;
 }
 
 .duel-note {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--ink-light);
-  opacity: 0.35;
-  margin-top: 10px;
+  opacity: 0.50;
+  margin-top: 12px;
   letter-spacing: 0.3px;
 }
 
