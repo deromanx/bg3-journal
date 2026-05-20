@@ -1,0 +1,6 @@
+extract.py
+assets/
+.playwright-mcp/
+__pycache__/
+*.pyc
+*.log

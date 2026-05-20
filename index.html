@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>前進柏德之門 — 冒險日誌</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ── 側欄 ───────────────────────────────────── -->
+  <aside id="sidebar">
+    <div id="sidebar-brand">
+      <div class="brand-emblem">
+        <svg viewBox="0 0 60 60" width="44" height="44" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="30" cy="30" r="28" stroke="rgba(201,168,76,0.4)" stroke-width="1"/>
+          <circle cx="30" cy="30" r="22" stroke="rgba(201,168,76,0.2)" stroke-width="0.5"/>
+          <!-- Crossed swords -->
+          <line x1="18" y1="18" x2="42" y2="42" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="42" y1="18" x2="18" y2="42" stroke="#c9a84c" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="30" cy="30" r="3" fill="rgba(201,168,76,0.6)"/>
+          <!-- Cardinal points -->
+          <circle cx="30" cy="6"  r="1.5" fill="rgba(201,168,76,0.4)"/>
+          <circle cx="30" cy="54" r="1.5" fill="rgba(201,168,76,0.4)"/>
+          <circle cx="6"  cy="30" r="1.5" fill="rgba(201,168,76,0.4)"/>
+          <circle cx="54" cy="30" r="1.5" fill="rgba(201,168,76,0.4)"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="brand-title">前進柏德之門</div>
+        <div class="brand-subtitle">冒 險 日 誌</div>
+      </div>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <nav>
+      <ul id="session-list"></ul>
+    </nav>
+
+    <div class="sidebar-footer">
+      <span class="footer-rune">⚔ ✦ ⚔</span>
+    </div>
+  </aside>
+
+  <!-- ── 手機漢堡按鈕 ────────────────────────────── -->
+  <button id="sidebar-toggle" aria-label="開關目錄" onclick="toggleSidebar()">☰</button>
+
+  <!-- ── 主內容 ──────────────────────────────────── -->
+  <main id="content">
+    <!-- 閱讀進度條 -->
+    <div id="progress-bar"></div>
+
+    <!-- 裝飾框線（CSS overlay） -->
+    <div class="content-frame" aria-hidden="true">
+      <span class="corner corner-tl">✦</span>
+      <span class="corner corner-tr">✦</span>
+      <span class="corner corner-bl">✦</span>
+      <span class="corner corner-br">✦</span>
+    </div>
+
+    <!-- 歡迎畫面 -->
+    <div id="welcome">
+      <div class="welcome-inner">
+        <div class="welcome-emblem">⚔</div>
+        <h1 class="welcome-title">前進柏德之門</h1>
+        <p class="welcome-sub">Journeys to Baldur's Gate</p>
+        <div class="welcome-cast-block">
+          <div class="cast-divider">── 冒險隊伍 ──</div>
+          <div class="cast-names">游尚傑 · 林昱宇 · 曹祐誠 · 丁丁 · 昱如</div>
+          <div class="cast-roles">影心 · 阿斯代倫 · 曹 · 卡拉克 · 貓咕咕</div>
+        </div>
+        <p class="welcome-hint">← 從左側選擇章節</p>
+      </div>
+    </div>
+
+    <!-- 場次閱讀器 -->
+    <article id="session-view" class="hidden">
+      <header id="session-header">
+        <div class="header-chapter" id="header-chapter"></div>
+        <h1 class="header-title" id="header-title"></h1>
+        <div class="header-date" id="header-date"></div>
+        <div class="header-rule">
+          <span class="rule-line"></span>
+          <span class="rule-gem">⚜</span>
+          <span class="rule-line"></span>
+        </div>
+      </header>
+
+      <div id="session-body"></div>
+
+      <footer class="session-footer">
+        <button class="nav-btn" id="prev-btn" onclick="navigateSession(-1)">
+          <span class="nav-arrow">←</span> 上一集
+        </button>
+        <div class="footer-seal">✦</div>
+        <button class="nav-btn" id="next-btn" onclick="navigateSession(1)">
+          下一集 <span class="nav-arrow">→</span>
+        </button>
+      </footer>
+    </article>
+  </main>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
