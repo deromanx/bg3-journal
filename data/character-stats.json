@@ -1,0 +1,65 @@
+{
+  "_note": "手動維護：deaths 為遊戲內確認死亡次數；duels 記錄玩家間 PvP 決鬥的勝負（以場次計，不含練習）",
+  "characters": [
+    {
+      "player": "游尚傑",
+      "char":   "影心",
+      "class":  "風暴牧師",
+      "deaths": 1,
+      "death_notes": ["第十章 吉斯女王真・團滅"],
+      "duels": {
+        "wins":   1,
+        "losses": 2,
+        "detail": "S11 勝曹祐誠；S11 敗於阿斯代倫；S15 敗於貓咕咕"
+      }
+    },
+    {
+      "player": "林昱宇",
+      "char":   "阿斯代倫",
+      "class":  "武僧／遊蕩者",
+      "deaths": 3,
+      "death_notes": ["第四章 波爾之戰首戰即陣", "第十章 吉斯女王真・團滅", "第十七章 幽影小屁孩觸死亡之門"],
+      "duels": {
+        "wins":   1,
+        "losses": 2,
+        "detail": "S11 勝影心；S15 敗於貓咕咕；S15 敗於貓咕咕（二連）"
+      }
+    },
+    {
+      "player": "曹祐誠",
+      "char":   "曹",
+      "class":  "遊蕩者",
+      "deaths": 2,
+      "death_notes": ["第十章 吉斯女王真・團滅", "第十一章 影心訓練誤傷電死"],
+      "duels": {
+        "wins":   0,
+        "losses": 2,
+        "detail": "S11 敗於影心（沉默戒指禁用後）；S15 敗於貓咕咕"
+      }
+    },
+    {
+      "player": "丁丁",
+      "char":   "卡拉克",
+      "class":  "野蠻人",
+      "deaths": 1,
+      "death_notes": ["第十章 吉斯女王真・團滅"],
+      "duels": {
+        "wins":   1,
+        "losses": 0,
+        "detail": "S15 勝貓咕咕；全村最後希望"
+      }
+    },
+    {
+      "player": "昱如",
+      "char":   "貓咕咕",
+      "class":  "術士／德魯伊",
+      "deaths": 1,
+      "death_notes": ["第十章 吉斯女王真・團滅"],
+      "duels": {
+        "wins":   3,
+        "losses": 1,
+        "detail": "S15 勝曹、勝阿斯代倫、勝影心；S15 敗於卡拉克"
+      }
+    }
+  ]
+}

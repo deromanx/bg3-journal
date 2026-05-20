@@ -3,22 +3,25 @@
    功能：日誌閱讀 / 統計儀表板 / 里程碑時間軸 / 本集戰報
    ============================================================ */
 
-let sessions   = [];
-let milestones = [];
-let awards     = {};
-let currentId  = null;
-let currentView = 'journal';
+let sessions      = [];
+let milestones    = [];
+let awards        = {};
+let charStats     = { characters: [] };
+let currentId     = null;
+let currentView   = 'journal';
 
 // ── 載入 ──────────────────────────────────────────────────
 Promise.all([
   fetch('data/sessions.json').then(r => r.json()),
   fetch('data/milestones.json').then(r => r.json()).catch(() => []),
   fetch('data/awards.json').then(r => r.json()).catch(() => ({})),
+  fetch('data/character-stats.json').then(r => r.json()).catch(() => ({ characters: [] })),
 ])
-.then(([sessionsData, milestonesData, awardsData]) => {
+.then(([sessionsData, milestonesData, awardsData, charStatsData]) => {
   sessions   = sessionsData;
   milestones = milestonesData;
   awards     = awardsData;
+  charStats  = charStatsData;
   renderSidebar();
   const first = sessions.slice().reverse().find(s => !s.placeholder)
                 || sessions[sessions.length - 1];
@@ -163,130 +166,102 @@ function toggleSidebar() {
 // ══════════════════════════════════════════════════════════
 // 統計儀表板
 // ══════════════════════════════════════════════════════════
-function computeStats() {
+function computeBaseStats() {
   const completed = sessions.filter(s => !s.placeholder && s.content.length > 0);
   if (!completed.length) return null;
-
   const first = completed[0];
   const last  = completed[completed.length - 1];
   const weeks = Math.round(
     (new Date(last.date) - new Date(first.date)) / (7 * 24 * 60 * 60 * 1000)
   );
-
-  const totalImgs  = sessions.reduce((n, s) => n + s.content.filter(i => i.t === 'img').length, 0);
-  const totalParas = completed.reduce((n, s) => n + s.content.filter(i => i.t === 'p').length, 0);
-  const totalAI    = completed.reduce((n, s) => n + s.content.filter(i => i.t === 'ai').length, 0);
-
-  const richest = completed.reduce((a, b) =>
-    a.content.filter(i => i.t === 'p').length >= b.content.filter(i => i.t === 'p').length ? a : b
-  );
-  const mostImgs = completed.reduce((a, b) =>
-    a.content.filter(i => i.t === 'img').length >= b.content.filter(i => i.t === 'img').length ? a : b
-  );
-
-  // 角色出場次數（含玩家名＋角色名）
-  const charDefs = [
-    { label: '游尚傑（影心）',   terms: ['游尚傑', '影心', '依列蒙'] },
-    { label: '林昱宇（阿斯代倫）', terms: ['林昱宇', '阿斯代倫', '阿斯'] },
-    { label: '曹祐誠',           terms: ['曹祐誠', '曹'] },
-    { label: '丁丁（卡拉克）',   terms: ['丁丁', '卡拉克'] },
-    { label: '昱如（貓咕咕）',   terms: ['昱如', '貓咕咕'] },
-  ];
-  const allText = sessions
-    .flatMap(s => s.content.filter(i => i.t !== 'img').map(i => i.v))
-    .join(' ');
-
-  const charMentions = charDefs.map(c => {
-    let count = 0;
-    c.terms.forEach(term => {
-      let pos = 0;
-      while ((pos = allText.indexOf(term, pos)) !== -1) { count++; pos += term.length; }
-    });
-    return { label: c.label, count };
-  }).sort((a, b) => b.count - a.count);
-
-  return {
-    completedCount: completed.length,
-    totalCount: sessions.length,
-    placeholders: sessions.filter(s => s.placeholder).length,
-    weeks, totalImgs, totalParas, totalAI,
-    richest, mostImgs, charMentions,
-    firstDisplay: first.dateDisplay,
-    lastDisplay:  last.dateDisplay,
-  };
+  return { count: completed.length, weeks };
 }
 
 function renderStats() {
   const inner = document.getElementById('stats-inner');
-  const s = computeStats();
-  if (!s) { inner.innerHTML = '<p class="empty-note">尚無資料</p>'; return; }
+  const base  = computeBaseStats();
+  if (!base) { inner.innerHTML = '<p class="empty-note">尚無資料</p>'; return; }
 
-  const maxMentions = Math.max(...s.charMentions.map(c => c.count), 1);
+  const chars = charStats.characters || [];
+
+  // 死亡卡（依死亡次數降序）
+  const byDeaths = chars.slice().sort((a, b) => b.deaths - a.deaths);
+  const maxDeaths = Math.max(...byDeaths.map(c => c.deaths), 1);
+
+  const deathCards = byDeaths.map(c => {
+    const intensity = c.deaths === 0 ? '' : c.deaths === maxDeaths ? ' dc-max' : c.deaths >= maxDeaths * 0.6 ? ' dc-high' : '';
+    return `
+      <div class="death-card${intensity}">
+        <div class="dc-name-wrap">
+          <span class="dc-char">${esc(c.char)}</span>
+          <span class="dc-player">${esc(c.player)}</span>
+        </div>
+        <div class="dc-skull">☠</div>
+        <div class="dc-count">${c.deaths}</div>
+        <div class="dc-unit">次陣亡</div>
+      </div>`;
+  }).join('');
+
+  // 決鬥排行（依勝率排序）
+  const withDuels = chars.filter(c => (c.duels.wins + c.duels.losses) > 0)
+    .slice().sort((a, b) => {
+      const ra = a.duels.wins / (a.duels.wins + a.duels.losses);
+      const rb = b.duels.wins / (b.duels.wins + b.duels.losses);
+      return rb - ra || b.duels.wins - a.duels.wins;
+    });
+
+  const duelRows = withDuels.map((c, rank) => {
+    const total = c.duels.wins + c.duels.losses;
+    const pct   = total ? Math.round(c.duels.wins / total * 100) : 0;
+    const medal = rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : '';
+    return `
+      <div class="duel-row">
+        <div class="dr-rank">${medal || (rank + 1)}</div>
+        <div class="dr-name">
+          <span class="dr-char">${esc(c.char)}</span>
+          <span class="dr-player">${esc(c.player)}</span>
+        </div>
+        <div class="dr-record">
+          <span class="dr-w">${c.duels.wins}勝</span>
+          <span class="dr-l">${c.duels.losses}敗</span>
+        </div>
+        <div class="dr-bar-wrap">
+          <div class="dr-bar" style="width:${pct}%"></div>
+        </div>
+        <div class="dr-pct">${pct}%</div>
+      </div>`;
+  }).join('');
 
   inner.innerHTML = `
     <div class="sub-header">
       <div class="sub-rule"><span class="rule-line"></span><span class="sub-title">冒 險 統 計</span><span class="rule-line"></span></div>
     </div>
 
-    <div class="stat-grid">
-      <div class="stat-card">
-        <div class="stat-num">${s.completedCount}</div>
-        <div class="stat-label">已記錄集數</div>
+    <div class="hero-stats-row">
+      <div class="hero-stat">
+        <div class="hero-icon">⚔</div>
+        <div class="hero-num">${base.count}</div>
+        <div class="hero-label">場冒險</div>
       </div>
-      <div class="stat-card">
-        <div class="stat-num">${s.weeks}</div>
-        <div class="stat-label">冒險週數</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num">${s.totalImgs}</div>
-        <div class="stat-label">珍貴插圖</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-num">${s.totalParas}</div>
-        <div class="stat-label">故事段落</div>
+      <div class="hero-sep">✦</div>
+      <div class="hero-stat">
+        <div class="hero-icon">🧭</div>
+        <div class="hero-num">${base.weeks}</div>
+        <div class="hero-label">冒險週數</div>
       </div>
     </div>
 
     <div class="stats-section">
-      <div class="stats-section-title">角色出場次數</div>
-      ${s.charMentions.map(c => `
-        <div class="char-row">
-          <div class="char-name">${c.label}</div>
-          <div class="char-bar-wrap">
-            <div class="char-bar" style="width:${Math.round(c.count / maxMentions * 100)}%"></div>
-          </div>
-          <div class="char-count">${c.count}</div>
-        </div>`).join('')}
+      <div class="stats-section-title">各角色死亡次數</div>
+      <div class="death-grid">${deathCards}</div>
     </div>
 
+    ${duelRows ? `
     <div class="stats-section">
-      <div class="stats-section-title">集數亮點</div>
-      <div class="hl-grid">
-        <div class="hl-card" onclick="loadSession(${s.richest.id})">
-          <div class="hl-badge">文字最豐富</div>
-          <div class="hl-chapter">${s.richest.chapter}</div>
-          <div class="hl-title">${esc(s.richest.title)}</div>
-          <div class="hl-link">閱讀本集 →</div>
-        </div>
-        <div class="hl-card" onclick="loadSession(${s.mostImgs.id})">
-          <div class="hl-badge">插圖最多</div>
-          <div class="hl-chapter">${s.mostImgs.chapter}</div>
-          <div class="hl-title">${esc(s.mostImgs.title)}</div>
-          <div class="hl-detail">${s.mostImgs.content.filter(i => i.t === 'img').length} 張插圖</div>
-          <div class="hl-link">閱讀本集 →</div>
-        </div>
-        ${s.totalAI > 0 ? `
-        <div class="hl-card no-click">
-          <div class="hl-badge">AI 點評</div>
-          <div class="hl-chapter" style="font-size:2rem">${s.totalAI}</div>
-          <div class="hl-title">則 AI 點評</div>
-        </div>` : ''}
-      </div>
-    </div>
-
-    <div class="stats-footer">
-      ${s.firstDisplay} ── ${s.lastDisplay}
-    </div>`;
+      <div class="stats-section-title">決鬥戰績排行</div>
+      <div class="duel-board">${duelRows}</div>
+      <p class="duel-note">* 僅計 PvP 決鬥；資料維護於 data/character-stats.json</p>
+    </div>` : ''}`;
 }
 
 // ══════════════════════════════════════════════════════════
