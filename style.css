@@ -1659,6 +1659,254 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   letter-spacing: 0.3px;
 }
 
+/* ══════════════════════════════════════════════════════════
+   靠北統計
+   ══════════════════════════════════════════════════════════ */
+.roast-meta {
+  font-size: 13px;
+  color: rgba(217,176,122,0.60);
+  margin-bottom: 20px;
+  letter-spacing: 0.4px;
+}
+
+.roast-meta strong {
+  color: var(--gold-bright);
+  font-size: 15px;
+}
+
+.roast-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 8px;
+}
+
+.roast-col-title {
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  color: rgba(217,176,122,0.55);
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+/* ── 被靠北 bar rows ─────────────────────────────────────  */
+.rb-board { display: flex; flex-direction: column; gap: 10px; }
+
+.rb-row {
+  display: grid;
+  grid-template-columns: 36px 1fr 48px;
+  align-items: center;
+  gap: 10px;
+}
+
+.rb-row.rb-crown .rb-count {
+  color: #e8c060;
+}
+
+.rb-avatar {
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: 2px solid rgba(217,176,122,0.25);
+  overflow: hidden;
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+.rb-avatar img {
+  width: 100%; height: 100%; object-fit: cover;
+  position: absolute; inset: 0;
+}
+
+.rb-avatar .av-initial {
+  font-size: 13px;
+  position: relative; z-index: 1;
+}
+
+.rb-info { display: flex; flex-direction: column; gap: 5px; }
+
+.rb-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gold-bright);
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.rb-player {
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(217,176,122,0.50);
+}
+
+.rb-bar-track {
+  height: 6px;
+  background: rgba(139,90,40,0.12);
+  border: 1px solid rgba(139,90,40,0.16);
+  overflow: hidden;
+}
+
+.rb-bar-fill {
+  height: 100%;
+  background: linear-gradient(to right, #7a1515, #c94040);
+  transition: width 0.6s ease;
+}
+
+.rb-count {
+  font-family: 'Cinzel', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: #c47c7c;
+  text-align: right;
+  line-height: 1;
+}
+
+.rb-unit { font-size: 11px; margin-left: 2px; color: rgba(217,176,122,0.40); font-family: inherit; }
+
+/* ── 主動靠北 rows ──────────────────────────────────────── */
+.ib-board { display: flex; flex-direction: column; gap: 10px; }
+
+.ib-row {
+  display: grid;
+  grid-template-columns: 22px 32px 1fr 80px 32px;
+  align-items: center;
+  gap: 8px;
+}
+
+.ib-rank {
+  font-size: 13px;
+  color: rgba(217,176,122,0.45);
+  text-align: center;
+}
+
+.ib-avatar {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 2px solid rgba(217,176,122,0.20);
+  overflow: hidden;
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+}
+
+.ib-avatar img {
+  width: 100%; height: 100%; object-fit: cover;
+  position: absolute; inset: 0;
+}
+
+.ib-avatar .av-initial { font-size: 11px; position: relative; z-index: 1; }
+
+.ib-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gold-bright);
+}
+
+.ib-bar-track {
+  height: 5px;
+  background: rgba(139,90,40,0.12);
+  border: 1px solid rgba(139,90,40,0.16);
+  overflow: hidden;
+}
+
+.ib-bar-fill {
+  height: 100%;
+  background: linear-gradient(to right, #1a4080, #4080c0);
+  transition: width 0.6s ease;
+}
+
+.ib-count {
+  font-size: 14px;
+  font-weight: 700;
+  color: #7c9cc4;
+  text-align: right;
+}
+
+/* ── 靠北熱力圖 ─────────────────────────────────────────── */
+.heat-wrap { overflow-x: auto; margin-top: 8px; }
+
+.roast-heat {
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 280px;
+}
+
+.rh-corner, .rh-hdr, .rh-row-hdr {
+  padding: 6px 10px;
+  font-size: 12px;
+  color: rgba(217,176,122,0.55);
+  font-weight: 600;
+  border-bottom: 1px solid rgba(139,90,40,0.20);
+}
+
+.rh-hdr { text-align: center; border-right: 1px solid rgba(139,90,40,0.12); }
+.rh-row-hdr { border-right: 1px solid rgba(139,90,40,0.20); white-space: nowrap; }
+
+.rh-cell {
+  text-align: center;
+  padding: 8px 10px;
+  border-right: 1px solid rgba(139,90,40,0.10);
+  border-bottom: 1px solid rgba(139,90,40,0.10);
+  font-weight: 600;
+  font-size: 14px;
+  background: rgba(122,21,21, calc(var(--ri, 0) * 0.0055));
+  color: rgba(217,176,122, calc(0.45 + var(--ri, 0) * 0.0055));
+  cursor: default;
+}
+
+.rh-self {
+  background: rgba(0,0,0,0.20);
+  border-right: 1px solid rgba(139,90,40,0.10);
+  border-bottom: 1px solid rgba(139,90,40,0.10);
+}
+
+.heat-legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 11px;
+  color: rgba(217,176,122,0.40);
+}
+
+.hl-grad {
+  width: 80px;
+  height: 6px;
+  background: linear-gradient(to right, rgba(139,90,40,0.10), rgba(122,21,21,0.55));
+  border: 1px solid rgba(139,90,40,0.16);
+}
+
+/* ── 集數精華 ────────────────────────────────────────────  */
+.highlights-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.hl-item {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 8px 12px;
+  background: rgba(0,0,0,0.18);
+  border-left: 2px solid rgba(122,21,21,0.40);
+  font-size: 13px;
+}
+
+.hl-ep {
+  flex-shrink: 0;
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gold-dim);
+  min-width: 24px;
+}
+
+.hl-desc { color: rgba(217,176,122,0.75); line-height: 1.5; }
+
 /* ── 響應式補充 ────────────────────────────────────────── */
 @media (max-width: 720px) {
   .content-scroll { padding: 30px 22px 64px; }
@@ -1673,4 +1921,6 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   .char-avatar { width: 34px; height: 34px; }
   .av-initial { font-size: 13px; }
   .char-quote { font-size: 14px; padding: 6px 10px; }
+  .roast-columns { grid-template-columns: 1fr; }
+  .ib-row { grid-template-columns: 22px 30px 1fr 60px 28px; }
 }

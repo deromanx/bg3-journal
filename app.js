@@ -7,6 +7,7 @@ let sessions      = [];
 let milestones    = [];
 let awards        = {};
 let charStats     = { characters: [] };
+let roastStats    = { matrix: [], highlights: [] };
 let currentId     = null;
 let currentView   = 'journal';
 
@@ -16,12 +17,14 @@ Promise.all([
   fetch('data/milestones.json').then(r => r.json()).catch(() => []),
   fetch('data/awards.json').then(r => r.json()).catch(() => ({})),
   fetch('data/character-stats.json').then(r => r.json()).catch(() => ({ characters: [] })),
+  fetch('data/roast-stats.json').then(r => r.json()).catch(() => ({ matrix: [], highlights: [] })),
 ])
-.then(([sessionsData, milestonesData, awardsData, charStatsData]) => {
+.then(([sessionsData, milestonesData, awardsData, charStatsData, roastData]) => {
   sessions   = sessionsData;
   milestones = milestonesData;
   awards     = awardsData;
   charStats  = charStatsData;
+  roastStats = roastData;
   renderSidebar();
   const first = sessions.slice().reverse().find(s => !s.placeholder)
                 || sessions[sessions.length - 1];
@@ -315,7 +318,127 @@ function renderStats() {
       <div class="duel-board">${duelRows}</div>
     </div>` : ''}
 
-    ${matchupGrid}`;
+    ${matchupGrid}
+
+    ${renderRoastSection()}`;
+}
+
+// ══════════════════════════════════════════════════════════
+// 靠北統計區塊
+// ══════════════════════════════════════════════════════════
+function renderRoastSection() {
+  if (!roastStats.matrix?.length) return '';
+  const chars = charStats.characters || [];
+  const charNames = chars.map(c => c.char);
+
+  // 計算每人被靠北 & 主動靠北總數
+  const received  = {};
+  const initiated = {};
+  charNames.forEach(n => { received[n] = 0; initiated[n] = 0; });
+  roastStats.matrix.forEach(r => {
+    if (initiated[r.from] !== undefined) initiated[r.from] += r.count;
+    if (received[r.to]   !== undefined) received[r.to]   += r.count;
+  });
+
+  // 按被靠北排序
+  const byReceived = charNames.slice().sort((a, b) => received[b] - received[a]);
+  const maxReceived = Math.max(...byReceived.map(n => received[n]), 1);
+  const maxInit     = Math.max(...charNames.map(n => initiated[n]), 1);
+
+  // 被靠北 bar chart rows
+  const receivedRows = byReceived.map((name, i) => {
+    const c = chars.find(x => x.char === name);
+    const pct = Math.round(received[name] / maxReceived * 100);
+    const crown = i === 0 ? ' rb-crown' : '';
+    return `
+      <div class="rb-row${crown}">
+        <div class="rb-avatar av-${name}">
+          <img src="data/images/avatars/${encodeURIComponent(name)}.jpg" alt="" onerror="this.style.display='none'">
+          <span class="av-initial">${esc(name[0])}</span>
+        </div>
+        <div class="rb-info">
+          <div class="rb-name">${esc(name)}<span class="rb-player">${esc(c?.player || '')}</span></div>
+          <div class="rb-bar-track">
+            <div class="rb-bar-fill" style="width:${pct}%"></div>
+          </div>
+        </div>
+        <div class="rb-count">${received[name]}<span class="rb-unit">次</span></div>
+      </div>`;
+  }).join('');
+
+  // 主動靠北排序 & mini badges
+  const byInit = charNames.slice().sort((a, b) => initiated[b] - initiated[a]);
+  const initBadges = byInit.map((name, i) => {
+    const pct = Math.round(initiated[name] / maxInit * 100);
+    return `
+      <div class="ib-row">
+        <div class="ib-rank">${i + 1}</div>
+        <div class="ib-avatar av-${name}">
+          <img src="data/images/avatars/${encodeURIComponent(name)}.jpg" alt="" onerror="this.style.display='none'">
+          <span class="av-initial">${esc(name[0])}</span>
+        </div>
+        <div class="ib-name">${esc(name)}</div>
+        <div class="ib-bar-track"><div class="ib-bar-fill" style="width:${pct}%"></div></div>
+        <div class="ib-count">${initiated[name]}</div>
+      </div>`;
+  }).join('');
+
+  // 靠北熱力矩陣（5×5）
+  const roastMap = {};
+  charNames.forEach(a => { roastMap[a] = {}; charNames.forEach(b => { roastMap[a][b] = 0; }); });
+  roastStats.matrix.forEach(r => { if (roastMap[r.from]?.[r.to] !== undefined) roastMap[r.from][r.to] = r.count; });
+  const maxCell = Math.max(...roastStats.matrix.map(r => r.count), 1);
+
+  const heatHeaders = charNames.map(n => `<th class="rh-hdr">${esc(n[0])}</th>`).join('');
+  const heatRows = charNames.map(rowN => {
+    const cells = charNames.map(colN => {
+      if (rowN === colN) return `<td class="rh-self"></td>`;
+      const v = roastMap[rowN][colN];
+      const intensity = Math.round(v / maxCell * 100);
+      return `<td class="rh-cell" style="--ri:${intensity}" title="${esc(rowN)}→${esc(colN)}: ${v}次">${v}</td>`;
+    }).join('');
+    return `<tr><th class="rh-row-hdr">${esc(rowN[0])}</th>${cells}</tr>`;
+  }).join('');
+
+  // 集數精華
+  const highlights = (roastStats.highlights || []).map(h => `
+    <div class="hl-item">
+      <span class="hl-ep">S${h.session}</span>
+      <span class="hl-desc">${esc(h.desc)}</span>
+    </div>`).join('');
+
+  return `
+    <div class="stats-section">
+      <div class="stats-section-title">互相靠北排行</div>
+      <div class="roast-meta">全 18 集共計 <strong>${roastStats.total || 0}</strong> 次記錄在案的靠北事件</div>
+
+      <div class="roast-columns">
+        <div class="roast-col">
+          <div class="roast-col-title">☠ 被靠北次數</div>
+          <div class="rb-board">${receivedRows}</div>
+        </div>
+        <div class="roast-col">
+          <div class="roast-col-title">💀 主動靠北次數</div>
+          <div class="ib-board">${initBadges}</div>
+        </div>
+      </div>
+
+      <div class="roast-col-title" style="margin-top:24px">🔥 靠北熱力圖（列 = 靠北者，欄 = 受害者）</div>
+      <div class="heat-wrap">
+        <table class="roast-heat">
+          <thead><tr><th class="rh-corner"></th>${heatHeaders}</tr></thead>
+          <tbody>${heatRows}</tbody>
+        </table>
+        <div class="heat-legend">
+          <span class="hl-lo">少</span>
+          <div class="hl-grad"></div>
+          <span class="hl-hi">多</span>
+        </div>
+      </div>
+
+      <div class="roast-col-title" style="margin-top:24px">📜 各集代表性靠北事件</div>
+      <div class="highlights-list">${highlights}</div>
+    </div>`;
 }
 
 // ══════════════════════════════════════════════════════════
