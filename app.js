@@ -1,5 +1,5 @@
 /* ============================================================
-   BG3 冒險日誌 v2 — 前端邏輯
+   BG3 冒險日誌 v3 — 前端邏輯
    sessions.json 格式：content 為結構化 item 陣列
    ============================================================ */
 
@@ -12,7 +12,9 @@ fetch('data/sessions.json')
   .then(data => {
     sessions = data;
     renderSidebar();
-    const first = sessions.find(s => !s.placeholder) || sessions[0];
+    // 預設載入最新的非占位集數
+    const first = sessions.slice().reverse().find(s => !s.placeholder)
+                  || sessions[sessions.length - 1];
     if (first) loadSession(first.id);
   })
   .catch(() => {
@@ -22,10 +24,10 @@ fetch('data/sessions.json')
       '<small>請執行 python3 extract.py<br>再用 HTTP 伺服器開啟</small></li>';
   });
 
-// ── 側欄 ──────────────────────────────────────────────────
+// ── 側欄（最新集在最上方）──────────────────────────────────
 function renderSidebar() {
   const list = document.getElementById('session-list');
-  list.innerHTML = sessions.map(s => {
+  list.innerHTML = sessions.slice().reverse().map(s => {
     const imgCount = s.content?.filter(i => i.t === 'img').length ?? 0;
     const imgLabel = imgCount > 0 ? `<div class="item-imgs">📷 ${imgCount} 張</div>` : '';
     return `
@@ -54,7 +56,6 @@ function loadSession(id) {
 
   document.getElementById('welcome').classList.add('hidden');
   const view = document.getElementById('session-view');
-  // 重新觸發動畫：先隱藏再顯示
   view.classList.add('hidden');
   requestAnimationFrame(() => {
     view.classList.remove('hidden');
@@ -112,7 +113,7 @@ function toggleSidebar() {
 function renderContent(items) {
   if (!items?.length) return '<p style="text-align:center;opacity:.4">尚無內容</p>';
 
-  return items.map(item => {
+  return items.map((item, i) => {
     switch (item.t) {
       case 'img':
         return `<figure class="session-img">
@@ -120,7 +121,11 @@ function renderContent(items) {
         </figure>`;
 
       case 'h1':
-        return `<h2 class="section-h1">${renderInline(item.v)}</h2>`;
+        // 在第一個 h1 之前不插入分隔符；其後每個插入裝飾奇幻飾條
+        const ornament = i > 0
+          ? `<div class="section-ornament"><span>◆</span></div>`
+          : '';
+        return `${ornament}<h2 class="section-h1">${renderInline(item.v)}</h2>`;
 
       case 'h2':
         return `<h3 class="section-h2">${renderInline(item.v)}</h3>`;
@@ -138,7 +143,6 @@ function renderContent(items) {
 // ── 行內格式 ──────────────────────────────────────────────
 function renderInline(text) {
   let s = esc(text);
-  // 「...」→ 藍色斜體
   s = s.replace(/「([^」]*)」/g, '<span class="dialogue">「$1」</span>');
   return s;
 }

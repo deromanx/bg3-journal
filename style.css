@@ -1,6 +1,7 @@
 /* ============================================================
-   BG3 冒險日誌 v3 — 黑域金飾版
-   色調參考 baldursgate3.game：純黑 × 暖銅金 × 羊皮閱讀區
+   BG3 冒險日誌 v4 — 奇幻秘典版
+   色調：baldursgate3.game 深黑 × 暖銅金 × 羊皮閱讀區
+   新增：羅盤玫瑰水印、角落框線、奇幻飾條、側欄明度提升
    ============================================================ */
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -8,19 +9,19 @@
 :root {
   --sidebar-w: 292px;
 
-  /* ── 暗域（接近 BG3 官網深黑）*/
+  /* ── 深域黑（接近 BG3 官網）*/
   --bg-dark:    #030201;
-  --bg-sidebar: #060402;
-  --bg-sidebar-active: rgba(193,153,110,0.12);
+  --bg-sidebar: #0e0b08;          /* 略亮，提高文字對比 */
+  --bg-sidebar-active: rgba(201,164,108,0.13);
 
   /* ── 暖銅金（BG3 primary #C19976，accent #FBCEA0）*/
-  --gold:        #c9a46c;
-  --gold-bright: #f0c882;
-  --gold-dim:    rgba(201,164,108,0.45);
-  --gold-faint:  rgba(201,164,108,0.07);
-  --gold-border: rgba(201,164,108,0.2);
+  --gold:        #d4aa72;         /* 提亮，可讀性 ↑ */
+  --gold-bright: #f5cc86;
+  --gold-dim:    rgba(212,170,114,0.5);
+  --gold-faint:  rgba(212,170,114,0.08);
+  --gold-border: rgba(212,170,114,0.22);
 
-  /* ── 羊皮卷（主閱讀區保持溫暖）*/
+  /* ── 羊皮卷 */
   --parchment:     #f5ecd8;
   --parchment-mid: #eadbb8;
   --parchment-dk:  #d9c490;
@@ -64,8 +65,9 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   flex-direction: column;
   overflow: hidden;
   background: var(--bg-sidebar);
+  /* 菱形暗紋 */
   background-image:
-    url("data:image/svg+xml,%3Csvg width='28' height='28' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M14 2L26 14L14 26L2 14Z' fill='none' stroke='rgba(201,164,108,0.038)' stroke-width='0.7'/%3E%3C/svg%3E");
+    url("data:image/svg+xml,%3Csvg width='28' height='28' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M14 2L26 14L14 26L2 14Z' fill='none' stroke='rgba(212,170,114,0.055)' stroke-width='0.8'/%3E%3C/svg%3E");
   border-right: 1px solid var(--gold-border);
   transition: transform var(--ease);
 }
@@ -77,14 +79,16 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   gap: 14px;
   padding: 22px 18px 18px;
   flex-shrink: 0;
+  border-bottom: 1px solid rgba(212,170,114,0.1);
+  background: linear-gradient(180deg, rgba(212,170,114,0.05) 0%, transparent 100%);
 }
 
 .brand-emblem { flex-shrink: 0; }
 
 .brand-title {
   font-weight: 700;
-  font-size: 14px;
-  color: var(--gold);
+  font-size: 14.5px;
+  color: var(--gold-bright);
   letter-spacing: 1px;
   line-height: 1.3;
 }
@@ -103,13 +107,25 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   flex-shrink: 0;
 }
 
-/* ── nav 必須 flex: 1 才能讓 session-list 正確滾動 */
+/* ── nav 撐開使 session-list 可滾動 */
 #sidebar > nav {
   flex: 1;
   min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
+}
+
+/* 滾動提示：底部漸層 */
+#sidebar > nav::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 48px;
+  background: linear-gradient(to top, var(--bg-sidebar) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 2;
 }
 
 /* 場次清單 */
@@ -117,7 +133,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   list-style: none;
   flex: 1;
   overflow-y: auto;
-  padding: 6px 0 12px;
+  padding: 6px 0 48px;
 }
 
 #session-list::-webkit-scrollbar { width: 3px; }
@@ -128,42 +144,45 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   padding: 11px 18px 11px 16px;
   cursor: pointer;
   border-left: 3px solid transparent;
-  border-bottom: 1px solid rgba(201,164,108,0.045);
-  transition: background var(--ease), border-color var(--ease);
+  border-bottom: 1px solid rgba(212,170,114,0.055);
+  transition: background var(--ease), border-color var(--ease), box-shadow var(--ease);
   user-select: none;
 }
 
 .session-item:hover {
   background: var(--gold-faint);
   border-left-color: var(--gold-dim);
+  box-shadow: inset 80px 0 24px -24px rgba(212,170,114,0.04);
 }
 
 .session-item.active {
   background: var(--bg-sidebar-active);
   border-left-color: var(--gold);
-  box-shadow: inset -1px 0 0 rgba(201,164,108,0.15);
+  box-shadow:
+    inset -1px 0 0 rgba(212,170,114,0.15),
+    inset 80px 0 24px -24px rgba(212,170,114,0.07);
 }
 
-/* 章節標籤 — 改用中文字型，Cinzel 不支援漢字 */
+/* ── 章節標籤 */
 .item-chapter {
   font-size: 10px;
   letter-spacing: 1.5px;
-  color: rgba(201,164,108,0.5);
+  color: rgba(212,170,114,0.68);
   margin-bottom: 3px;
 }
 
-.session-item.active .item-chapter { color: rgba(201,164,108,0.75); }
+.session-item.active .item-chapter { color: rgba(212,170,114,0.88); }
 
 .item-date {
   font-size: 11px;
-  color: rgba(201,164,108,0.44);
+  color: rgba(212,170,114,0.60);
   margin-bottom: 5px;
 }
 
 .item-title {
   font-size: 14px;
   font-weight: 500;
-  color: rgba(201,164,108,0.80);
+  color: rgba(212,170,114,0.88);
   line-height: 1.5;
 }
 
@@ -172,7 +191,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .item-imgs {
   font-size: 10.5px;
-  color: rgba(201,164,108,0.38);
+  color: rgba(212,170,114,0.45);
   margin-top: 4px;
 }
 
@@ -182,6 +201,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   text-align: center;
   border-top: 1px solid var(--gold-border);
   flex-shrink: 0;
+  background: linear-gradient(0deg, rgba(212,170,114,0.04) 0%, transparent 100%);
 }
 
 .footer-rune {
@@ -191,17 +211,31 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 /* ══════════════════════════════════════════════════════════
-   主內容區
+   主內容區（羊皮卷 + 奇幻裝飾）
    ══════════════════════════════════════════════════════════ */
 #content {
   flex: 1;
   overflow: hidden;
   position: relative;
+  /* 羊皮卷多層漸層 */
   background:
     radial-gradient(ellipse at 16% 8%,  rgba(235,200,130,0.24) 0%, transparent 48%),
     radial-gradient(ellipse at 84% 90%, rgba(215,175, 90,0.16) 0%, transparent 52%),
     radial-gradient(ellipse at 50% 48%, rgba(252,228,170,0.07) 0%, transparent 68%),
     linear-gradient(168deg, #f8eedd 0%, #f2e4c4 38%, #f6ead2 100%);
+}
+
+/* 羅盤玫瑰水印（極淡，奇幻地圖感） */
+#content::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='520' height='520' viewBox='0 0 520 520'%3E%3C!-- outer rings --%3E%3Ccircle cx='260' cy='260' r='240' fill='none' stroke='rgba(139,90,40,0.07)' stroke-width='1.5'/%3E%3Ccircle cx='260' cy='260' r='200' fill='none' stroke='rgba(139,90,40,0.05)' stroke-width='1'/%3E%3Ccircle cx='260' cy='260' r='140' fill='none' stroke='rgba(139,90,40,0.06)' stroke-width='1'/%3E%3Ccircle cx='260' cy='260' r='80'  fill='none' stroke='rgba(139,90,40,0.07)' stroke-width='1.5'/%3E%3C!-- 8 cardinal lines --%3E%3Cline x1='260' y1='20'  x2='260' y2='500' stroke='rgba(139,90,40,0.05)' stroke-width='1'/%3E%3Cline x1='20'  y1='260' x2='500' y2='260' stroke='rgba(139,90,40,0.05)' stroke-width='1'/%3E%3Cline x1='77'  y1='77'  x2='443' y2='443' stroke='rgba(139,90,40,0.04)' stroke-width='0.8'/%3E%3Cline x1='443' y1='77'  x2='77'  y2='443' stroke='rgba(139,90,40,0.04)' stroke-width='0.8'/%3E%3C!-- N arrow --%3E%3Cpolygon points='260,22 252,58 260,48 268,58' fill='rgba(139,26,26,0.12)'/%3E%3C!-- S,E,W arrows --%3E%3Cpolygon points='260,498 252,462 260,472 268,462' fill='rgba(139,90,40,0.08)'/%3E%3Cpolygon points='498,260 462,252 472,260 462,268' fill='rgba(139,90,40,0.08)'/%3E%3Cpolygon points='22,260  58,252  48,260  58,268'  fill='rgba(139,90,40,0.08)'/%3E%3C!-- center cross --%3E%3Ccircle cx='260' cy='260' r='10' fill='none' stroke='rgba(139,90,40,0.12)' stroke-width='1.5'/%3E%3Cline x1='255' y1='260' x2='265' y2='260' stroke='rgba(139,90,40,0.15)' stroke-width='1.5'/%3E%3Cline x1='260' y1='255' x2='260' y2='265' stroke='rgba(139,90,40,0.15)' stroke-width='1.5'/%3E%3C!-- tick marks --%3E%3Ccircle cx='260' cy='62'  r='3' fill='rgba(139,90,40,0.10)'/%3E%3Ccircle cx='260' cy='458' r='3' fill='rgba(139,90,40,0.08)'/%3E%3Ccircle cx='62'  cy='260' r='3' fill='rgba(139,90,40,0.08)'/%3E%3Ccircle cx='458' cy='260' r='3' fill='rgba(139,90,40,0.08)'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 480px 480px;
+  pointer-events: none;
+  z-index: 0;
 }
 
 /* 閱讀進度條 */
@@ -216,25 +250,60 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   pointer-events: none;
 }
 
-/* 裝飾框線（四角 ✦） */
+/* ── 裝飾框線 + 角落 L 型括弧 */
 .content-frame {
   position: absolute;
-  inset: 14px;
+  inset: 18px;
   pointer-events: none;
   z-index: 5;
   border: 1px solid rgba(139,90,40,0.13);
 }
 
+/* 內層虛線框（雙層邊框效果） */
+.content-frame::before {
+  content: '';
+  position: absolute;
+  inset: 6px;
+  border: 1px solid rgba(139,90,40,0.06);
+  pointer-events: none;
+}
+
+/* 角落 ✦ */
 .corner {
   position: absolute;
-  font-size: 11px;
-  color: rgba(139,90,40,0.3);
+  font-size: 13px;
+  color: rgba(139,90,40,0.45);
   line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
 }
-.corner-tl { top: -8px;  left: -8px; }
-.corner-tr { top: -8px;  right: -8px; }
-.corner-bl { bottom: -8px; left: -8px; }
-.corner-br { bottom: -8px; right: -8px; }
+
+/* 角落 L 型線條 */
+.corner::before,
+.corner::after {
+  content: '';
+  position: absolute;
+  background: rgba(139,90,40,0.35);
+}
+
+.corner-tl { top: -11px; left: -11px; }
+.corner-tl::before { top: 0; left: 11px; width: 20px; height: 1px; }
+.corner-tl::after  { top: 11px; left: 0; width: 1px; height: 20px; }
+
+.corner-tr { top: -11px; right: -11px; }
+.corner-tr::before { top: 0; right: 11px; width: 20px; height: 1px; }
+.corner-tr::after  { top: 11px; right: 0; width: 1px; height: 20px; }
+
+.corner-bl { bottom: -11px; left: -11px; }
+.corner-bl::before { bottom: 0; left: 11px; width: 20px; height: 1px; }
+.corner-bl::after  { bottom: 11px; left: 0; width: 1px; height: 20px; }
+
+.corner-br { bottom: -11px; right: -11px; }
+.corner-br::before { bottom: 0; right: 11px; width: 20px; height: 1px; }
+.corner-br::after  { bottom: 11px; right: 0; width: 1px; height: 20px; }
 
 /* ── 歡迎畫面 ──────────────────────────────────────────── */
 #welcome {
@@ -357,7 +426,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   font-style: italic;
 }
 
-/* ⚜ 橫線裝飾 */
+/* ⚜ 標頭橫線裝飾 */
 .header-rule {
   display: flex;
   align-items: center;
@@ -391,8 +460,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   text-justify: inter-ideograph;
 }
 
-/* ── 首字放大（Drop Cap）
-   套用：session 開頭第一段（不論前面有無圖片）、每個 section-h1 後的第一段 */
+/* ── Drop Cap：首段首字放大 */
 #session-body > p:first-of-type::first-letter,
 #session-body h2.section-h1 + p::first-letter {
   float: left;
@@ -406,7 +474,31 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   opacity: 0.75;
 }
 
-/* ── 主節標題（h1 → 居中雙線）*/
+/* ── 奇幻飾條（各大節之間） */
+.section-ornament {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 52px 0 -30px;
+  color: rgba(139,90,40,0.28);
+  clear: both;
+}
+
+.section-ornament::before,
+.section-ornament::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(139,90,40,0.18), transparent);
+}
+
+.section-ornament span {
+  font-size: 9px;
+  letter-spacing: 8px;
+  padding: 0 2px;
+}
+
+/* ── 主節標題（居中雙線，Cinzel 大寫） */
 #session-body h2.section-h1 {
   font-family: 'Cinzel', serif;
   font-weight: 600;
@@ -419,7 +511,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   display: flex;
   align-items: center;
   gap: 18px;
-  clear: both;  /* 清除前一個 drop cap 的 float */
+  clear: both;
 }
 
 #session-body h2.section-h1::before,
@@ -430,7 +522,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   background: linear-gradient(to right, transparent, rgba(139,26,26,0.32), transparent);
 }
 
-/* ── 小節標題（h2 → 左金線） */
+/* ── 小節標題（左側金線） */
 #session-body h3.section-h2 {
   font-weight: 700;
   font-size: 16px;
@@ -445,8 +537,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 /* ── AI 點評 */
 .ai-note {
-  position: relative;
-  background: linear-gradient(135deg, rgba(62,31,92,0.07), rgba(62,31,92,0.04));
+  background: linear-gradient(135deg, rgba(62,31,92,0.08), rgba(62,31,92,0.04));
   border-left: 3px solid var(--purple-ink);
   border-top: 1px solid rgba(62,31,92,0.1);
   border-bottom: 1px solid rgba(62,31,92,0.1);
@@ -460,12 +551,12 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .ai-note::before {
-  content: '✦ AI 觀點';
+  content: '✦  AI 觀點';
   display: block;
   font-family: 'Cinzel', serif;
-  font-size: 9.5px;
+  font-size: 9px;
   font-style: normal;
-  letter-spacing: 2px;
+  letter-spacing: 2.5px;
   color: rgba(62,31,92,0.45);
   margin-bottom: 10px;
 }
@@ -476,7 +567,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   font-style: italic;
 }
 
-/* ── 插圖 */
+/* ── 插圖（奇幻雙層相框） */
 .session-img {
   margin: 38px -6px;
   text-align: center;
@@ -514,7 +605,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   opacity: 0.25;
 }
 
-/* BG3 風格：0px 圓角，銳利邊框 */
+/* BG3 風格：0px 圓角銳角邊框 */
 .nav-btn {
   font-family: 'Cinzel', serif;
   font-size: 11px;
