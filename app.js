@@ -28,8 +28,6 @@ fetch('data/sessions.json')
 function renderSidebar() {
   const list = document.getElementById('session-list');
   list.innerHTML = sessions.slice().reverse().map(s => {
-    const imgCount = s.content?.filter(i => i.t === 'img').length ?? 0;
-    const imgLabel = imgCount > 0 ? `<div class="item-imgs">📷 ${imgCount} 張</div>` : '';
     return `
     <li class="session-item${s.placeholder ? ' placeholder' : ''}"
         data-id="${s.id}"
@@ -38,7 +36,6 @@ function renderSidebar() {
       <div class="item-chapter">${esc(s.chapter)}</div>
       <div class="item-date">${s.date?.replace(/-/g, '.') ?? ''}</div>
       <div class="item-title">${esc(s.title)}</div>
-      ${imgLabel}
     </li>`;
   }).join('');
 }
