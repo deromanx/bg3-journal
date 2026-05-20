@@ -16,7 +16,7 @@ Promise.all([
   fetch('data/sessions.json').then(r => r.json()),
   fetch('data/milestones.json').then(r => r.json()).catch(() => []),
   fetch('data/awards.json').then(r => r.json()).catch(() => ({})),
-  fetch('data/character-stats.json').then(r => r.json()).catch(() => ({ characters: [] })),
+  fetch('data/character-stats.json?v=5').then(r => r.json()).catch(() => ({ characters: [] })),
   fetch('data/roast-stats.json').then(r => r.json()).catch(() => ({ matrix: [], highlights: [] })),
 ])
 .then(([sessionsData, milestonesData, awardsData, charStatsData, roastData]) => {
