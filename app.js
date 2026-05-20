@@ -212,7 +212,7 @@ function renderStats() {
       </div>`;
   }).join('');
 
-  // 決鬥排行（依勝率排序）
+  // 決鬥排行（依勝率排序，不含平手場次計算勝率）
   const withDuels = chars.filter(c => (c.duels.wins + c.duels.losses) > 0)
     .slice().sort((a, b) => {
       const ra = a.duels.wins / (a.duels.wins + a.duels.losses);
@@ -221,9 +221,11 @@ function renderStats() {
     });
 
   const duelRows = withDuels.map((c, rank) => {
-    const total = c.duels.wins + c.duels.losses;
-    const pct   = total ? Math.round(c.duels.wins / total * 100) : 0;
-    const medal = rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : '';
+    const draws = c.duels.draws || 0;
+    const decisive = c.duels.wins + c.duels.losses;
+    const total  = decisive + draws;
+    const pct    = decisive ? Math.round(c.duels.wins / decisive * 100) : 0;
+    const medal  = rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : '';
     return `
       <div class="duel-row">
         <div class="dr-rank">${medal || (rank + 1)}</div>
@@ -234,6 +236,8 @@ function renderStats() {
         <div class="dr-record">
           <span class="dr-w">${c.duels.wins}勝</span>
           <span class="dr-l">${c.duels.losses}敗</span>
+          ${draws > 0 ? `<span class="dr-d">${draws}平</span>` : ''}
+          <span class="dr-total">${total}場</span>
         </div>
         <div class="dr-bar-wrap">
           <div class="dr-bar" style="width:${pct}%"></div>
@@ -241,6 +245,45 @@ function renderStats() {
         <div class="dr-pct">${pct}%</div>
       </div>`;
   }).join('');
+
+  // 對戰矩陣
+  const matchupData = charStats.matchups || [];
+  const mmMap = {};
+  chars.forEach(a => { mmMap[a.char] = {}; chars.forEach(b => { mmMap[a.char][b.char] = null; }); });
+  matchupData.forEach(m => {
+    const [ca, cb] = m.chars;
+    const [wa, wb] = m.wins;
+    const d = m.draws || 0;
+    mmMap[ca][cb] = { w: wa, l: wb, d };
+    mmMap[cb][ca] = { w: wb, l: wa, d };
+  });
+
+  const mmHeaders = chars.map(c => `<th class="mm-hdr"><span class="mm-hchar">${esc(c.char)}</span></th>`).join('');
+  const mmRows = chars.map(rowC => {
+    const cells = chars.map(colC => {
+      if (rowC.char === colC.char) return `<td class="mm-self"></td>`;
+      const rec = mmMap[rowC.char]?.[colC.char];
+      if (!rec) return `<td class="mm-empty">—</td>`;
+      const cls = rec.w > rec.l ? 'mm-win' : rec.l > rec.w ? 'mm-lose' : 'mm-even';
+      return `<td class="mm-cell ${cls}">
+        <span class="mm-w">${rec.w}</span><span class="mm-sep">/</span><span class="mm-l">${rec.l}</span>${rec.d > 0 ? `<span class="mm-d"> ${rec.d}平</span>` : ''}
+      </td>`;
+    }).join('');
+    return `<tr><th class="mm-row-hdr"><span class="mm-rchar">${esc(rowC.char)}</span><span class="mm-rplayer">${esc(rowC.player)}</span></th>${cells}</tr>`;
+  }).join('');
+
+  const matchupGrid = matchupData.length ? `
+    <div class="stats-section">
+      <div class="stats-section-title">對戰組合戰績</div>
+      <div class="matchup-note-row">↓ 列 = 攻方視角 &nbsp;·&nbsp; 格內：<span class="mm-w-ex">勝</span> / <span class="mm-l-ex">敗</span></div>
+      <div class="matchup-wrap">
+        <table class="matchup-matrix">
+          <thead><tr><th class="mm-corner">vs</th>${mmHeaders}</tr></thead>
+          <tbody>${mmRows}</tbody>
+        </table>
+      </div>
+      <p class="duel-note">* 源自日誌表格記錄；部分場次數據可能略有出入</p>
+    </div>` : '';
 
   inner.innerHTML = `
     <div class="sub-header">
@@ -270,8 +313,9 @@ function renderStats() {
     <div class="stats-section">
       <div class="stats-section-title">決鬥戰績排行</div>
       <div class="duel-board">${duelRows}</div>
-      <p class="duel-note">* 僅計 PvP 決鬥；資料維護於 data/character-stats.json</p>
-    </div>` : ''}`;
+    </div>` : ''}
+
+    ${matchupGrid}`;
 }
 
 // ══════════════════════════════════════════════════════════
@@ -314,6 +358,22 @@ function renderMilestones() {
     </div>`;
 }
 
+// ── 角色別名映射 ─────────────────────────────────────────
+const CHAR_MAP = {
+  '影心': '影心', '游尚傑': '影心',
+  '阿斯代倫': '阿斯代倫', '林昱宇': '阿斯代倫',
+  '曹': '曹', '曹祐誠': '曹',
+  '卡拉克': '卡拉克', '丁丁': '卡拉克',
+  '貓咕咕': '貓咕咕', '昱如': '貓咕咕',
+};
+
+function resolveChar(name) {
+  for (const key of Object.keys(CHAR_MAP)) {
+    if (name.includes(key)) return CHAR_MAP[key];
+  }
+  return null;
+}
+
 // ── 結構化內容渲染 ────────────────────────────────────────
 function renderContent(items) {
   if (!items?.length) return '<p style="text-align:center;opacity:.4">尚無內容</p>';
@@ -339,8 +399,26 @@ function renderContent(items) {
         return `<div class="ai-note">${renderInline(item.v)}</div>`;
 
       case 'p':
-      default:
+      default: {
+        // Detect character quote: 「...」——角色名
+        const qm = item.v.match(/^「([\s\S]+?)」[—\-]{1,2}(.{1,12})$/);
+        if (qm) {
+          const speaker = resolveChar(qm[2].trim());
+          if (speaker) {
+            return `<div class="quote-wrap">
+              <div class="char-avatar av-${speaker}" aria-label="${esc(speaker)}">
+                <img src="data/images/avatars/${encodeURIComponent(speaker)}.jpg" alt="" loading="lazy" onerror="this.style.display='none'">
+                <span class="av-initial">${esc(speaker[0])}</span>
+              </div>
+              <blockquote class="char-quote">
+                「${esc(qm[1])}」
+                <cite class="dq-attr">—— ${esc(qm[2].trim())}</cite>
+              </blockquote>
+            </div>`;
+          }
+        }
         return `<p>${renderInline(item.v)}</p>`;
+      }
     }
   }).join('\n');
 }

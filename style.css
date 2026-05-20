@@ -1345,7 +1345,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .duel-row {
   display: grid;
-  grid-template-columns: 36px 1fr 88px 1fr 44px;
+  grid-template-columns: 36px 1fr 1fr 1fr 50px;
   align-items: center;
   gap: 12px;
   background: var(--ink);
@@ -1391,13 +1391,6 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   color: rgba(217,176,122,0.80);
 }
 
-.dr-record {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-  white-space: nowrap;
-}
-
 .dr-w {
   font-weight: 700;
   font-size: 15px;
@@ -1438,14 +1431,246 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   letter-spacing: 0.3px;
 }
 
+/* ── 決鬥排行：平手 + 場數 ──────────────────────────────── */
+.dr-record {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.dr-d {
+  font-size: 13px;
+  color: rgba(217,176,122,0.55);
+}
+
+.dr-total {
+  font-size: 12px;
+  color: rgba(217,176,122,0.40);
+  margin-left: 2px;
+}
+
+/* ══════════════════════════════════════════════════════════
+   對戰矩陣
+   ══════════════════════════════════════════════════════════ */
+.matchup-note-row {
+  font-size: 12px;
+  color: rgba(217,176,122,0.45);
+  margin-bottom: 12px;
+  letter-spacing: 0.5px;
+}
+
+.mm-w-ex { color: #7cc47c; font-weight: 700; }
+.mm-l-ex { color: #c47c7c; }
+
+.matchup-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -2px;
+}
+
+.matchup-matrix {
+  width: 100%;
+  min-width: 420px;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.mm-corner {
+  font-size: 11px;
+  color: rgba(217,176,122,0.35);
+  padding: 8px 10px;
+  text-align: center;
+  border-bottom: 1px solid rgba(139,90,40,0.22);
+  border-right: 1px solid rgba(139,90,40,0.22);
+}
+
+.mm-hdr {
+  padding: 6px 4px;
+  text-align: center;
+  border-bottom: 1px solid rgba(139,90,40,0.22);
+  border-right: 1px solid rgba(139,90,40,0.10);
+}
+
+.mm-hchar {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gold-bright);
+  display: block;
+}
+
+.mm-row-hdr {
+  padding: 10px 12px;
+  text-align: left;
+  border-right: 1px solid rgba(139,90,40,0.22);
+  border-bottom: 1px solid rgba(139,90,40,0.10);
+  white-space: nowrap;
+}
+
+.mm-rchar {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gold-bright);
+  display: block;
+}
+
+.mm-rplayer {
+  font-size: 11px;
+  color: rgba(217,176,122,0.45);
+  display: block;
+}
+
+.mm-cell {
+  text-align: center;
+  padding: 8px 6px;
+  border-right: 1px solid rgba(139,90,40,0.10);
+  border-bottom: 1px solid rgba(139,90,40,0.10);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.mm-cell.mm-win {
+  background: rgba(80,140,80,0.12);
+}
+
+.mm-cell.mm-lose {
+  background: rgba(140,50,50,0.10);
+}
+
+.mm-cell.mm-even {
+  background: rgba(139,90,40,0.06);
+}
+
+.mm-w {
+  font-weight: 700;
+  font-size: 15px;
+  color: #7cc47c;
+}
+
+.mm-sep {
+  font-size: 12px;
+  color: rgba(217,176,122,0.30);
+  margin: 0 2px;
+}
+
+.mm-l {
+  font-size: 15px;
+  color: #c47c7c;
+}
+
+.mm-d {
+  font-size: 11px;
+  color: rgba(217,176,122,0.45);
+}
+
+.mm-self {
+  background: rgba(0,0,0,0.25);
+  text-align: center;
+  border-right: 1px solid rgba(139,90,40,0.10);
+  border-bottom: 1px solid rgba(139,90,40,0.10);
+}
+
+.mm-empty {
+  text-align: center;
+  color: rgba(217,176,122,0.18);
+  font-size: 14px;
+  border-right: 1px solid rgba(139,90,40,0.10);
+  border-bottom: 1px solid rgba(139,90,40,0.10);
+  padding: 8px 6px;
+}
+
+/* ══════════════════════════════════════════════════════════
+   日誌：角色大頭貼 & 對話引文
+   ══════════════════════════════════════════════════════════ */
+.quote-wrap {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 14px 0;
+  padding: 0;
+}
+
+.char-avatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid rgba(217,176,122,0.35);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.char-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  inset: 0;
+}
+
+.av-initial {
+  font-family: 'Cinzel', serif;
+  font-size: 16px;
+  font-weight: 700;
+  position: relative;
+  z-index: 1;
+  line-height: 1;
+}
+
+.av-影心    { background: #0d1f3c; border-color: #4a80c0; }
+.av-影心 .av-initial { color: #80b4e8; }
+
+.av-阿斯代倫 { background: #221508; border-color: #a07030; }
+.av-阿斯代倫 .av-initial { color: #d4a060; }
+
+.av-曹      { background: #0a1a0c; border-color: #3a7a3c; }
+.av-曹 .av-initial { color: #70b472; }
+
+.av-卡拉克  { background: #1f0808; border-color: #a02020; }
+.av-卡拉克 .av-initial { color: #d46060; }
+
+.av-貓咕咕  { background: #160c28; border-color: #6a3aaa; }
+.av-貓咕咕 .av-initial { color: #a878e0; }
+
+.char-quote {
+  flex: 1;
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--ink-mid);
+  background: var(--parchment);
+  border-left: 3px solid rgba(139,90,40,0.30);
+  padding: 8px 14px;
+  font-style: normal;
+  quotes: none;
+  border-radius: 0 4px 4px 0;
+}
+
+.dq-attr {
+  display: block;
+  font-size: 12px;
+  font-style: normal;
+  color: var(--ink-light);
+  opacity: 0.65;
+  margin-top: 4px;
+  letter-spacing: 0.3px;
+}
+
 /* ── 響應式補充 ────────────────────────────────────────── */
 @media (max-width: 720px) {
   .content-scroll { padding: 30px 22px 64px; }
   .hero-num { font-size: 52px; }
   .death-grid { grid-template-columns: repeat(3, 1fr); }
-  .duel-row { grid-template-columns: 28px 1fr 72px; }
+  .duel-row { grid-template-columns: 28px 1fr auto; }
   .dr-bar-wrap, .dr-pct { display: none; }
+  .dr-total { display: none; }
   .award-body { flex-direction: column; }
   .aw-item { border-right: none; border-bottom: 1px solid rgba(139,90,40,0.10); }
   .aw-item:last-child { border-bottom: none; }
+  .char-avatar { width: 34px; height: 34px; }
+  .av-initial { font-size: 13px; }
+  .char-quote { font-size: 14px; padding: 6px 10px; }
 }
