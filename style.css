@@ -841,7 +841,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .stat-label {
   font-size: 12px;
-  color: rgba(217,176,122,0.75);
+  color: var(--ink-light);
   letter-spacing: 1.5px;
 }
 
@@ -872,7 +872,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   width: 190px;
   flex-shrink: 0;
   font-size: 14px;
-  color: var(--gold);
+  color: var(--ink);
   font-weight: 500;
 }
 
@@ -895,7 +895,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   text-align: right;
   font-size: 13px;
   font-weight: 600;
-  color: var(--gold-bright);
+  color: var(--crimson);
 }
 
 /* ── 亮點卡片 ──────────────────────────────────────────── */
@@ -1425,7 +1425,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .duel-note {
   font-size: 12px;
-  color: rgba(217,176,122,0.55);
+  color: var(--ink-light);
   margin-top: 12px;
   letter-spacing: 0.3px;
 }
@@ -1454,7 +1454,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
    ══════════════════════════════════════════════════════════ */
 .matchup-note-row {
   font-size: 13px;
-  color: rgba(217,176,122,0.70);
+  color: var(--ink-light);
   margin-bottom: 12px;
   letter-spacing: 0.5px;
 }
@@ -1594,13 +1594,13 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
    ══════════════════════════════════════════════════════════ */
 .roast-meta {
   font-size: 13px;
-  color: rgba(217,176,122,0.60);
+  color: var(--ink-light);
   margin-bottom: 20px;
   letter-spacing: 0.4px;
 }
 
 .roast-meta strong {
-  color: var(--gold-bright);
+  color: var(--crimson);
   font-size: 15px;
 }
 
@@ -1614,7 +1614,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .roast-col-title {
   font-size: 12px;
   letter-spacing: 1.5px;
-  color: rgba(217,176,122,0.55);
+  color: var(--ink-mid);
   margin-bottom: 12px;
   text-transform: uppercase;
 }
@@ -1658,7 +1658,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .rb-name {
   font-size: 14px;
   font-weight: 700;
-  color: var(--gold-bright);
+  color: var(--ink);
   display: flex;
   align-items: baseline;
   gap: 6px;
@@ -1667,7 +1667,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .rb-player {
   font-size: 11px;
   font-weight: 400;
-  color: rgba(217,176,122,0.50);
+  color: var(--ink-light);
 }
 
 .rb-bar-track {
@@ -1692,7 +1692,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   line-height: 1;
 }
 
-.rb-unit { font-size: 11px; margin-left: 2px; color: rgba(217,176,122,0.40); font-family: inherit; }
+.rb-unit { font-size: 11px; margin-left: 2px; color: var(--ink-light); font-family: inherit; }
 
 /* ── 主動靠北 rows ──────────────────────────────────────── */
 .ib-board { display: flex; flex-direction: column; gap: 10px; }
@@ -1706,7 +1706,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .ib-rank {
   font-size: 13px;
-  color: rgba(217,176,122,0.45);
+  color: var(--ink-mid);
   text-align: center;
 }
 
@@ -1729,7 +1729,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .ib-name {
   font-size: 13px;
   font-weight: 600;
-  color: var(--gold-bright);
+  color: var(--ink);
 }
 
 .ib-bar-track {
@@ -1764,7 +1764,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .rh-corner, .rh-hdr, .rh-row-hdr {
   padding: 6px 10px;
   font-size: 12px;
-  color: rgba(217,176,122,0.55);
+  color: var(--ink-mid);
   font-weight: 600;
   border-bottom: 1px solid rgba(139,90,40,0.20);
 }
@@ -1796,7 +1796,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   gap: 8px;
   margin-top: 8px;
   font-size: 11px;
-  color: rgba(217,176,122,0.40);
+  color: var(--ink-light);
 }
 
 .hl-grad {
@@ -1821,8 +1821,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   align-items: baseline;
   gap: 10px;
   padding: 8px 12px;
-  background: rgba(0,0,0,0.18);
-  border-left: 2px solid rgba(122,21,21,0.40);
+  background: rgba(0,0,0,0.06);
+  border-left: 2px solid var(--crimson-lt);
   font-size: 13px;
 }
 
@@ -1831,11 +1831,11 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   font-family: 'Cinzel', serif;
   font-size: 11px;
   font-weight: 600;
-  color: var(--gold-dim);
+  color: var(--crimson);
   min-width: 24px;
 }
 
-.hl-desc { color: rgba(217,176,122,0.75); line-height: 1.5; }
+.hl-desc { color: var(--ink-light); line-height: 1.5; }
 
 /* ══════════════════════════════════════════════════════════
    Tooltip 系統
