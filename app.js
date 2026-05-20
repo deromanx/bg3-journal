@@ -154,7 +154,65 @@ function updateProgress() {
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('session-view')
     ?.addEventListener('scroll', updateProgress);
+  initTooltip();
+  initMatrixHover();
 });
+
+// ── Tooltip 系統 ──────────────────────────────────────────
+function initTooltip() {
+  const tip = document.createElement('div');
+  tip.id = 'tooltip';
+  document.body.appendChild(tip);
+  let active = null;
+
+  document.addEventListener('mouseover', e => {
+    const el = e.target.closest('[data-tip]');
+    if (!el || el === active) return;
+    active = el;
+    tip.innerHTML = el.dataset.tip.replace(/\n/g, '<br>');
+    tip.classList.add('visible');
+  });
+  document.addEventListener('mousemove', e => {
+    if (!active) return;
+    const x = e.clientX + 14, y = e.clientY - 8;
+    tip.style.left = Math.min(x, window.innerWidth  - tip.offsetWidth  - 12) + 'px';
+    tip.style.top  = Math.min(y, window.innerHeight - tip.offsetHeight - 12) + 'px';
+  });
+  document.addEventListener('mouseout', e => {
+    if (active && !active.contains(e.relatedTarget)) {
+      active = null; tip.classList.remove('visible');
+    }
+  });
+}
+
+// ── 對戰矩陣 hover 行列高亮 ──────────────────────────────
+function initMatrixHover() {
+  document.addEventListener('mouseover', e => {
+    const cell = e.target.closest('.mm-cell,.mm-empty,.mm-self');
+    if (!cell) return;
+    const tbl = cell.closest('.matchup-matrix');
+    if (!tbl) return;
+    const row = cell.parentElement;
+    const colIdx = Array.from(row.cells).indexOf(cell);
+    tbl.querySelectorAll('.mm-hdr').forEach((th, i) =>
+      th.classList.toggle('mm-col-active', i === colIdx - 1));
+    tbl.querySelectorAll('.mm-row-hdr').forEach(th =>
+      th.classList.toggle('mm-row-active', th.parentElement === row));
+    tbl.querySelectorAll('td').forEach(c => {
+      const ci = Array.from(c.parentElement.cells).indexOf(c);
+      c.classList.toggle('mm-same-row', c.parentElement === row && c !== cell);
+      c.classList.toggle('mm-same-col', ci === colIdx && c !== cell);
+    });
+  });
+  document.addEventListener('mouseout', e => {
+    const cell = e.target.closest('.mm-cell,.mm-empty,.mm-self');
+    if (!cell) return;
+    const tbl = cell.closest('.matchup-matrix');
+    if (!tbl || tbl.contains(e.relatedTarget)) return;
+    tbl.querySelectorAll('.mm-hdr,.mm-row-hdr,td')
+      .forEach(el => el.classList.remove('mm-col-active','mm-row-active','mm-same-row','mm-same-col'));
+  });
+}
 
 // ── 前後集 ────────────────────────────────────────────────
 function navigateSession(delta) {
@@ -203,8 +261,12 @@ function renderStats() {
 
   const deathCards = byDeaths.map(c => {
     const intensity = c.deaths === 0 ? '' : c.deaths === maxDeaths ? ' dc-max' : c.deaths >= maxDeaths * 0.6 ? ' dc-high' : '';
+    const deathTip = c.deaths === 0 ? '尚未陣亡' : (c.death_notes || []).join('\n');
     return `
-      <div class="death-card${intensity}">
+      <div class="death-card${intensity}" data-tip="${esc(deathTip)}">
+        <div class="dc-avatar av-${esc(c.char)}">
+          <img src="data/images/avatars/${esc(c.char)}.jpg" alt="" onerror="this.style.display='none'">
+        </div>
         <div class="dc-name-wrap">
           <span class="dc-char">${esc(c.char)}</span>
           <span class="dc-player">${esc(c.player)}</span>
@@ -229,8 +291,9 @@ function renderStats() {
     const total  = decisive + draws;
     const pct    = decisive ? Math.round(c.duels.wins / decisive * 100) : 0;
     const medal  = rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : '';
+    const duelTip = c.duels.detail || '';
     return `
-      <div class="duel-row">
+      <div class="duel-row" data-tip="${esc(duelTip)}">
         <div class="dr-rank">${medal || (rank + 1)}</div>
         <div class="dr-name">
           <span class="dr-char">${esc(c.char)}</span>
@@ -261,24 +324,43 @@ function renderStats() {
     mmMap[cb][ca] = { w: wb, l: wa, d };
   });
 
-  const mmHeaders = chars.map(c => `<th class="mm-hdr"><span class="mm-hchar">${esc(c.char)}</span></th>`).join('');
+  const mmHeaders = chars.map(c => `
+    <th class="mm-hdr">
+      <div class="mm-hav av-${esc(c.char)}">
+        <img src="data/images/avatars/${esc(c.char)}.jpg" alt="" onerror="this.style.display='none'">
+      </div>
+      <span class="mm-hchar">${esc(c.char)}</span>
+    </th>`).join('');
+
   const mmRows = chars.map(rowC => {
     const cells = chars.map(colC => {
       if (rowC.char === colC.char) return `<td class="mm-self"></td>`;
       const rec = mmMap[rowC.char]?.[colC.char];
-      if (!rec) return `<td class="mm-empty">—</td>`;
+      if (!rec) return `<td class="mm-empty" data-tip="${esc(rowC.char)} vs ${esc(colC.char)}&#10;無正式對戰記錄">—</td>`;
       const cls = rec.w > rec.l ? 'mm-win' : rec.l > rec.w ? 'mm-lose' : 'mm-even';
-      return `<td class="mm-cell ${cls}">
-        <span class="mm-w">${rec.w}</span><span class="mm-sep">/</span><span class="mm-l">${rec.l}</span>${rec.d > 0 ? `<span class="mm-d"> ${rec.d}平</span>` : ''}
+      const decisive = rec.w + rec.l;
+      const pct = decisive ? Math.round(rec.w / decisive * 100) : 0;
+      const tip = `${esc(rowC.char)} vs ${esc(colC.char)}&#10;${rec.w}勝 ${rec.l}敗${rec.d ? ` ${rec.d}平` : ''}&#10;勝率 ${pct}%（勝/決定局）`;
+      return `<td class="mm-cell ${cls}" data-tip="${tip}">
+        <span class="mm-w">${rec.w}</span><span class="mm-sep">/</span><span class="mm-l">${rec.l}</span>${rec.d > 0 ? `<span class="mm-d">${rec.d}平</span>` : ''}
       </td>`;
     }).join('');
-    return `<tr><th class="mm-row-hdr"><span class="mm-rchar">${esc(rowC.char)}</span><span class="mm-rplayer">${esc(rowC.player)}</span></th>${cells}</tr>`;
+    return `<tr>
+      <th class="mm-row-hdr">
+        <div class="mm-rav av-${esc(rowC.char)}">
+          <img src="data/images/avatars/${esc(rowC.char)}.jpg" alt="" onerror="this.style.display='none'">
+        </div>
+        <div class="mm-rnames">
+          <span class="mm-rchar">${esc(rowC.char)}</span>
+          <span class="mm-rplayer">${esc(rowC.player)}</span>
+        </div>
+      </th>${cells}</tr>`;
   }).join('');
 
   const matchupGrid = matchupData.length ? `
     <div class="stats-section">
       <div class="stats-section-title">對戰組合戰績</div>
-      <div class="matchup-note-row">↓ 列 = 攻方視角 &nbsp;·&nbsp; 格內：<span class="mm-w-ex">勝</span> / <span class="mm-l-ex">敗</span></div>
+      <div class="matchup-note-row">↓ 列 = 攻方視角 &nbsp;·&nbsp; 格內：<span class="mm-w-ex">勝</span> / <span class="mm-l-ex">敗</span> &nbsp;·&nbsp; hover 查看詳情</div>
       <div class="matchup-wrap">
         <table class="matchup-matrix">
           <thead><tr><th class="mm-corner">vs</th>${mmHeaders}</tr></thead>
@@ -353,8 +435,7 @@ function renderRoastSection() {
     return `
       <div class="rb-row${crown}">
         <div class="rb-avatar av-${name}">
-          <img src="data/images/avatars/${encodeURIComponent(name)}.jpg" alt="" onerror="this.style.display='none'">
-          <span class="av-initial">${esc(name[0])}</span>
+          <img src="data/images/avatars/${esc(name)}.jpg" alt="" onerror="this.style.display='none'">
         </div>
         <div class="rb-info">
           <div class="rb-name">${esc(name)}<span class="rb-player">${esc(c?.player || '')}</span></div>
@@ -374,8 +455,7 @@ function renderRoastSection() {
       <div class="ib-row">
         <div class="ib-rank">${i + 1}</div>
         <div class="ib-avatar av-${name}">
-          <img src="data/images/avatars/${encodeURIComponent(name)}.jpg" alt="" onerror="this.style.display='none'">
-          <span class="av-initial">${esc(name[0])}</span>
+          <img src="data/images/avatars/${esc(name)}.jpg" alt="" onerror="this.style.display='none'">
         </div>
         <div class="ib-name">${esc(name)}</div>
         <div class="ib-bar-track"><div class="ib-bar-fill" style="width:${pct}%"></div></div>
@@ -389,15 +469,28 @@ function renderRoastSection() {
   roastStats.matrix.forEach(r => { if (roastMap[r.from]?.[r.to] !== undefined) roastMap[r.from][r.to] = r.count; });
   const maxCell = Math.max(...roastStats.matrix.map(r => r.count), 1);
 
-  const heatHeaders = charNames.map(n => `<th class="rh-hdr">${esc(n[0])}</th>`).join('');
+  const heatHeaders = charNames.map(n => `
+    <th class="rh-hdr">
+      <div class="rh-hav av-${esc(n)}">
+        <img src="data/images/avatars/${esc(n)}.jpg" alt="" onerror="this.style.display='none'">
+      </div>
+      <span class="rh-hname">${esc(n)}</span>
+    </th>`).join('');
   const heatRows = charNames.map(rowN => {
     const cells = charNames.map(colN => {
       if (rowN === colN) return `<td class="rh-self"></td>`;
       const v = roastMap[rowN][colN];
       const intensity = Math.round(v / maxCell * 100);
-      return `<td class="rh-cell" style="--ri:${intensity}" title="${esc(rowN)}→${esc(colN)}: ${v}次">${v}</td>`;
+      const tip = `${esc(rowN)} → ${esc(colN)}&#10;靠北 ${v} 次`;
+      return `<td class="rh-cell" style="--ri:${intensity}" data-tip="${tip}">${v}</td>`;
     }).join('');
-    return `<tr><th class="rh-row-hdr">${esc(rowN[0])}</th>${cells}</tr>`;
+    return `<tr>
+      <th class="rh-row-hdr">
+        <div class="rh-hav av-${esc(rowN)}">
+          <img src="data/images/avatars/${esc(rowN)}.jpg" alt="" onerror="this.style.display='none'">
+        </div>
+        <span class="rh-hname">${esc(rowN)}</span>
+      </th>${cells}</tr>`;
   }).join('');
 
   // 集數精華
@@ -529,9 +622,8 @@ function renderContent(items) {
           const speaker = resolveChar(qm[2].trim());
           if (speaker) {
             return `<div class="quote-wrap">
-              <div class="char-avatar av-${speaker}" aria-label="${esc(speaker)}">
-                <img src="data/images/avatars/${encodeURIComponent(speaker)}.jpg" alt="" loading="lazy" onerror="this.style.display='none'">
-                <span class="av-initial">${esc(speaker[0])}</span>
+              <div class="char-avatar av-${esc(speaker)}" aria-label="${esc(speaker)}" data-tip="${esc(speaker)}">
+                <img src="data/images/avatars/${esc(speaker)}.jpg" alt="" loading="lazy">
               </div>
               <blockquote class="char-quote">
                 「${esc(qm[1])}」

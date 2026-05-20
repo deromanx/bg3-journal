@@ -852,12 +852,12 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .stats-section-title {
   font-family: 'Cinzel', serif;
-  font-size: 13px;
-  letter-spacing: 4px;
-  color: var(--ink-mid);
-  margin-bottom: 18px;
-  border-bottom: 1px solid rgba(139,90,40,0.20);
-  padding-bottom: 8px;
+  font-size: 15px;
+  letter-spacing: 3px;
+  color: var(--gold-bright);
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(139,90,40,0.25);
+  padding-bottom: 10px;
 }
 
 /* ── 角色出場橫條 ────────────────────────────────────────── */
@@ -1485,99 +1485,28 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   border-right: 1px solid rgba(139,90,40,0.22);
 }
 
-.mm-hdr {
-  padding: 6px 4px;
-  text-align: center;
-  border-bottom: 1px solid rgba(139,90,40,0.22);
-  border-right: 1px solid rgba(139,90,40,0.10);
-}
-
-.mm-hchar {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--gold-bright);
-  display: block;
-}
-
-.mm-row-hdr {
-  padding: 10px 12px;
-  text-align: left;
-  border-right: 1px solid rgba(139,90,40,0.22);
-  border-bottom: 1px solid rgba(139,90,40,0.10);
-  white-space: nowrap;
-}
-
-.mm-rchar {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--gold-bright);
-  display: block;
-}
-
-.mm-rplayer {
-  font-size: 11px;
-  color: rgba(217,176,122,0.45);
-  display: block;
-}
-
-.mm-cell {
-  text-align: center;
-  padding: 8px 6px;
-  border-right: 1px solid rgba(139,90,40,0.10);
-  border-bottom: 1px solid rgba(139,90,40,0.10);
-  vertical-align: middle;
-  white-space: nowrap;
-}
-
-.mm-cell.mm-win {
-  background: rgba(80,140,80,0.12);
-}
-
-.mm-cell.mm-lose {
-  background: rgba(140,50,50,0.10);
-}
-
-.mm-cell.mm-even {
-  background: rgba(139,90,40,0.06);
-}
-
-.mm-w {
-  font-weight: 700;
-  font-size: 15px;
-  color: #7cc47c;
-}
-
-.mm-sep {
-  font-size: 12px;
-  color: rgba(217,176,122,0.30);
-  margin: 0 2px;
-}
-
-.mm-l {
-  font-size: 15px;
-  color: #c47c7c;
-}
-
-.mm-d {
-  font-size: 11px;
-  color: rgba(217,176,122,0.45);
-}
-
 .mm-self {
-  background: rgba(0,0,0,0.25);
-  text-align: center;
+  background: rgba(0,0,0,0.22);
   border-right: 1px solid rgba(139,90,40,0.10);
   border-bottom: 1px solid rgba(139,90,40,0.10);
 }
+
+.mm-cell.mm-win  { background: rgba(80,140,80,0.14); }
+.mm-cell.mm-lose { background: rgba(140,50,50,0.12); }
+.mm-cell.mm-even { background: rgba(139,90,40,0.07); }
 
 .mm-empty {
   text-align: center;
-  color: rgba(217,176,122,0.18);
-  font-size: 14px;
+  color: rgba(217,176,122,0.15);
+  font-size: 15px;
   border-right: 1px solid rgba(139,90,40,0.10);
   border-bottom: 1px solid rgba(139,90,40,0.10);
-  padding: 8px 6px;
+  padding: 10px 8px;
+  cursor: default;
 }
+
+.mm-w-ex { color: #7cc47c; font-weight: 700; }
+.mm-l-ex { color: #c47c7c; }
 
 /* ══════════════════════════════════════════════════════════
    日誌：角色大頭貼 & 對話引文
@@ -1610,6 +1539,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   object-fit: cover;
   position: absolute;
   inset: 0;
+  z-index: 2;
 }
 
 .av-initial {
@@ -1619,6 +1549,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   position: relative;
   z-index: 1;
   line-height: 1;
+  display: none;
 }
 
 .av-影心    { background: #0d1f3c; border-color: #4a80c0; }
@@ -1906,6 +1837,209 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .hl-desc { color: rgba(217,176,122,0.75); line-height: 1.5; }
+
+/* ══════════════════════════════════════════════════════════
+   Tooltip 系統
+   ══════════════════════════════════════════════════════════ */
+#tooltip {
+  position: fixed;
+  z-index: 9999;
+  pointer-events: none;
+  background: rgba(15, 10, 6, 0.96);
+  border: 1px solid rgba(217,176,122,0.35);
+  color: rgba(217,176,122,0.90);
+  font-size: 13px;
+  line-height: 1.65;
+  padding: 8px 12px;
+  max-width: 280px;
+  white-space: pre-wrap;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+#tooltip.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── 死亡卡加大頭貼 ────────────────────────────────────── */
+.death-card { cursor: default; }
+.death-card:hover { border-color: rgba(217,176,122,0.40); }
+
+.dc-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin: 0 auto 10px;
+  border: 2px solid rgba(217,176,122,0.25);
+  position: relative;
+}
+
+.dc-avatar img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.death-card.dc-max .dc-avatar { border-color: rgba(168,40,40,0.60); }
+.death-card.dc-high .dc-avatar { border-color: rgba(122,21,21,0.45); }
+
+/* ── 對戰矩陣：大頭貼頭部 ──────────────────────────────── */
+.mm-hdr {
+  padding: 10px 6px 8px;
+  text-align: center;
+  border-bottom: 1px solid rgba(139,90,40,0.28);
+  border-right: 1px solid rgba(139,90,40,0.12);
+  vertical-align: bottom;
+  transition: background 0.15s;
+}
+
+.mm-hdr.mm-col-active {
+  background: rgba(217,176,122,0.06);
+}
+
+.mm-hav, .mm-rav {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin: 0 auto 5px;
+  border: 2px solid rgba(217,176,122,0.25);
+  position: relative;
+  flex-shrink: 0;
+}
+
+.mm-hav img, .mm-rav img,
+.rh-hav img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.mm-hchar {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gold-bright);
+}
+
+.mm-row-hdr {
+  padding: 8px 14px 8px 10px;
+  text-align: left;
+  border-right: 1px solid rgba(139,90,40,0.28);
+  border-bottom: 1px solid rgba(139,90,40,0.10);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.15s;
+}
+
+.mm-row-hdr.mm-row-active {
+  background: rgba(217,176,122,0.06);
+}
+
+.mm-rnames {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mm-rchar {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--gold-bright);
+}
+
+.mm-rplayer {
+  font-size: 11px;
+  color: rgba(217,176,122,0.45);
+}
+
+.mm-cell {
+  text-align: center;
+  padding: 10px 8px;
+  border-right: 1px solid rgba(139,90,40,0.12);
+  border-bottom: 1px solid rgba(139,90,40,0.10);
+  cursor: default;
+  transition: background 0.12s, transform 0.12s;
+}
+
+.mm-cell:hover {
+  transform: scale(1.06);
+  z-index: 2;
+  position: relative;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.35);
+}
+
+.mm-cell.mm-same-row, .mm-cell.mm-same-col {
+  background: rgba(217,176,122,0.04) !important;
+}
+
+.mm-w { font-weight: 700; font-size: 18px; color: #7cc47c; }
+.mm-sep { font-size: 14px; color: rgba(217,176,122,0.25); margin: 0 3px; }
+.mm-l { font-size: 18px; color: #c47c7c; }
+.mm-d { font-size: 11px; color: rgba(217,176,122,0.45); display: block; margin-top: 2px; }
+
+/* ── 靠北熱力圖：大頭貼頭部 ────────────────────────────── */
+.rh-hdr {
+  padding: 8px 6px;
+  text-align: center;
+  border-bottom: 1px solid rgba(139,90,40,0.22);
+  border-right: 1px solid rgba(139,90,40,0.12);
+}
+
+.rh-row-hdr {
+  padding: 6px 12px 6px 8px;
+  border-right: 1px solid rgba(139,90,40,0.22);
+  border-bottom: 1px solid rgba(139,90,40,0.10);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.rh-hav {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1.5px solid rgba(217,176,122,0.20);
+  flex-shrink: 0;
+}
+
+.rh-hname {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(217,176,122,0.70);
+}
+
+.rh-cell {
+  cursor: default;
+  transition: background 0.1s;
+}
+
+.rh-cell:hover {
+  outline: 1px solid rgba(217,176,122,0.35);
+}
+
+/* ── 決鬥排行 hover ──────────────────────────────────────  */
+.duel-row { cursor: default; transition: background 0.15s; }
+.duel-row:hover { background: rgba(217,176,122,0.04); }
+
+/* ── 里程碑 hover ────────────────────────────────────────  */
+.ms-item { transition: background 0.15s; border-radius: 2px; }
+.ms-item:hover { background: rgba(217,176,122,0.03); }
+.ms-item:hover .ms-title { color: var(--gold-bright); }
+
+/* ── 靠北欄位 hover ─────────────────────────────────────  */
+.rb-row { cursor: default; transition: background 0.15s; padding: 4px 0; border-radius: 2px; }
+.rb-row:hover { background: rgba(217,176,122,0.03); }
+.ib-row { cursor: default; transition: background 0.15s; padding: 4px 0; border-radius: 2px; }
+.ib-row:hover { background: rgba(217,176,122,0.03); }
 
 /* ── 響應式補充 ────────────────────────────────────────── */
 @media (max-width: 720px) {
