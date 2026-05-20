@@ -665,6 +665,18 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   justify-content: center;
 }
 
+/* 手機側欄遮罩 */
+#sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 140;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(1px);
+  opacity: 0;
+  transition: opacity 0.22s ease;
+}
+
 @media (max-width: 720px) {
   #sidebar-toggle { display: flex; }
   #sidebar {

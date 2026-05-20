@@ -112,6 +112,8 @@ function loadSession(id) {
 
   if (window.innerWidth <= 720) {
     document.getElementById('sidebar').classList.remove('open');
+    const ov = document.getElementById('sidebar-overlay');
+    if (ov) { ov.style.opacity = '0'; ov.style.display = 'none'; }
   }
 }
 
@@ -160,7 +162,15 @@ function navigateSession(delta) {
 
 // ── 手機側欄 ──────────────────────────────────────────────
 function toggleSidebar() {
-  document.getElementById('sidebar').classList.toggle('open');
+  const sidebar  = document.getElementById('sidebar');
+  const overlay  = document.getElementById('sidebar-overlay');
+  const isOpen   = sidebar.classList.toggle('open');
+  if (overlay) {
+    overlay.style.display  = isOpen ? 'block' : 'none';
+    // force reflow so opacity transition fires
+    overlay.getBoundingClientRect();
+    overlay.style.opacity  = isOpen ? '1' : '0';
+  }
 }
 
 // ══════════════════════════════════════════════════════════
@@ -283,7 +293,6 @@ function renderMilestones() {
   inner.innerHTML = `
     <div class="sub-header">
       <div class="sub-rule"><span class="rule-line"></span><span class="sub-title">里 程 碑</span><span class="rule-line"></span></div>
-      <p class="sub-note">在 data/milestones.json 新增或編輯里程碑</p>
     </div>
 
     <div class="timeline">
