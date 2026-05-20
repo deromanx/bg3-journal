@@ -1525,7 +1525,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .mm-corner {
   font-size: 11px;
-  color: rgba(217,176,122,0.35);
+  color: var(--ink-light);
   padding: 8px 10px;
   text-align: center;
   border-bottom: 1px solid rgba(139,90,40,0.22);
@@ -1828,7 +1828,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   font-weight: 600;
   font-size: 14px;
   background: rgba(122,21,21, calc(var(--ri, 0) * 0.0055));
-  color: rgba(217,176,122, calc(0.45 + var(--ri, 0) * 0.0055));
+  color: var(--ink-mid);
   cursor: default;
 }
 
@@ -1970,7 +1970,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   display: block;
   font-size: 12px;
   font-weight: 700;
-  color: var(--gold-bright);
+  color: var(--ink);
 }
 
 .mm-row-hdr {
@@ -1998,12 +1998,12 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .mm-rchar {
   font-size: 14px;
   font-weight: 700;
-  color: var(--gold-bright);
+  color: var(--ink);
 }
 
 .mm-rplayer {
   font-size: 11px;
-  color: rgba(217,176,122,0.45);
+  color: var(--ink-light);
 }
 
 .mm-cell {
@@ -2026,10 +2026,10 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   background: rgba(217,176,122,0.04) !important;
 }
 
-.mm-w { font-weight: 700; font-size: 18px; color: #7cc47c; }
-.mm-sep { font-size: 14px; color: rgba(217,176,122,0.25); margin: 0 3px; }
-.mm-l { font-size: 18px; color: #c47c7c; }
-.mm-d { font-size: 11px; color: rgba(217,176,122,0.45); display: block; margin-top: 2px; }
+.mm-w { font-weight: 700; font-size: 18px; color: #3a8a3a; }
+.mm-sep { font-size: 14px; color: var(--ink-light); margin: 0 3px; }
+.mm-l { font-size: 18px; color: #8a2a2a; }
+.mm-d { font-size: 11px; color: var(--ink-light); display: block; margin-top: 2px; }
 
 /* ── 靠北熱力圖：大頭貼頭部 ────────────────────────────── */
 .rh-hdr {
@@ -2061,7 +2061,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .rh-hname {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(217,176,122,0.70);
+  color: var(--ink-mid);
 }
 
 .rh-cell {

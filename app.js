@@ -267,7 +267,7 @@ function renderStats() {
     return `
       <div class="death-card${intensity}" data-tip="${esc(deathTip)}">
         <div class="dc-avatar av-${esc(c.char)}">
-          <img src="data/images/avatars/${esc(c.char)}.jpg?v=3" alt="" onerror="this.style.display='none'">
+          <img src="data/images/avatars/${esc(c.char)}.jpg?v=4" alt="" onerror="this.style.display='none'">
         </div>
         <div class="dc-name-wrap">
           <span class="dc-char">${esc(c.char)}</span>
@@ -329,7 +329,7 @@ function renderStats() {
   const mmHeaders = chars.map(c => `
     <th class="mm-hdr">
       <div class="mm-hav av-${esc(c.char)}">
-        <img src="data/images/avatars/${esc(c.char)}.jpg?v=3" alt="" onerror="this.style.display='none'">
+        <img src="data/images/avatars/${esc(c.char)}.jpg?v=4" alt="" onerror="this.style.display='none'">
       </div>
       <span class="mm-hchar">${esc(c.char)}</span>
     </th>`).join('');
@@ -350,7 +350,7 @@ function renderStats() {
     return `<tr>
       <th class="mm-row-hdr">
         <div class="mm-rav av-${esc(rowC.char)}">
-          <img src="data/images/avatars/${esc(rowC.char)}.jpg?v=3" alt="" onerror="this.style.display='none'">
+          <img src="data/images/avatars/${esc(rowC.char)}.jpg?v=4" alt="" onerror="this.style.display='none'">
         </div>
         <div class="mm-rnames">
           <span class="mm-rchar">${esc(rowC.char)}</span>
@@ -437,7 +437,7 @@ function renderRoastSection() {
     return `
       <div class="rb-row${crown}">
         <div class="rb-avatar av-${name}">
-          <img src="data/images/avatars/${esc(name)}.jpg?v=3" alt="" onerror="this.style.display='none'">
+          <img src="data/images/avatars/${esc(name)}.jpg?v=4" alt="" onerror="this.style.display='none'">
         </div>
         <div class="rb-info">
           <div class="rb-name">${esc(name)}<span class="rb-player">${esc(c?.player || '')}</span></div>
@@ -457,7 +457,7 @@ function renderRoastSection() {
       <div class="ib-row">
         <div class="ib-rank">${i + 1}</div>
         <div class="ib-avatar av-${name}">
-          <img src="data/images/avatars/${esc(name)}.jpg?v=3" alt="" onerror="this.style.display='none'">
+          <img src="data/images/avatars/${esc(name)}.jpg?v=4" alt="" onerror="this.style.display='none'">
         </div>
         <div class="ib-name">${esc(name)}</div>
         <div class="ib-bar-track"><div class="ib-bar-fill" style="width:${pct}%"></div></div>
@@ -474,7 +474,7 @@ function renderRoastSection() {
   const heatHeaders = charNames.map(n => `
     <th class="rh-hdr">
       <div class="rh-hav av-${esc(n)}">
-        <img src="data/images/avatars/${esc(n)}.jpg?v=3" alt="" onerror="this.style.display='none'">
+        <img src="data/images/avatars/${esc(n)}.jpg?v=4" alt="" onerror="this.style.display='none'">
       </div>
       <span class="rh-hname">${esc(n)}</span>
     </th>`).join('');
@@ -489,7 +489,7 @@ function renderRoastSection() {
     return `<tr>
       <th class="rh-row-hdr">
         <div class="rh-hav av-${esc(rowN)}">
-          <img src="data/images/avatars/${esc(rowN)}.jpg?v=3" alt="" onerror="this.style.display='none'">
+          <img src="data/images/avatars/${esc(rowN)}.jpg?v=4" alt="" onerror="this.style.display='none'">
         </div>
         <span class="rh-hname">${esc(rowN)}</span>
       </th>${cells}</tr>`;
@@ -595,7 +595,7 @@ function resolveChar(name) {
 function makeQuoteWrap(speaker, content, attr) {
   return `<div class="quote-wrap">
     <div class="char-avatar av-${esc(speaker)}" aria-label="${esc(speaker)}" data-tip="${esc(speaker)}">
-      <img src="data/images/avatars/${speaker}.jpg?v=3" alt="" loading="lazy">
+      <img src="data/images/avatars/${speaker}.jpg?v=4" alt="" loading="lazy">
     </div>
     <blockquote class="char-quote">
       ${renderInline('「' + content + '」')}
