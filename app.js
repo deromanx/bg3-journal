@@ -590,6 +590,18 @@ function resolveChar(name) {
   return null;
 }
 
+function makeQuoteWrap(speaker, content, attr) {
+  return `<div class="quote-wrap">
+    <div class="char-avatar av-${esc(speaker)}" aria-label="${esc(speaker)}" data-tip="${esc(speaker)}">
+      <img src="data/images/avatars/${speaker}.jpg" alt="" loading="lazy">
+    </div>
+    <blockquote class="char-quote">
+      ${renderInline('「' + content + '」')}
+      <cite class="dq-attr">—— ${esc(attr)}</cite>
+    </blockquote>
+  </div>`;
+}
+
 // ── 結構化內容渲染 ────────────────────────────────────────
 function renderContent(items) {
   if (!items?.length) return '<p style="text-align:center;opacity:.4">尚無內容</p>';
@@ -616,20 +628,20 @@ function renderContent(items) {
 
       case 'p':
       default: {
-        // Detect character quote: 「...」——角色名
+        // Pattern 1: 「...」——角色名
         const qm = item.v.match(/^「([\s\S]+?)」[—\-]{1,2}(.{1,12})$/);
         if (qm) {
           const speaker = resolveChar(qm[2].trim());
           if (speaker) {
-            return `<div class="quote-wrap">
-              <div class="char-avatar av-${esc(speaker)}" aria-label="${esc(speaker)}" data-tip="${esc(speaker)}">
-                <img src="data/images/avatars/${esc(speaker)}.jpg" alt="" loading="lazy">
-              </div>
-              <blockquote class="char-quote">
-                「${esc(qm[1])}」
-                <cite class="dq-attr">—— ${esc(qm[2].trim())}</cite>
-              </blockquote>
-            </div>`;
+            return makeQuoteWrap(speaker, qm[1], qm[2].trim());
+          }
+        }
+        // Pattern 2: 角色[描述]：「...」
+        const qm2 = item.v.match(/^([^「]{1,30})：「([\s\S]+?)」$/);
+        if (qm2) {
+          const speaker = resolveChar(qm2[1]);
+          if (speaker) {
+            return makeQuoteWrap(speaker, qm2[2], speaker);
           }
         }
         return `<p>${renderInline(item.v)}</p>`;

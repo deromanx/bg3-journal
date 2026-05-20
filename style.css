@@ -840,8 +840,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .stat-label {
-  font-size: 11px;
-  color: var(--gold-dim);
+  font-size: 12px;
+  color: rgba(217,176,122,0.75);
   letter-spacing: 1.5px;
 }
 
@@ -871,8 +871,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .char-name {
   width: 190px;
   flex-shrink: 0;
-  font-size: 13px;
-  color: var(--ink-mid);
+  font-size: 14px;
+  color: var(--gold);
   font-weight: 500;
 }
 
@@ -893,9 +893,9 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .char-count {
   width: 36px;
   text-align: right;
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--ink-mid);
+  color: var(--gold-bright);
 }
 
 /* ── 亮點卡片 ──────────────────────────────────────────── */
@@ -1425,8 +1425,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .duel-note {
   font-size: 12px;
-  color: var(--ink-light);
-  opacity: 0.50;
+  color: rgba(217,176,122,0.55);
   margin-top: 12px;
   letter-spacing: 0.3px;
 }
@@ -1440,13 +1439,13 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .dr-d {
-  font-size: 13px;
-  color: rgba(217,176,122,0.55);
+  font-size: 14px;
+  color: rgba(217,176,122,0.75);
 }
 
 .dr-total {
-  font-size: 12px;
-  color: rgba(217,176,122,0.40);
+  font-size: 13px;
+  color: rgba(217,176,122,0.65);
   margin-left: 2px;
 }
 
@@ -1454,8 +1453,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
    對戰矩陣
    ══════════════════════════════════════════════════════════ */
 .matchup-note-row {
-  font-size: 12px;
-  color: rgba(217,176,122,0.45);
+  font-size: 13px;
+  color: rgba(217,176,122,0.70);
   margin-bottom: 12px;
   letter-spacing: 0.5px;
 }
