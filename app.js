@@ -451,8 +451,7 @@ function renderStats() {
   }).join('');
 
   const matchupGrid = matchupData.length ? `
-    <div class="stats-section">
-      <div class="stats-section-title">對戰組合戰績</div>
+      <div class="stats-section-title" style="margin-top:1.5rem">對戰組合戰績</div>
       <div class="matchup-note-row">↓ 列 = 攻方視角 &nbsp;·&nbsp; 格內：<span class="mm-w-ex">勝</span> / <span class="mm-l-ex">敗</span> &nbsp;·&nbsp; hover 查看詳情</div>
       <div class="matchup-wrap">
         <table class="matchup-matrix">
@@ -460,8 +459,7 @@ function renderStats() {
           <tbody>${mmRows}</tbody>
         </table>
       </div>
-      <p class="duel-note">* 源自日誌表格記錄；部分場次數據可能略有出入</p>
-    </div>` : '';
+      <p class="duel-note">* 源自日誌表格記錄；部分場次數據可能略有出入</p>` : '';
 
   const ffSection = renderFriendlyFire();
 
@@ -500,8 +498,7 @@ function renderStats() {
         <div class="stats-section-title">決鬥戰績排行</div>
         <div class="duel-board">${duelRows}</div>
       </div>
-      ${renderMatchupSplits(matchupData)}
-      ${matchupGrid}
+      ${matchupData.length ? `<div class="stats-section">${renderMatchupSplits(matchupData)}${matchupGrid}</div>` : ''}
     </div>` : ''}
 
     <div class="stat-group">
@@ -611,11 +608,9 @@ function renderMatchupSplits(matchupData) {
       </div>`;
   }).join('');
   return `
-    <div class="stats-section">
       <div class="stats-section-title">對戰勝率一覽</div>
       <div class="msp-board">${pairs}</div>
-      <p class="duel-note">綠色條 = 左方勝場比例；底色 = 右方勝場</p>
-    </div>`;
+      <p class="duel-note">綠色條 = 左方勝場比例；底色 = 右方勝場</p>`;
 }
 
 // ══════════════════════════════════════════════════════════
@@ -640,7 +635,7 @@ function filterRoastQuotes(charName) {
   const quotes = roastStats.quotes || roastStats.highlights || [];
   const filtered = _roastFilter.size === 0
     ? quotes
-    : quotes.filter(q => _roastFilter.has(q.from) || _roastFilter.has(q.to));
+    : quotes.filter(q => [..._roastFilter].every(c => q.from === c || q.to === c));
 
   const countEl = document.getElementById('rq-count');
   if (countEl) countEl.textContent = filtered.length;
