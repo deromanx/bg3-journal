@@ -395,7 +395,8 @@ function renderStats() {
     const total  = decisive + draws;
     const pct    = decisive ? Math.round(c.duels.wins / decisive * 100) : 0;
     const medal  = rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : '';
-    const duelTip = c.duels.detail || '';
+    const baseTip = `${c.duels.wins}勝 ${c.duels.losses}敗${draws ? ` ${draws}平` : ''}，勝率 ${pct}%`;
+    const duelTip = c.duels.detail ? `${c.duels.detail}\n\n${baseTip}` : baseTip;
     return `
       <div class="duel-row" data-tip="${esc(duelTip)}">
         <div class="dr-av av-${esc(c.char)}">
@@ -681,8 +682,10 @@ function renderRoastCard(q, chars) {
         </div>`;
   const froms = asArr(q.from);
   const tos   = asArr(q.to);
+  const sRef  = sessions.find(s => s.id === q.session);
+  const cardTip = sRef ? `第 ${q.session} 集《${sRef.title}》` : `S${q.session}`;
   return `
-    <div class="roast-quote-card">
+    <div class="roast-quote-card" data-tip="${esc(cardTip)}">
       <div class="rq-actors">
         <div class="rq-av-group">${froms.map(avatar).join('')}</div>
         <span class="rq-arrow">→</span>
@@ -751,8 +754,12 @@ function renderRoastSection() {
     const c = chars.find(x => x.char === name);
     const pct = Math.round(received[name] / maxReceived * 100);
     const crown = i === 0 ? ' rb-crown' : '';
+    const topSenders = roastStats.matrix
+      .filter(r => r.to === name).sort((a, b) => b.count - a.count).slice(0, 3)
+      .map(r => `${r.from} ${r.count} 次`).join('　');
+    const rbTip = topSenders ? `靠北發起者：${topSenders}` : `被靠北 ${received[name]} 次`;
     return `
-      <div class="rb-row${crown}">
+      <div class="rb-row${crown}" data-tip="${esc(rbTip)}">
         <div class="rb-avatar av-${name}">
           <img src="data/images/avatars/${esc(name)}.webp" alt="" onerror="this.style.display='none'">
         </div>
@@ -772,8 +779,12 @@ function renderRoastSection() {
     const c = chars.find(x => x.char === name);
     const pct = Math.round(initiated[name] / maxInit * 100);
     const crown = i === 0 ? ' rb-crown' : '';
+    const topTargets = roastStats.matrix
+      .filter(r => r.from === name).sort((a, b) => b.count - a.count).slice(0, 3)
+      .map(r => `${r.to} ${r.count} 次`).join('　');
+    const ibTip = topTargets ? `主要靠北對象：${topTargets}` : `靠北 ${initiated[name]} 次`;
     return `
-      <div class="ib-row${crown}">
+      <div class="ib-row${crown}" data-tip="${esc(ibTip)}">
         <div class="ib-avatar av-${name}">
           <img src="data/images/avatars/${esc(name)}.webp" alt="" onerror="this.style.display='none'">
         </div>
@@ -881,8 +892,13 @@ function renderMilestones() {
 
     <div class="timeline">
       ${milestones.length
-        ? milestones.map(m => `
-          <div class="ms-item">
+        ? milestones.map(m => {
+            const sRef = m.session_id ? sessions.find(s => s.id === m.session_id) : null;
+            const msTip = sRef
+              ? `第 ${m.session_id} 集《${sRef.title}》${m.date ? '\n' + m.date.replace(/-/g,'.') : ''}`
+              : (m.date || '');
+            return `
+          <div class="ms-item"${msTip ? ` data-tip="${esc(msTip)}"` : ''}>
             <div class="ms-dot ms-dot-${m.type || 'custom'}">${m.icon || '✦'}</div>
             <div class="ms-content">
               <div class="ms-meta">
@@ -895,7 +911,8 @@ function renderMilestones() {
                 ? `<button class="ms-link" onclick="loadSession(${m.session_id})">前往本集 →</button>`
                 : ''}
             </div>
-          </div>`).join('')
+          </div>`;
+          }).join('')
         : '<p class="empty-note">尚無里程碑。請在 data/milestones.json 新增記錄。</p>'
       }
     </div>`;

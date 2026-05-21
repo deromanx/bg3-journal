@@ -2479,14 +2479,9 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   outline: 1px solid rgba(217,176,122,0.35);
 }
 
-/* ── 決鬥排行 hover ──────────────────────────────────────  */
-.duel-row { cursor: default; transition: background 0.15s; }
-.duel-row:hover { background: rgba(217,176,122,0.04); }
-
-/* ── 里程碑 hover ────────────────────────────────────────  */
-.ms-item { transition: background 0.15s; border-radius: 2px; }
-.ms-item:hover { background: rgba(217,176,122,0.03); }
-.ms-item:hover .ms-title { color: var(--gold-bright); }
+/* ── 決鬥排行 / 里程碑：不做 hover 顏色變化，資訊改由 tooltip 呈現 ── */
+.duel-row { cursor: default; }
+.ms-item  { border-radius: 2px; }
 
 /* ── 靠北欄位 hover ─────────────────────────────────────  */
 .rb-row { cursor: default; transition: background 0.15s; padding: 4px 0; border-radius: 2px; }
