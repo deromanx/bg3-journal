@@ -2440,3 +2440,44 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   .roast-columns { grid-template-columns: 1fr; }
   .ib-row { grid-template-columns: 36px 1fr 48px; }
 }
+
+/* ── 桌機字級放大（≥ 1024px）─────────────────────────────── */
+@media (min-width: 1024px) {
+  /* 分組 & 小節標題 */
+  .stat-group-title    { font-size: 15px; }
+  .stats-section-title { font-size: 18px; }
+
+  /* 死亡卡 */
+  .dc-char      { font-size: 18px; }
+  .dc-player    { font-size: 14px; }
+  .dc-narrative { font-size: 14px; line-height: 1.7; }
+
+  /* 決鬥排行 */
+  .dr-char   { font-size: 17px; }
+  .dr-player { font-size: 14px; }
+  .dr-pct    { font-size: 16px; }
+  .duel-note { font-size: 13px; }
+
+  /* 靠北榜 */
+  .rb-name   { font-size: 16px; }
+  .rb-player { font-size: 13px; }
+  .rb-count  { font-size: 22px; }
+  .ib-name   { font-size: 16px; }
+  .ib-player { font-size: 13px; }
+  .ib-count  { font-size: 22px; }
+
+  /* 友軍傷害榜 */
+  .ff-name    { font-size: 17px; }
+  .ff-chapter { font-size: 13px; }
+  .ff-method  { font-size: 14px; }
+  .ff-desc    { font-size: 15px; line-height: 1.75; }
+  .ff-summary { font-size: 15px; }
+
+  /* 對戰 */
+  .matchup-note-row { font-size: 14px; }
+
+  /* 里程碑 */
+  .ms-title { font-size: 21px; }
+  .ms-desc  { font-size: 16px; }
+  .ms-date  { font-size: 14px; }
+}
