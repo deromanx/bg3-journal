@@ -895,6 +895,24 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 /* ── 段落區塊 ──────────────────────────────────────────── */
+/* ── 統計分組 ──────────────────────────────────────────── */
+.stat-group {
+  margin-bottom: 56px;
+}
+
+.stat-group-title {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  letter-spacing: 4px;
+  color: var(--gold-bright);
+  background: var(--ink);
+  border: 1px solid var(--gold-border);
+  padding: 10px 20px;
+  margin-bottom: 28px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
 .stats-section {
   margin-bottom: 44px;
 }
@@ -1392,6 +1410,108 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   text-align: left;
   border-top: 1px solid rgba(217,176,122,0.10);
   padding-top: 10px;
+}
+
+/* ══════════════════════════════════════════════════════════
+   統計：友軍傷害榜
+   ══════════════════════════════════════════════════════════ */
+.ff-summary {
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--ink-light);
+  font-style: italic;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  background: rgba(122,21,21,0.06);
+  border-left: 3px solid rgba(122,21,21,0.35);
+}
+
+.ff-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ff-card {
+  background: var(--ink);
+  border: 1px solid var(--gold-border);
+  padding: 16px 20px;
+}
+
+.ff-actors {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.ff-actor {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 64px;
+}
+
+.ff-av {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid var(--gold-border);
+  flex-shrink: 0;
+}
+.ff-av img { width: 100%; height: 100%; object-fit: cover; }
+
+.ff-name {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 1px;
+  text-align: center;
+}
+.ff-perp  { color: rgba(200,60,60,0.9); }
+.ff-victim { color: var(--gold-bright); }
+
+.ff-role {
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: rgba(217,176,122,0.4);
+  text-transform: uppercase;
+}
+
+.ff-arrow {
+  font-size: 20px;
+  color: rgba(200,60,60,0.6);
+  flex: 1;
+  text-align: center;
+}
+
+.ff-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.ff-chapter {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: rgba(217,176,122,0.55);
+}
+
+.ff-method {
+  font-size: 12px;
+  color: rgba(200,60,60,0.8);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.ff-desc {
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: rgba(217,176,122,0.65);
+  margin: 0;
 }
 
 /* ══════════════════════════════════════════════════════════

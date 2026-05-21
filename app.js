@@ -438,6 +438,8 @@ function renderStats() {
       <p class="duel-note">* 源自日誌表格記錄；部分場次數據可能略有出入</p>
     </div>` : '';
 
+  const ffSection = renderFriendlyFire();
+
   inner.innerHTML = `
     <div class="sub-header">
       <div class="sub-rule"><span class="rule-line"></span><span class="sub-title">冒 險 統 計</span><span class="rule-line"></span></div>
@@ -457,22 +459,69 @@ function renderStats() {
       </div>
     </div>
 
-    <div class="stats-section">
-      <div class="stats-section-title">各角色死亡次數</div>
-      <div class="death-grid">${deathCards}</div>
+    <div class="stat-group">
+      <div class="stat-group-title">☠ 死亡紀錄</div>
+      <div class="stats-section">
+        <div class="stats-section-title">各角色死亡次數</div>
+        <div class="death-grid">${deathCards}</div>
+      </div>
+      ${ffSection}
     </div>
 
     ${duelRows ? `
-    <div class="stats-section">
-      <div class="stats-section-title">決鬥戰績排行</div>
-      <div class="duel-board">${duelRows}</div>
+    <div class="stat-group">
+      <div class="stat-group-title">⚔ 決鬥統計</div>
+      <div class="stats-section">
+        <div class="stats-section-title">決鬥戰績排行</div>
+        <div class="duel-board">${duelRows}</div>
+      </div>
+      ${renderMatchupSplits(matchupData)}
+      ${matchupGrid}
     </div>` : ''}
 
-    ${renderMatchupSplits(matchupData)}
+    <div class="stat-group">
+      <div class="stat-group-title">💬 靠北統計</div>
+      ${renderRoastSection()}
+    </div>`;
+}
 
-    ${matchupGrid}
-
-    ${renderRoastSection()}`;
+// ══════════════════════════════════════════════════════════
+// 友軍傷害榜
+// ══════════════════════════════════════════════════════════
+function renderFriendlyFire() {
+  const ff = charStats.friendly_fire;
+  if (!ff?.incidents?.length) return '';
+  const incidents = ff.incidents.map(inc => `
+    <div class="ff-card">
+      <div class="ff-actors">
+        <div class="ff-actor">
+          <div class="ff-av av-${esc(inc.perp)}">
+            <img src="data/images/avatars/${esc(inc.perp)}.webp" alt="" onerror="this.style.display='none'">
+          </div>
+          <span class="ff-name ff-perp">${esc(inc.perp)}</span>
+          <span class="ff-role">兇手</span>
+        </div>
+        <div class="ff-arrow">→</div>
+        <div class="ff-actor">
+          <div class="ff-av av-${esc(inc.victim)}">
+            <img src="data/images/avatars/${esc(inc.victim)}.webp" alt="" onerror="this.style.display='none'">
+          </div>
+          <span class="ff-name ff-victim">${esc(inc.victim)}</span>
+          <span class="ff-role">受害者</span>
+        </div>
+      </div>
+      <div class="ff-meta">
+        <span class="ff-chapter">${esc(inc.chapter)}</span>
+        <span class="ff-method">${esc(inc.method)}</span>
+      </div>
+      <p class="ff-desc">${esc(inc.desc)}</p>
+    </div>`).join('');
+  return `
+    <div class="stats-section">
+      <div class="stats-section-title">友軍傷害榜</div>
+      <p class="ff-summary">${esc(ff.summary)}</p>
+      <div class="ff-list">${incidents}</div>
+    </div>`;
 }
 
 // ══════════════════════════════════════════════════════════
