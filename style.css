@@ -1449,13 +1449,13 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  min-width: 64px;
+  gap: 6px;
+  min-width: 80px;
 }
 
 .ff-av {
-  width: 48px;
-  height: 48px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
   overflow: hidden;
   border: 2px solid var(--gold-border);
@@ -1465,7 +1465,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .ff-name {
   font-family: 'Cinzel', serif;
-  font-size: 12px;
+  font-size: 15px;
   letter-spacing: 1px;
   text-align: center;
 }
@@ -1473,14 +1473,14 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .ff-victim { color: var(--gold-bright); }
 
 .ff-role {
-  font-size: 10px;
+  font-size: 11px;
   letter-spacing: 1px;
   color: rgba(217,176,122,0.4);
   text-transform: uppercase;
 }
 
 .ff-arrow {
-  font-size: 20px;
+  font-size: 26px;
   color: rgba(200,60,60,0.6);
   flex: 1;
   text-align: center;
