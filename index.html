@@ -55,6 +55,9 @@
     </div>
   </aside>
 
+  <!-- ── 回頂部按鈕 ──────────────────────────────── -->
+  <button id="back-to-top" onclick="scrollToTop()" aria-label="回頂部">↑</button>
+
   <!-- ── 手機漢堡按鈕 ────────────────────────────── -->
   <button id="sidebar-toggle" aria-label="開關目錄" onclick="toggleSidebar()">☰</button>
   <!-- ── 手機側欄遮罩（點擊收合） ─────────────────── -->
@@ -96,7 +99,10 @@
           <div class="cast-names">游尚傑 · 林昱宇 · 曹祐誠 · 丁丁 · 昱如</div>
           <div class="cast-roles">影心 · 阿斯代倫 · 曹 · 卡拉克 · 貓咕咕</div>
         </div>
-        <p class="welcome-hint">← 從左側選擇章節</p>
+        <button class="welcome-cta" onclick="loadSession(sessions.slice().reverse().find(s=>!s.placeholder)?.id)">
+          <span class="cta-arrow">⚔</span> 開始閱讀冒險日誌
+        </button>
+        <p class="welcome-hint">或從左側選擇章節</p>
       </div>
     </div>
 

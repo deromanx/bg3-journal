@@ -197,11 +197,24 @@ document.addEventListener('DOMContentLoaded', () => {
   initTooltip();
   initMatrixHover();
   initKeyboard();
+  initBackToTop();
   window.addEventListener('hashchange', () => {
     if (_ignoreHash) { _ignoreHash = false; return; }
     restoreFromHash();
   });
 });
+
+function initBackToTop() {
+  const btn = document.getElementById('back-to-top');
+  if (!btn) return;
+  document.getElementById('content').addEventListener('scroll', function() {
+    btn.classList.toggle('visible', this.scrollTop > 400);
+  });
+}
+
+function scrollToTop() {
+  document.getElementById('content').scrollTo({ top: 0, behavior: 'smooth' });
+}
 
 // ── 鍵盤導航 ──────────────────────────────────────────────
 function initKeyboard() {
@@ -700,6 +713,15 @@ function renderMilestones() {
     item:        '#5c3a10',
     custom:      '#3e1f5c',
   };
+  const typeLabel = {
+    start:       '起 點',
+    boss:        '首領戰',
+    location:    '地 點',
+    achievement: '成 就',
+    death:       '陣 亡',
+    item:        '物 品',
+    custom:      '特殊事件',
+  };
 
   inner.innerHTML = `
     <div class="sub-header">
@@ -710,9 +732,12 @@ function renderMilestones() {
       ${milestones.length
         ? milestones.map(m => `
           <div class="ms-item">
-            <div class="ms-dot" style="color:${typeColor[m.type] || typeColor.custom}">${m.icon || '✦'}</div>
+            <div class="ms-dot ms-dot-${m.type || 'custom'}">${m.icon || '✦'}</div>
             <div class="ms-content">
-              <div class="ms-date">${(m.date || '').replace(/-/g, '.')}</div>
+              <div class="ms-meta">
+                <span class="ms-badge ms-badge-${m.type || 'custom'}">${typeLabel[m.type] || '特殊事件'}</span>
+                <span class="ms-date">${(m.date || '').replace(/-/g, '.')}</span>
+              </div>
               <div class="ms-title">${esc(m.title || '')}</div>
               ${m.desc ? `<div class="ms-desc">${esc(m.desc)}</div>` : ''}
               ${m.session_id
