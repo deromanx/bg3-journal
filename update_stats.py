@@ -231,6 +231,74 @@ def update_roast_stats(roast_stats, result, sid):
     return roast_stats
 
 
+# ── 故事生成 ────────────────────────────────────────────────
+def gemini_story(session, prev_chapters):
+    """以喬治馬丁風格將跑團紀錄改寫成一章奇幻小說散文。"""
+    text = session_to_text(session)
+    sid  = session["id"]
+
+    prev_ctx = ""
+    if prev_chapters:
+        summaries = "\n".join(
+            f"- {ch['title']}（第{ch['session_id']}集）"
+            for ch in prev_chapters[-3:]
+        )
+        prev_ctx = f"\n\n前幾章已發生：\n{summaries}\n請在行文中保持與前章的連貫感。"
+
+    prompt = f"""你是一位以喬治·馬丁（George R.R. Martin）風格著稱的奇幻小說家。
+請將以下柏德之門3跑團記錄，改寫成一章奇幻小說（繁體中文，約1000-1500字）。
+
+要求：
+- 第三人稱敘事；史詩氣氛；豐富的環境描寫與感官細節
+- 角色名保留：影心、阿斯代倫、曹、卡拉克、貓咕咕
+- 徹底移除遊戲術語（HP、AC、法術欄、擲骰、命中率、技能等），改用敘事語言
+- 保留真實發生的事件，但以散文奇幻風格呈現
+- 章節開頭一句強烈的環境或氛圍描寫
+- 包含角色的內心戲與奇幻化後的對話
+- 結尾留有餘韻，帶出下一步的懸念{prev_ctx}
+
+跑團記錄（第{sid}集 《{session['title']}》）：
+{text}
+
+請以純 JSON 格式回傳（不加說明文字或 markdown）：
+{{"title": "本章標題（10字內，文學風格）", "text": "小說正文（純文字，段落以空行分隔）"}}"""
+
+    result = subprocess.run(
+        ["gemini", "-p", prompt],
+        capture_output=True, text=True, timeout=300
+    )
+    if result.returncode != 0:
+        print(f"  ⚠ Gemini 錯誤：{result.stderr[:200]}")
+        return None
+
+    output = result.stdout.strip()
+    json_match = re.search(r'\{[\s\S]*\}', output)
+    if json_match:
+        try:
+            return json.loads(json_match.group())
+        except json.JSONDecodeError:
+            pass
+    print(f"  ⚠ 故事 JSON 解析失敗，原始回應：{output[:300]}")
+    return None
+
+
+def update_story(story, session):
+    chapters = story.get("chapters", [])
+    sid = session["id"]
+    # 跳過已生成的章節
+    if any(ch["session_id"] == sid for ch in chapters):
+        return story
+    result = gemini_story(session, chapters)
+    if result and result.get("text"):
+        chapters.append({
+            "session_id": sid,
+            "title":      result.get("title", session["title"]),
+            "text":       result["text"],
+        })
+        story["chapters"] = sorted(chapters, key=lambda c: c["session_id"])
+    return story
+
+
 # ── 主程式 ─────────────────────────────────────────────────────
 def main():
     parser = argparse.ArgumentParser()
@@ -244,6 +312,7 @@ def main():
     milestones  = load_json(DATA / "milestones.json", [])
     roast_stats = load_json(DATA / "roast-stats.json",
                             {"matrix": [], "highlights": [], "total": 0})
+    story       = load_json(DATA / "story.json", {"chapters": []})
 
     processed = get_processed_ids()
 
@@ -289,6 +358,9 @@ def main():
         milestones  = update_milestones(milestones, result, sid, session)
         roast_stats = update_roast_stats(roast_stats, result, sid)
 
+        print(f"  ✍ 生成故事章節...")
+        story = update_story(story, session)
+
         if not args.reprocess:
             mark_processed(sid)
         changed = True
@@ -299,6 +371,7 @@ def main():
         save_json(DATA / "awards.json",           awards)
         save_json(DATA / "milestones.json",       milestones)
         save_json(DATA / "roast-stats.json",      roast_stats)
+        save_json(DATA / "story.json",            story)
         print("✓ 所有 JSON 已儲存")
     else:
         print("✓ 無變更")

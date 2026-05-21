@@ -8,6 +8,7 @@ let milestones    = [];
 let awards        = {};
 let charStats     = { characters: [] };
 let roastStats    = { matrix: [], highlights: [] };
+let storyData     = { chapters: [] };
 let currentId     = null;
 let currentView   = 'journal';
 let _ignoreHash   = false;
@@ -19,13 +20,15 @@ Promise.all([
   fetch('data/awards.json').then(r => r.json()).catch(() => ({})),
   fetch('data/character-stats.json', { cache: 'no-store' }).then(r => r.json()).catch(() => ({ characters: [] })),
   fetch('data/roast-stats.json').then(r => r.json()).catch(() => ({ matrix: [], highlights: [] })),
+  fetch('data/story.json').then(r => r.json()).catch(() => ({ chapters: [] })),
 ])
-.then(([sessionsData, milestonesData, awardsData, charStatsData, roastData]) => {
+.then(([sessionsData, milestonesData, awardsData, charStatsData, roastData, storyJson]) => {
   sessions   = sessionsData;
   milestones = milestonesData;
   awards     = awardsData;
   charStats  = charStatsData;
   roastStats = roastData;
+  storyData  = storyJson;
   renderSidebar();
   restoreFromHash();
 })
@@ -43,7 +46,7 @@ function _setHash(h) {
   location.hash = h;
 }
 
-const ALL_VIEWS = ['journal', 'characters', 'stats', 'milestones'];
+const ALL_VIEWS = ['journal', 'characters', 'stats', 'milestones', 'story'];
 
 function hideAllViews() {
   document.getElementById('welcome').classList.add('hidden');
@@ -51,6 +54,7 @@ function hideAllViews() {
   document.getElementById('characters-view').classList.add('hidden');
   document.getElementById('stats-view').classList.add('hidden');
   document.getElementById('milestones-view').classList.add('hidden');
+  document.getElementById('story-view').classList.add('hidden');
   document.getElementById('hero-band').classList.add('hidden');
 }
 
@@ -73,6 +77,7 @@ function restoreFromHash() {
   if (h === '#characters') { showView('characters'); return; }
   if (h === '#stats')      { showView('stats');      return; }
   if (h === '#milestones') { showView('milestones'); return; }
+  if (h === '#story')      { showView('story');      return; }
   if (h === '#home')       { goHome(); return; }
   // 預設：載入最新集
   const first = sessions.slice().reverse().find(s => !s.placeholder) || sessions[sessions.length - 1];
@@ -96,10 +101,12 @@ function showView(view) {
   if (view === 'characters') document.getElementById('characters-view').classList.remove('hidden');
   if (view === 'stats')      document.getElementById('stats-view').classList.remove('hidden');
   if (view === 'milestones') document.getElementById('milestones-view').classList.remove('hidden');
+  if (view === 'story')      document.getElementById('story-view').classList.remove('hidden');
 
   if (view === 'characters') { _setHash('#characters'); renderCharacters(); }
   if (view === 'stats')      { _setHash('#stats');      renderStats(); }
   if (view === 'milestones') { _setHash('#milestones'); renderMilestones(); }
+  if (view === 'story')      { _setHash('#story');      renderStory(); }
   if (view === 'journal')    { _setHash(currentId ? '#s' + currentId : '#home'); }
 }
 
@@ -506,29 +513,39 @@ function renderStats() {
       ${renderRoastSection()}
     </div>`;
 
-  requestAnimationFrame(() => triggerStatsAnimations(inner));
+  requestAnimationFrame(() => initStatsAnimations(inner));
 }
 
 // ══════════════════════════════════════════════════════════
 // 統計頁動畫
 // ══════════════════════════════════════════════════════════
-function triggerStatsAnimations(container) {
-  // 數字 count-up
+function initStatsAnimations(container) {
+  // 數字 count-up 和頂部英雄區：立即觸發
   container.querySelectorAll('.hero-num[data-count]').forEach(el => {
     countUp(el, parseInt(el.dataset.count), 800);
   });
 
-  // 死亡卡 / 友軍卡 stagger fade-in
+  // 死亡卡 / 友軍卡 stagger fade-in：立即觸發
   container.querySelectorAll('.death-card, .ff-card').forEach((el, i) => {
     el.style.animationDelay = `${i * 55}ms`;
     el.classList.add('si-fade-in');
   });
 
-  // bar：CSS keyframe 動畫，用 --bar-w 自訂屬性控制目標寬度
-  // 不依賴 transition，避免父層 opacity 動畫遮蔽問題
-  container.querySelectorAll('[data-w]').forEach(el => {
-    el.style.setProperty('--bar-w', el.dataset.w);
-    el.classList.add('bar-anim');
+  // bar 動畫：IntersectionObserver，滾動到該 stat-group 才觸發
+  const scrollRoot = container.closest('.content-scroll') || null;
+  const observer = new IntersectionObserver((entries, obs) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      entry.target.querySelectorAll('[data-w]').forEach(el => {
+        el.style.setProperty('--bar-w', el.dataset.w);
+        el.classList.add('bar-anim');
+      });
+      obs.unobserve(entry.target);
+    });
+  }, { root: scrollRoot, threshold: 0.15 });
+
+  container.querySelectorAll('.stat-group, .stats-section').forEach(g => {
+    observer.observe(g);
   });
 }
 
@@ -1070,4 +1087,47 @@ function esc(s) {
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
+}
+
+// ══════════════════════════════════════════════════════════
+// 故事分頁
+// ══════════════════════════════════════════════════════════
+function renderStory() {
+  const inner = document.getElementById('story-inner');
+  if (!inner) return;
+
+  const chapters = (storyData.chapters || []).slice().sort((a, b) => a.session_id - b.session_id);
+
+  if (!chapters.length) {
+    inner.innerHTML = `
+      <div class="sub-header">
+        <div class="sub-rule"><span class="rule-line"></span><span class="sub-title">冒 險 故 事</span><span class="rule-line"></span></div>
+      </div>
+      <div class="story-empty">
+        故事尚未生成。<br>新增集數後執行 <code>python3 update_stats.py</code> 即可自動產生。
+      </div>`;
+    return;
+  }
+
+  const romanNumerals = ['I','II','III','IV','V','VI','VII','VIII','IX','X',
+    'XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX'];
+
+  inner.innerHTML = `
+    <div class="sub-header">
+      <div class="sub-rule"><span class="rule-line"></span><span class="sub-title">冒 險 故 事</span><span class="rule-line"></span></div>
+    </div>
+    <div class="story-chapters">
+      ${chapters.map((ch, i) => {
+        const num = romanNumerals[i] || (i + 1);
+        const paragraphs = (ch.text || '').split(/\n+/).filter(p => p.trim())
+          .map(p => `<p class="story-para">${esc(p.trim())}</p>`).join('');
+        return `
+          ${i > 0 ? '<div class="story-sep">✦ ✦ ✦</div>' : ''}
+          <div class="story-chapter" id="story-ch-${ch.session_id}">
+            <div class="story-chapter-eyebrow">第 ${num} 章</div>
+            <h2 class="story-chapter-title">${esc(ch.title || '')}</h2>
+            <div class="story-body">${paragraphs}</div>
+          </div>`;
+      }).join('')}
+    </div>`;
 }
