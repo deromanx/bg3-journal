@@ -351,6 +351,7 @@ function renderStats() {
         <div class="dc-skull">☠</div>
         <div class="dc-count">${c.deaths}</div>
         <div class="dc-unit">次陣亡</div>
+        ${c.downed != null ? `<div class="dc-downed">${c.downed} 次倒地</div>` : ''}
         ${c.death_narrative ? `<p class="dc-narrative">${esc(c.death_narrative)}</p>` : ''}
       </div>`;
   }).join('');
@@ -550,10 +551,13 @@ function renderMatchupSplits(matchupData) {
     const pctA = decisive ? (wa / decisive * 100).toFixed(1) : 50;
     const avA = `<div class="msp-av av-${esc(ca)}"><img src="data/images/avatars/${esc(ca)}.webp" alt="" onerror="this.style.display='none'"></div>`;
     const avB = `<div class="msp-av av-${esc(cb)}"><img src="data/images/avatars/${esc(cb)}.webp" alt="" onerror="this.style.display='none'"></div>`;
+    const pctB = (100 - pctA).toFixed(1);
     return `
       <div class="msp-row">
         <div class="msp-av-group">${avA}<span class="msp-name msp-a">${esc(ca)}</span></div>
+        <div class="msp-pct msp-pct-a">${pctA}%</div>
         <div class="msp-bar-wrap"><div class="msp-fill" style="width:${pctA}%"></div></div>
+        <div class="msp-pct msp-pct-b">${pctB}%</div>
         <div class="msp-av-group msp-bside"><span class="msp-name msp-b">${esc(cb)}</span>${avB}</div>
         <div class="msp-score">${wa}–${wb}${d > 0 ? ` (${d}平)` : ''}</div>
       </div>`;

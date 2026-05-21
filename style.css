@@ -1482,6 +1482,13 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   color: rgba(217,176,122,0.70);
 }
 
+.dc-downed {
+  font-size: 11px;
+  letter-spacing: 1px;
+  color: rgba(217,176,122,0.42);
+  margin-top: 3px;
+}
+
 .dc-narrative {
   margin-top: 14px;
   font-size: 12px;
@@ -1693,9 +1700,10 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .dr-pct {
+  font-family: 'Cinzel', serif;
   font-size: 14px;
-  font-weight: 600;
-  color: rgba(217,176,122,0.85);
+  font-weight: 700;
+  color: var(--gold-bright);
   text-align: right;
   white-space: nowrap;
 }
@@ -1773,10 +1781,21 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   transition: width 0.7s ease;
 }
 
+.msp-pct {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+  width: 40px;
+  letter-spacing: 0.5px;
+}
+.msp-pct-a { color: #52a052; text-align: right; }
+.msp-pct-b { color: rgba(200,70,70,0.75); text-align: left; }
+
 .msp-score {
   font-size: 12px;
-  color: rgba(217,176,122,0.60);
-  width: 72px;
+  color: rgba(217,176,122,0.55);
+  width: 60px;
   flex-shrink: 0;
   text-align: right;
   letter-spacing: 0.3px;
@@ -2452,11 +2471,18 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   .dc-player    { font-size: 14px; }
   .dc-narrative { font-size: 14px; line-height: 1.7; }
 
+  /* 死亡卡 */
+  .dc-downed { font-size: 12px; }
+
   /* 決鬥排行 */
   .dr-char   { font-size: 17px; }
   .dr-player { font-size: 14px; }
-  .dr-pct    { font-size: 16px; }
+  .dr-pct    { font-size: 17px; }
   .duel-note { font-size: 13px; }
+
+  /* 對戰勝率 */
+  .msp-pct   { font-size: 13px; }
+  .msp-name  { font-size: 14px; }
 
   /* 靠北榜 */
   .rb-name   { font-size: 16px; }
