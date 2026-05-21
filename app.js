@@ -64,6 +64,7 @@ function goHome() {
   _setHash('#home');
   document.querySelectorAll('.stab').forEach(b => b.classList.toggle('active', b.dataset.view === 'journal'));
   hideAllViews();
+  document.getElementById('hero-band').classList.remove('hidden');
   document.getElementById('welcome').classList.remove('hidden');
   document.querySelectorAll('.session-item').forEach(el => el.classList.remove('active'));
   const journalNav = document.getElementById('journal-nav');
@@ -93,12 +94,12 @@ function showView(view) {
     btn.classList.toggle('active', btn.dataset.view === view);
   });
   hideAllViews();
+  document.getElementById('hero-band').classList.remove('hidden');
   const isJournal = view === 'journal';
   const showWelcome = isJournal && currentId === null;
   if (showWelcome) document.getElementById('welcome').classList.remove('hidden');
   if (isJournal && currentId !== null) {
     document.getElementById('session-view').classList.remove('hidden');
-    document.getElementById('hero-band').classList.remove('hidden');
   }
   if (view === 'characters') document.getElementById('characters-view').classList.remove('hidden');
   if (view === 'stats')      document.getElementById('stats-view').classList.remove('hidden');
