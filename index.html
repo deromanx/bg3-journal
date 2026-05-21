@@ -42,8 +42,10 @@
     <!-- ── 頁面切換 Tab ───────────────────────────── -->
     <div id="sidebar-tabs">
       <button class="stab active" data-view="journal" onclick="showView('journal')">日誌</button>
+      <button class="stab" data-view="characters" onclick="showView('characters')">角色</button>
       <button class="stab" data-view="stats" onclick="showView('stats')">統計</button>
       <button class="stab" data-view="milestones" onclick="showView('milestones')">里程碑</button>
+      <button class="stab" data-view="map" onclick="showView('map')">地圖</button>
     </div>
 
     <nav>
@@ -135,6 +137,11 @@
       </footer>
     </article>
 
+    <!-- ── 角色頁面 ──────────────────────────────── -->
+    <div id="characters-view" class="hidden content-scroll">
+      <div id="characters-inner"></div>
+    </div>
+
     <!-- ── 統計頁面 ──────────────────────────────── -->
     <div id="stats-view" class="hidden content-scroll">
       <div id="stats-inner"></div>
@@ -143,6 +150,11 @@
     <!-- ── 里程碑頁面 ─────────────────────────────── -->
     <div id="milestones-view" class="hidden content-scroll">
       <div id="milestones-inner"></div>
+    </div>
+
+    <!-- ── 地圖頁面 ──────────────────────────────── -->
+    <div id="map-view" class="hidden content-scroll">
+      <div id="map-inner"></div>
     </div>
 
   </main>

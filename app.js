@@ -43,16 +43,25 @@ function _setHash(h) {
   location.hash = h;
 }
 
+const ALL_VIEWS = ['journal', 'characters', 'stats', 'milestones', 'map'];
+
+function hideAllViews() {
+  document.getElementById('welcome').classList.add('hidden');
+  document.getElementById('session-view').classList.add('hidden');
+  document.getElementById('characters-view').classList.add('hidden');
+  document.getElementById('stats-view').classList.add('hidden');
+  document.getElementById('milestones-view').classList.add('hidden');
+  document.getElementById('map-view').classList.add('hidden');
+  document.getElementById('hero-band').classList.add('hidden');
+}
+
 function goHome() {
   currentId = null;
   currentView = 'journal';
   _setHash('#home');
   document.querySelectorAll('.stab').forEach(b => b.classList.toggle('active', b.dataset.view === 'journal'));
+  hideAllViews();
   document.getElementById('welcome').classList.remove('hidden');
-  document.getElementById('session-view').classList.add('hidden');
-  document.getElementById('stats-view').classList.add('hidden');
-  document.getElementById('milestones-view').classList.add('hidden');
-  document.getElementById('hero-band').classList.add('hidden');
   document.querySelectorAll('.session-item').forEach(el => el.classList.remove('active'));
 }
 
@@ -62,8 +71,10 @@ function restoreFromHash() {
     const id = parseInt(h.slice(2));
     if (sessions.find(s => s.id === id)) { loadSession(id); return; }
   }
+  if (h === '#characters') { showView('characters'); return; }
   if (h === '#stats')      { showView('stats');      return; }
   if (h === '#milestones') { showView('milestones'); return; }
+  if (h === '#map')        { showView('map');        return; }
   if (h === '#home')       { goHome(); return; }
   // 預設：載入最新集
   const first = sessions.slice().reverse().find(s => !s.placeholder) || sessions[sessions.length - 1];
@@ -76,17 +87,23 @@ function showView(view) {
   document.querySelectorAll('.stab').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.view === view);
   });
+  hideAllViews();
   const isJournal = view === 'journal';
   const showWelcome = isJournal && currentId === null;
-  document.getElementById('welcome').classList.toggle('hidden', !showWelcome);
-  document.getElementById('session-view').classList.toggle('hidden',
-    !isJournal || currentId === null);
-  document.getElementById('stats-view').classList.toggle('hidden', view !== 'stats');
-  document.getElementById('milestones-view').classList.toggle('hidden', view !== 'milestones');
-  document.getElementById('hero-band').classList.toggle('hidden', showWelcome);
+  if (showWelcome) document.getElementById('welcome').classList.remove('hidden');
+  if (isJournal && currentId !== null) {
+    document.getElementById('session-view').classList.remove('hidden');
+    document.getElementById('hero-band').classList.remove('hidden');
+  }
+  if (view === 'characters') document.getElementById('characters-view').classList.remove('hidden');
+  if (view === 'stats')      document.getElementById('stats-view').classList.remove('hidden');
+  if (view === 'milestones') document.getElementById('milestones-view').classList.remove('hidden');
+  if (view === 'map')        document.getElementById('map-view').classList.remove('hidden');
 
+  if (view === 'characters') { _setHash('#characters'); renderCharacters(); }
   if (view === 'stats')      { _setHash('#stats');      renderStats(); }
   if (view === 'milestones') { _setHash('#milestones'); renderMilestones(); }
+  if (view === 'map')        { _setHash('#map');        renderMap(); }
   if (view === 'journal')    { _setHash(currentId ? '#s' + currentId : '#home'); }
 }
 
@@ -117,9 +134,7 @@ function loadSession(id) {
   document.querySelectorAll('.stab').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.view === 'journal');
   });
-  document.getElementById('stats-view').classList.add('hidden');
-  document.getElementById('milestones-view').classList.add('hidden');
-  document.getElementById('welcome').classList.add('hidden');
+  hideAllViews();
   document.getElementById('hero-band').classList.remove('hidden');
 
   document.querySelectorAll('.session-item').forEach(el => {
@@ -751,6 +766,172 @@ function renderMilestones() {
           </div>`).join('')
         : '<p class="empty-note">尚無里程碑。請在 data/milestones.json 新增記錄。</p>'
       }
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════════
+// 角色頁面
+// ══════════════════════════════════════════════════════════
+let _selectedChar = null;
+
+function renderCharacters(charName) {
+  const inner = document.getElementById('characters-inner');
+  const chars = charStats.characters || [];
+  if (!chars.length) { inner.innerHTML = '<p class="empty-note">無角色資料</p>'; return; }
+
+  if (!charName) charName = _selectedChar || chars[0].char;
+  _selectedChar = charName;
+
+  const portraitBtns = chars.map(c => `
+    <button class="cp-portrait-btn${c.char === charName ? ' active' : ''}"
+            onclick="renderCharacters('${c.char}')"
+            data-tip="${esc(c.player)} · ${esc(c.class)}">
+      <div class="cp-pav av-${esc(c.char)}">
+        <img src="data/images/avatars/${esc(c.char)}.webp" alt="" onerror="this.style.display='none'">
+      </div>
+      <span class="cp-pname">${esc(c.char)}</span>
+    </button>`).join('');
+
+  const c = chars.find(x => x.char === charName) || chars[0];
+  const decisive = (c.duels.wins || 0) + (c.duels.losses || 0);
+  const pct = decisive ? Math.round(c.duels.wins / decisive * 100) : 0;
+
+  const quotesHtml = (c.quotes || []).map(q => `
+    <div class="cp-quote-card">
+      <div class="cp-qmark">「</div>
+      <blockquote class="cp-qtext">${esc(q.text)}</blockquote>
+      <div class="cp-qsession">S${q.session}</div>
+    </div>`).join('');
+
+  const achieveHtml = (c.achievements || []).map(a => `
+    <div class="cp-achieve">
+      <div class="cp-a-icon">${a.icon}</div>
+      <div class="cp-a-body">
+        <div class="cp-a-name">${esc(a.name)}</div>
+        <div class="cp-a-desc">${esc(a.desc)}</div>
+      </div>
+    </div>`).join('');
+
+  inner.innerHTML = `
+    <div class="sub-header">
+      <div class="sub-rule"><span class="rule-line"></span><span class="sub-title">角 色 檔 案</span><span class="rule-line"></span></div>
+    </div>
+
+    <div class="cp-portrait-row">${portraitBtns}</div>
+
+    <div class="cp-detail">
+      <div class="cp-hero">
+        <div class="cp-hero-av av-${esc(c.char)}">
+          <img src="data/images/avatars/${esc(c.char)}.webp" alt="" onerror="this.style.display='none'">
+        </div>
+        <div class="cp-hero-info">
+          <div class="cp-char-name">${esc(c.char)}</div>
+          <div class="cp-class-pill">${esc(c.class)}</div>
+          <div class="cp-player-name">${esc(c.player)} 飾演</div>
+          <div class="cp-quick-stats">
+            <span class="cp-qs-item"><span class="cp-qs-icon">☠</span>${c.deaths} 次陣亡</span>
+            <span class="cp-qs-sep">·</span>
+            <span class="cp-qs-item"><span class="cp-qs-icon">⚔</span>${c.duels.wins}勝${c.duels.losses}敗${c.duels.draws > 0 ? c.duels.draws + '平' : ''}</span>
+            <span class="cp-qs-sep">·</span>
+            <span class="cp-qs-item ${pct >= 50 ? 'cp-qs-win' : 'cp-qs-lose'}">${pct}%</span>
+          </div>
+        </div>
+      </div>
+
+      ${c.ai_intro ? `
+      <div class="cp-section">
+        <div class="cp-section-title">✦ 角色摘要</div>
+        <p class="cp-intro">${esc(c.ai_intro)}</p>
+      </div>` : ''}
+
+      ${c.quotes?.length ? `
+      <div class="cp-section">
+        <div class="cp-section-title">💬 名言錄</div>
+        <div class="cp-quotes">${quotesHtml}</div>
+      </div>` : ''}
+
+      ${c.achievements?.length ? `
+      <div class="cp-section">
+        <div class="cp-section-title">🏆 成就</div>
+        <div class="cp-achieves">${achieveHtml}</div>
+      </div>` : ''}
+
+      ${c.death_narrative ? `
+      <div class="cp-section">
+        <div class="cp-section-title">☠ 死亡紀錄</div>
+        <p class="cp-narrative">${esc(c.death_narrative)}</p>
+        ${(c.death_notes || []).length ? `
+        <div class="cp-death-notes">
+          ${c.death_notes.map(n => `<div class="cp-death-note">— ${esc(n)}</div>`).join('')}
+        </div>` : ''}
+      </div>` : ''}
+
+      ${c.duels?.detail ? `
+      <div class="cp-section">
+        <div class="cp-section-title">⚔ 決鬥歷程</div>
+        <p class="cp-duel-detail">${esc(c.duels.detail)}</p>
+      </div>` : ''}
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════════
+// 戰役地圖
+// ══════════════════════════════════════════════════════════
+const MAP_MARKERS = [
+  { id: 1, label: '第一章起點', sub: '破碎海灘 · 抹心蟲墜機', x: 36, y: 72, type: 'start', session_id: 1 },
+  { id: 2, label: '翡翠林', sub: '德魯伊圓圈 · 提夫林難民', x: 31, y: 65, type: 'location', session_id: 2 },
+  { id: 3, label: '哥布林營地', sub: '絕對法眼的陰謀', x: 24, y: 70, type: 'boss', session_id: 3 },
+  { id: 4, label: '地底深淵', sub: '奧拓神祠 · 格拉迦', x: 38, y: 78, type: 'location', session_id: 5 },
+  { id: 5, label: '山道關口', sub: '魔形女 · 第一章終結', x: 44, y: 62, type: 'location', session_id: 6 },
+  { id: 6, label: '暗影詛咒地帶', sub: '月升塔 · 古拉斯', x: 46, y: 52, type: 'boss', session_id: 9 },
+  { id: 7, label: '最後之光旅館', sub: '伊茲遺跡 · 抵抗軍', x: 40, y: 47, type: 'location', session_id: 8 },
+  { id: 8, label: '月升塔', sub: '吉斯女王・真・團滅', x: 52, y: 50, type: 'boss', session_id: 10 },
+  { id: 9, label: '芮文頓', sub: '第三章序幕', x: 60, y: 36, type: 'location', session_id: 11 },
+  { id: 10, label: '柏德之門下城', sub: '最終決戰舞台', x: 63, y: 28, type: 'start', session_id: 14 },
+  { id: 11, label: '魔形女神廟', sub: '神界之戰', x: 68, y: 24, type: 'boss', session_id: 17 },
+];
+
+function renderMap() {
+  const inner = document.getElementById('map-inner');
+  const typeColor = { start: '#c9a84c', boss: '#e06060', location: '#6090c0' };
+  const typeLabel = { start: '起點', boss: '首領戰', location: '地點' };
+
+  const markers = MAP_MARKERS.map(m => {
+    const color = typeColor[m.type] || '#c9a84c';
+    const session = sessions.find(s => s.id === m.session_id);
+    const tip = `${m.label}&#10;${m.sub}${session ? '&#10;→ ' + session.title : ''}`;
+    return `<div class="map-marker map-marker-${m.type}"
+               style="left:${m.x}%;top:${m.y}%"
+               data-tip="${tip}"
+               ${session ? `onclick="loadSession(${m.session_id})"` : ''}>
+      <div class="map-dot" style="border-color:${color}"></div>
+      <div class="map-label-box">
+        <div class="map-label-title">${esc(m.label)}</div>
+        <div class="map-label-sub">${esc(m.sub)}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const legend = Object.entries(typeLabel).map(([t, label]) => `
+    <div class="map-legend-item">
+      <div class="map-legend-dot map-legend-${t}"></div>
+      <span>${label}</span>
+    </div>`).join('');
+
+  inner.innerHTML = `
+    <div class="sub-header">
+      <div class="sub-rule"><span class="rule-line"></span><span class="sub-title">戰 役 地 圖</span><span class="rule-line"></span></div>
+    </div>
+    <p class="map-hint">點擊地標前往對應章節 · hover 查看詳情</p>
+    <div class="map-legend">${legend}</div>
+    <div class="map-container">
+      <div class="map-wrap">
+        <img src="https://bg3.wiki/w/images/9/9e/BG3_Map.png"
+             alt="柏德之門 3 世界地圖"
+             class="map-img"
+             onerror="this.parentElement.innerHTML='<div class=\\'map-fallback\\'>地圖圖片無法載入，請確認網路連線</div>'">
+        <div class="map-markers">${markers}</div>
+      </div>
     </div>`;
 }
 
