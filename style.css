@@ -2736,6 +2736,70 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   .cp-quote-card { grid-template-columns: 20px 1fr 28px; }
 }
 
+/* ── 靠北語錄大全 ────────────────────────────────────────── */
+.roast-quotes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+}
+
+.roast-quote-card {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+  background: rgba(122,21,21,0.04);
+  border: 1px solid rgba(122,21,21,0.14);
+  border-left: 3px solid rgba(122,21,21,0.35);
+  padding: 10px 14px;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.roast-quote-card:hover {
+  background: rgba(122,21,21,0.08);
+  border-left-color: rgba(122,21,21,0.65);
+}
+
+.rq-ep {
+  flex-shrink: 0;
+  font-family: 'Cinzel', serif;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--crimson);
+  opacity: 0.75;
+  min-width: 22px;
+}
+
+.rq-text {
+  font-size: 13px;
+  color: var(--ink-light);
+  line-height: 1.55;
+}
+
+/* ══════════════════════════════════════════════════════════
+   統計頁面動畫
+   ══════════════════════════════════════════════════════════ */
+@keyframes sg-fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes si-fade-in {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.sg-fade-in {
+  animation: sg-fade-up 0.42s ease both;
+}
+.si-fade-in {
+  animation: si-fade-in 0.30s ease both;
+}
+
+/* bar 動畫：覆蓋原本的 transition，改用更流暢的 cubic-bezier */
+.dr-bar      { transition: width 0.85s cubic-bezier(0.22, 1, 0.36, 1) !important; }
+.msp-fill    { transition: width 0.85s cubic-bezier(0.22, 1, 0.36, 1) !important; }
+.rb-bar-fill { transition: width 0.75s cubic-bezier(0.22, 1, 0.36, 1) !important; }
+.ib-bar-fill { transition: width 0.75s cubic-bezier(0.22, 1, 0.36, 1) !important; }
+
 /* ── 桌機字級放大（≥ 1024px）─────────────────────────────── */
 @media (min-width: 1024px) {
   /* 分組 & 小節標題 */

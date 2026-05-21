@@ -399,7 +399,7 @@ function renderStats() {
           <span class="dr-total">${total}場</span>
         </div>
         <div class="dr-bar-wrap">
-          <div class="dr-bar" style="width:${pct}%"></div>
+          <div class="dr-bar" style="width:0" data-w="${pct}%"></div>
         </div>
         <div class="dr-pct">${pct}%</div>
       </div>`;
@@ -473,13 +473,13 @@ function renderStats() {
     <div class="hero-stats-row">
       <div class="hero-stat">
         <div class="hero-icon">⚔</div>
-        <div class="hero-num">${base.count}</div>
+        <div class="hero-num" data-count="${base.count}">0</div>
         <div class="hero-label">場冒險</div>
       </div>
       <div class="hero-sep">✦</div>
       <div class="hero-stat">
         <div class="hero-icon">🧭</div>
-        <div class="hero-num">${base.weeks}</div>
+        <div class="hero-num" data-count="${base.weeks}">0</div>
         <div class="hero-label">冒險週數</div>
       </div>
     </div>
@@ -508,6 +508,52 @@ function renderStats() {
       <div class="stat-group-title">💬 靠北統計</div>
       ${renderRoastSection()}
     </div>`;
+
+  requestAnimationFrame(() => triggerStatsAnimations(inner));
+}
+
+// ══════════════════════════════════════════════════════════
+// 統計頁動畫
+// ══════════════════════════════════════════════════════════
+function triggerStatsAnimations(container) {
+  // 數字 count-up
+  container.querySelectorAll('.hero-num[data-count]').forEach(el => {
+    countUp(el, parseInt(el.dataset.count), 800);
+  });
+
+  // 分組 fade-in 交錯
+  container.querySelectorAll('.stat-group').forEach((el, i) => {
+    el.style.animationDelay = `${i * 80}ms`;
+    el.classList.add('sg-fade-in');
+  });
+
+  // 卡片 / 列 stagger fade-in
+  const staggerItems = container.querySelectorAll(
+    '.death-card, .duel-row, .ff-card, .msp-row, .rb-row, .ib-row, .hl-item'
+  );
+  staggerItems.forEach((el, i) => {
+    el.style.animationDelay = `${80 + i * 40}ms`;
+    el.classList.add('si-fade-in');
+  });
+
+  // bar 寬度動畫（在下一幀展開，讓 CSS transition 生效）
+  requestAnimationFrame(() => {
+    container.querySelectorAll('[data-w]').forEach(el => {
+      el.style.width = el.dataset.w;
+    });
+  });
+}
+
+function countUp(el, target, duration) {
+  const start = performance.now();
+  function step(now) {
+    const t = Math.min((now - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - t, 3);
+    el.textContent = Math.round(eased * target);
+    if (t < 1) requestAnimationFrame(step);
+  }
+  el.textContent = '0';
+  requestAnimationFrame(step);
 }
 
 // ══════════════════════════════════════════════════════════
@@ -567,7 +613,7 @@ function renderMatchupSplits(matchupData) {
       <div class="msp-row">
         <div class="msp-av-group">${avA}<span class="msp-name msp-a">${esc(ca)}</span></div>
         <div class="msp-pct msp-pct-a">${pctA}%</div>
-        <div class="msp-bar-wrap"><div class="msp-fill" style="width:${pctA}%"></div></div>
+        <div class="msp-bar-wrap"><div class="msp-fill" style="width:0" data-w="${pctA}%"></div></div>
         <div class="msp-pct msp-pct-b">${pctB}%</div>
         <div class="msp-av-group msp-bside"><span class="msp-name msp-b">${esc(cb)}</span>${avB}</div>
         <div class="msp-score">${wa}–${wb}${d > 0 ? ` (${d}平)` : ''}</div>
@@ -616,7 +662,7 @@ function renderRoastSection() {
         <div class="rb-info">
           <div class="rb-name">${esc(name)}<span class="rb-player">${esc(c?.player || '')}</span></div>
           <div class="rb-bar-track">
-            <div class="rb-bar-fill" style="width:${pct}%"></div>
+            <div class="rb-bar-fill" style="width:0" data-w="${pct}%"></div>
           </div>
         </div>
         <div class="rb-count">${received[name]}<span class="rb-unit">次</span></div>
@@ -636,7 +682,7 @@ function renderRoastSection() {
         </div>
         <div class="ib-info">
           <div class="ib-name">${esc(name)}<span class="ib-player">${esc(c?.player || '')}</span></div>
-          <div class="ib-bar-track"><div class="ib-bar-fill" style="width:${pct}%"></div></div>
+          <div class="ib-bar-track"><div class="ib-bar-fill" style="width:0" data-w="${pct}%"></div></div>
         </div>
         <div class="ib-count">${initiated[name]}<span class="ib-unit">次</span></div>
       </div>`;
@@ -672,11 +718,12 @@ function renderRoastSection() {
       </th>${cells}</tr>`;
   }).join('');
 
-  // 集數精華
-  const highlights = (roastStats.highlights || []).map(h => `
-    <div class="hl-item">
-      <span class="hl-ep">S${h.session}</span>
-      <span class="hl-desc">${esc(h.desc)}</span>
+  // 靠北語錄大全
+  const allHighlights = (roastStats.highlights || []);
+  const highlightCards = allHighlights.map(h => `
+    <div class="roast-quote-card">
+      <span class="rq-ep">S${h.session}</span>
+      <span class="rq-text">${esc(h.desc)}</span>
     </div>`).join('');
 
   return `
@@ -707,10 +754,14 @@ function renderRoastSection() {
           <span class="hl-hi">多</span>
         </div>
       </div>
+    </div>
 
-      <div class="roast-col-title" style="margin-top:24px">📜 各集代表性靠北事件</div>
-      <div class="highlights-list">${highlights}</div>
-    </div>`;
+    ${allHighlights.length ? `
+    <div class="stats-section">
+      <div class="stats-section-title">📜 靠北語錄大全</div>
+      <p class="roast-meta">按集數收錄所有記錄在案的靠北事件，共 <strong>${allHighlights.length}</strong> 條</p>
+      <div class="roast-quotes-grid">${highlightCards}</div>
+    </div>` : ''}`;
 }
 
 // ══════════════════════════════════════════════════════════
