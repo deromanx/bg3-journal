@@ -74,6 +74,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 /* 品牌頭 */
 #sidebar-brand {
+  cursor: pointer;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -222,7 +223,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 #hero-band {
   flex-shrink: 0;
   height: 120px;
-  background: url('data/images/cover.jpg') center 35% / cover no-repeat;
+  background: url('data/images/cover.webp') center 35% / cover no-repeat;
   position: relative;
   overflow: hidden;
   border-bottom: 1px solid rgba(122,21,21,0.25);
@@ -270,6 +271,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   background-size: 520px 520px;
   pointer-events: none;
   z-index: 0;
+  opacity: 0.45;
 }
 
 /* 閱讀進度條 */
@@ -1486,6 +1488,76 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   color: var(--ink-light);
   margin-top: 12px;
   letter-spacing: 0.3px;
+}
+
+/* ══════════════════════════════════════════════════════════
+   對戰勝率一覽（matchup split bars）
+   ══════════════════════════════════════════════════════════ */
+.msp-legend {
+  font-size: 12px;
+  color: var(--ink-light);
+  margin-bottom: 14px;
+  letter-spacing: 0.3px;
+}
+.msp-lg-a { color: #3a8a3a; }
+.msp-lg-b { color: #8a2a2a; }
+
+.msp-board { display: flex; flex-direction: column; gap: 10px; }
+
+.msp-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.msp-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  width: 60px;
+  flex-shrink: 0;
+}
+
+.msp-a { text-align: right; }
+.msp-b { text-align: left; }
+
+.msp-bar-wrap {
+  flex: 1;
+  height: 10px;
+  background: rgba(122,21,21,0.18);
+  border: 1px solid rgba(139,90,40,0.14);
+  overflow: hidden;
+}
+
+.msp-fill {
+  height: 100%;
+  background: linear-gradient(to right, #2d6e2d, #52a052);
+  transition: width 0.7s ease;
+}
+
+.msp-score {
+  font-size: 12px;
+  color: var(--ink-light);
+  width: 72px;
+  flex-shrink: 0;
+  text-align: right;
+  letter-spacing: 0.3px;
+}
+
+/* ── 場次進度（頁尾中央） ─────────────────────────────────── */
+.footer-progress {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--ink-light);
+  opacity: 0.60;
+  text-align: center;
+  min-width: 64px;
+}
+
+.fp-sep {
+  opacity: 0.45;
+  margin: 0 2px;
 }
 
 /* ── 決鬥排行：平手 + 場數 ──────────────────────────────── */

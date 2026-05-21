@@ -15,7 +15,7 @@
 
   <!-- ── 側欄 ───────────────────────────────────── -->
   <aside id="sidebar">
-    <div id="sidebar-brand">
+    <div id="sidebar-brand" onclick="goHome()" title="回到首頁">
       <div class="brand-emblem">
         <svg viewBox="0 0 60 60" width="44" height="44" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="30" cy="30" r="28" stroke="rgba(201,168,76,0.4)" stroke-width="1"/>
@@ -85,7 +85,7 @@
     <!-- 歡迎畫面 -->
     <div id="welcome">
       <div class="welcome-hero">
-        <img src="data/images/cover.jpg" alt="冒險隊伍" class="welcome-cover-img">
+        <img src="data/images/cover.webp" alt="冒險隊伍" class="welcome-cover-img">
         <div class="welcome-cover-fade"></div>
       </div>
       <div class="welcome-inner">
@@ -122,7 +122,7 @@
         <button class="nav-btn" id="prev-btn" onclick="navigateSession(-1)">
           <span class="nav-arrow">←</span> 上一集
         </button>
-        <div class="footer-seal">✦</div>
+        <div class="footer-progress" id="footer-progress">✦</div>
         <button class="nav-btn" id="next-btn" onclick="navigateSession(1)">
           下一集 <span class="nav-arrow">→</span>
         </button>

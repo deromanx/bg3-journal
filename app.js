@@ -10,6 +10,7 @@ let charStats     = { characters: [] };
 let roastStats    = { matrix: [], highlights: [] };
 let currentId     = null;
 let currentView   = 'journal';
+let _ignoreHash   = false;
 
 // ── 載入 ──────────────────────────────────────────────────
 Promise.all([
@@ -26,9 +27,7 @@ Promise.all([
   charStats  = charStatsData;
   roastStats = roastData;
   renderSidebar();
-  const first = sessions.slice().reverse().find(s => !s.placeholder)
-                || sessions[sessions.length - 1];
-  if (first) loadSession(first.id);
+  restoreFromHash();
 })
 .catch(() => {
   document.getElementById('session-list').innerHTML =
@@ -36,6 +35,40 @@ Promise.all([
     '⚠ 無法載入日誌<br><br>' +
     '<small>請執行 python3 extract.py<br>再用 HTTP 伺服器開啟</small></li>';
 });
+
+// ── Hash 路由 ──────────────────────────────────────────────
+function _setHash(h) {
+  if (location.hash === h) return;
+  _ignoreHash = true;
+  location.hash = h;
+}
+
+function goHome() {
+  currentId = null;
+  currentView = 'journal';
+  _setHash('#home');
+  document.querySelectorAll('.stab').forEach(b => b.classList.toggle('active', b.dataset.view === 'journal'));
+  document.getElementById('welcome').classList.remove('hidden');
+  document.getElementById('session-view').classList.add('hidden');
+  document.getElementById('stats-view').classList.add('hidden');
+  document.getElementById('milestones-view').classList.add('hidden');
+  document.getElementById('hero-band').classList.add('hidden');
+  document.querySelectorAll('.session-item').forEach(el => el.classList.remove('active'));
+}
+
+function restoreFromHash() {
+  const h = location.hash;
+  if (/^#s\d+$/.test(h)) {
+    const id = parseInt(h.slice(2));
+    if (sessions.find(s => s.id === id)) { loadSession(id); return; }
+  }
+  if (h === '#stats')      { showView('stats');      return; }
+  if (h === '#milestones') { showView('milestones'); return; }
+  if (h === '#home')       { goHome(); return; }
+  // 預設：載入最新集
+  const first = sessions.slice().reverse().find(s => !s.placeholder) || sessions[sessions.length - 1];
+  if (first) loadSession(first.id);
+}
 
 // ── 視圖切換 ──────────────────────────────────────────────
 function showView(view) {
@@ -52,8 +85,9 @@ function showView(view) {
   document.getElementById('milestones-view').classList.toggle('hidden', view !== 'milestones');
   document.getElementById('hero-band').classList.toggle('hidden', showWelcome);
 
-  if (view === 'stats')      renderStats();
-  if (view === 'milestones') renderMilestones();
+  if (view === 'stats')      { _setHash('#stats');      renderStats(); }
+  if (view === 'milestones') { _setHash('#milestones'); renderMilestones(); }
+  if (view === 'journal')    { _setHash(currentId ? '#s' + currentId : '#home'); }
 }
 
 // ── 側欄（最新集在最上方）──────────────────────────────────
@@ -76,6 +110,7 @@ function loadSession(id) {
   const session = sessions.find(s => s.id === id);
   if (!session) return;
   currentId = id;
+  _setHash('#s' + id);
 
   // 切回日誌視圖
   currentView = 'journal';
@@ -114,6 +149,9 @@ function loadSession(id) {
   const idx = sessions.findIndex(s => s.id === id);
   document.getElementById('prev-btn').disabled = idx <= 0;
   document.getElementById('next-btn').disabled = idx >= sessions.length - 1;
+
+  const prog = document.getElementById('footer-progress');
+  if (prog) prog.innerHTML = `${idx + 1}<span class="fp-sep"> / </span>${sessions.length}`;
 
   if (window.innerWidth <= 720) {
     document.getElementById('sidebar').classList.remove('open');
@@ -158,7 +196,31 @@ document.addEventListener('DOMContentLoaded', () => {
     ?.addEventListener('scroll', updateProgress);
   initTooltip();
   initMatrixHover();
+  initKeyboard();
+  window.addEventListener('hashchange', () => {
+    if (_ignoreHash) { _ignoreHash = false; return; }
+    restoreFromHash();
+  });
 });
+
+// ── 鍵盤導航 ──────────────────────────────────────────────
+function initKeyboard() {
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === 'ArrowLeft'  && currentView === 'journal' && currentId !== null) {
+      e.preventDefault(); navigateSession(-1);
+    }
+    if (e.key === 'ArrowRight' && currentView === 'journal' && currentId !== null) {
+      e.preventDefault(); navigateSession(1);
+    }
+    const scrollEl = document.querySelector('#session-view:not(.hidden)') ||
+                     document.querySelector('.content-scroll:not(.hidden)');
+    if (scrollEl) {
+      if (e.key === 'j') scrollEl.scrollBy({ top:  100, behavior: 'smooth' });
+      if (e.key === 'k') scrollEl.scrollBy({ top: -100, behavior: 'smooth' });
+    }
+  });
+}
 
 // ── Tooltip 系統 ──────────────────────────────────────────
 function initTooltip() {
@@ -267,7 +329,7 @@ function renderStats() {
     return `
       <div class="death-card${intensity}" data-tip="${esc(deathTip)}">
         <div class="dc-avatar av-${esc(c.char)}">
-          <img src="data/images/avatars/${esc(c.char)}.jpg?v=5" alt="" onerror="this.style.display='none'">
+          <img src="data/images/avatars/${esc(c.char)}.webp" alt="" onerror="this.style.display='none'">
         </div>
         <div class="dc-name-wrap">
           <span class="dc-char">${esc(c.char)}</span>
@@ -330,7 +392,7 @@ function renderStats() {
   const mmHeaders = chars.map(c => `
     <th class="mm-hdr">
       <div class="mm-hav av-${esc(c.char)}">
-        <img src="data/images/avatars/${esc(c.char)}.jpg?v=5" alt="" onerror="this.style.display='none'">
+        <img src="data/images/avatars/${esc(c.char)}.webp" alt="" onerror="this.style.display='none'">
       </div>
       <span class="mm-hchar">${esc(c.char)}</span>
     </th>`).join('');
@@ -351,7 +413,7 @@ function renderStats() {
     return `<tr>
       <th class="mm-row-hdr">
         <div class="mm-rav av-${esc(rowC.char)}">
-          <img src="data/images/avatars/${esc(rowC.char)}.jpg?v=5" alt="" onerror="this.style.display='none'">
+          <img src="data/images/avatars/${esc(rowC.char)}.webp" alt="" onerror="this.style.display='none'">
         </div>
         <div class="mm-rnames">
           <span class="mm-rchar">${esc(rowC.char)}</span>
@@ -403,9 +465,38 @@ function renderStats() {
       <div class="duel-board">${duelRows}</div>
     </div>` : ''}
 
+    ${renderMatchupSplits(matchupData)}
+
     ${matchupGrid}
 
     ${renderRoastSection()}`;
+}
+
+// ══════════════════════════════════════════════════════════
+// 對戰勝率一覽（split bars）
+// ══════════════════════════════════════════════════════════
+function renderMatchupSplits(matchupData) {
+  if (!matchupData.length) return '';
+  const pairs = matchupData.map(m => {
+    const [ca, cb] = m.chars;
+    const [wa, wb] = m.wins;
+    const d = m.draws || 0;
+    const decisive = wa + wb;
+    const pctA = decisive ? (wa / decisive * 100).toFixed(1) : 50;
+    return `
+      <div class="msp-row">
+        <div class="msp-name msp-a">${esc(ca)}</div>
+        <div class="msp-bar-wrap"><div class="msp-fill" style="width:${pctA}%"></div></div>
+        <div class="msp-name msp-b">${esc(cb)}</div>
+        <div class="msp-score">${wa}–${wb}${d > 0 ? ` (${d}平)` : ''}</div>
+      </div>`;
+  }).join('');
+  return `
+    <div class="stats-section">
+      <div class="stats-section-title">對戰勝率一覽</div>
+      <div class="msp-legend"><span class="msp-lg-a">■ 左方勝場</span>&nbsp;&nbsp;<span class="msp-lg-b">■ 右方勝場</span></div>
+      <div class="msp-board">${pairs}</div>
+    </div>`;
 }
 
 // ══════════════════════════════════════════════════════════
@@ -438,7 +529,7 @@ function renderRoastSection() {
     return `
       <div class="rb-row${crown}">
         <div class="rb-avatar av-${name}">
-          <img src="data/images/avatars/${esc(name)}.jpg?v=5" alt="" onerror="this.style.display='none'">
+          <img src="data/images/avatars/${esc(name)}.webp" alt="" onerror="this.style.display='none'">
         </div>
         <div class="rb-info">
           <div class="rb-name">${esc(name)}<span class="rb-player">${esc(c?.player || '')}</span></div>
@@ -458,7 +549,7 @@ function renderRoastSection() {
       <div class="ib-row">
         <div class="ib-rank">${i + 1}</div>
         <div class="ib-avatar av-${name}">
-          <img src="data/images/avatars/${esc(name)}.jpg?v=5" alt="" onerror="this.style.display='none'">
+          <img src="data/images/avatars/${esc(name)}.webp" alt="" onerror="this.style.display='none'">
         </div>
         <div class="ib-name">${esc(name)}</div>
         <div class="ib-bar-track"><div class="ib-bar-fill" style="width:${pct}%"></div></div>
@@ -475,7 +566,7 @@ function renderRoastSection() {
   const heatHeaders = charNames.map(n => `
     <th class="rh-hdr">
       <div class="rh-hav av-${esc(n)}">
-        <img src="data/images/avatars/${esc(n)}.jpg?v=5" alt="" onerror="this.style.display='none'">
+        <img src="data/images/avatars/${esc(n)}.webp" alt="" onerror="this.style.display='none'">
       </div>
       <span class="rh-hname">${esc(n)}</span>
     </th>`).join('');
@@ -490,7 +581,7 @@ function renderRoastSection() {
     return `<tr>
       <th class="rh-row-hdr">
         <div class="rh-hav av-${esc(rowN)}">
-          <img src="data/images/avatars/${esc(rowN)}.jpg?v=5" alt="" onerror="this.style.display='none'">
+          <img src="data/images/avatars/${esc(rowN)}.webp" alt="" onerror="this.style.display='none'">
         </div>
         <span class="rh-hname">${esc(rowN)}</span>
       </th>${cells}</tr>`;
@@ -596,7 +687,7 @@ function resolveChar(name) {
 function makeQuoteWrap(speaker, content, attr) {
   return `<div class="quote-wrap">
     <div class="char-avatar av-${esc(speaker)}" aria-label="${esc(speaker)}" data-tip="${esc(speaker)}">
-      <img src="data/images/avatars/${speaker}.jpg?v=5" alt="" loading="lazy">
+      <img src="data/images/avatars/${speaker}.webp" alt="" loading="lazy">
     </div>
     <blockquote class="char-quote">
       ${renderInline('「' + content + '」')}
