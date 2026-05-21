@@ -616,6 +616,8 @@ function renderMatchupSplits(matchupData) {
 // ══════════════════════════════════════════════════════════
 // 靠北語錄大全
 // ══════════════════════════════════════════════════════════
+const asArr = v => Array.isArray(v) ? v : [v];
+
 let _roastFilter = new Set();
 
 function filterRoastQuotes(charName) {
@@ -631,11 +633,14 @@ function filterRoastQuotes(charName) {
     btn.classList.toggle('active', _roastFilter.has(btn.dataset.char));
   });
 
-  // 篩選顯示卡片
+  // 篩選顯示卡片（交集：所有選取角色都須出現在 from 或 to）
   const quotes = roastStats.quotes || roastStats.highlights || [];
   const filtered = _roastFilter.size === 0
     ? quotes
-    : quotes.filter(q => [..._roastFilter].every(c => q.from === c || q.to === c));
+    : quotes.filter(q => {
+        const all = [...asArr(q.from), ...asArr(q.to)];
+        return [..._roastFilter].every(c => all.includes(c));
+      });
 
   const countEl = document.getElementById('rq-count');
   if (countEl) countEl.textContent = filtered.length;
@@ -646,19 +651,18 @@ function filterRoastQuotes(charName) {
 }
 
 function renderRoastCard(q, chars) {
-  const fromChar = chars.find(c => c.char === q.from);
-  const toChar   = chars.find(c => c.char === q.to);
   const src = char => `data/images/avatars/${esc(char)}.webp`;
+  const avatar = char => `<div class="rq-av av-${esc(char)}" data-tip="${esc(char)}">
+          <img src="${src(char)}" alt="" onerror="this.style.display='none'">
+        </div>`;
+  const froms = asArr(q.from);
+  const tos   = asArr(q.to);
   return `
     <div class="roast-quote-card">
       <div class="rq-actors">
-        <div class="rq-av av-${esc(q.from)}" data-tip="${esc(q.from)}">
-          <img src="${src(q.from)}" alt="" onerror="this.style.display='none'">
-        </div>
+        <div class="rq-av-group">${froms.map(avatar).join('')}</div>
         <span class="rq-arrow">→</span>
-        <div class="rq-av av-${esc(q.to)}" data-tip="${esc(q.to)}">
-          <img src="${src(q.to)}" alt="" onerror="this.style.display='none'">
-        </div>
+        <div class="rq-av-group">${tos.map(avatar).join('')}</div>
       </div>
       <div class="rq-body">
         <span class="rq-ep">S${q.session}</span>

@@ -66,7 +66,7 @@ def gemini_analyze(text):
     "本集決鬥摘要（例：S19 曹以沉默戒指廢掉影心後爆擊獲勝）"
   ],
   "roasts": [
-    {{"from": "角色名", "to": "角色名", "count": 1, "desc": "事件描述（15字內）"}}
+    {{"from": "角色名或角色名陣列（多人靠北同一人時用陣列）", "to": "角色名或角色名陣列（靠北對象多人時用陣列）", "count": 1, "desc": "事件描述（50-80字，含前因後果）"}}
   ],
   "milestones": [
     {{"type": "boss或location或achievement或death或item或custom", "icon": "單一emoji", "title": "里程碑標題（10字內）", "desc": "描述（30字內）"}}
@@ -188,29 +188,45 @@ def update_milestones(milestones, result, sid, session):
     return milestones
 
 
+def as_list(v):
+    return v if isinstance(v, list) else [v]
+
 def update_roast_stats(roast_stats, result, sid):
     matrix     = roast_stats.get("matrix", [])
     highlights = roast_stats.get("highlights", [])
+    quotes     = roast_stats.get("quotes", [])
 
     for roast in result.get("roasts", []):
-        frm   = roast.get("from", "")
-        to    = roast.get("to", "")
-        count = roast.get("count", 1)
-        desc  = roast.get("desc", "")
-        if frm not in CHAR_NAMES or to not in CHAR_NAMES:
+        frm_raw = roast.get("from", "")
+        to_raw  = roast.get("to", "")
+        count   = roast.get("count", 1)
+        desc    = roast.get("desc", "")
+        frm_list = [n for n in as_list(frm_raw) if n in CHAR_NAMES]
+        to_list  = [n for n in as_list(to_raw)  if n in CHAR_NAMES]
+        if not frm_list or not to_list:
             continue
 
-        existing = next((r for r in matrix if r["from"] == frm and r["to"] == to), None)
-        if existing:
-            existing["count"] += count
-        else:
-            matrix.append({"from": frm, "to": to, "count": count})
+        # matrix 展開所有 from×to 組合
+        for frm in frm_list:
+            for to in to_list:
+                existing = next((r for r in matrix if r["from"] == frm and r["to"] == to), None)
+                if existing:
+                    existing["count"] += count
+                else:
+                    matrix.append({"from": frm, "to": to, "count": count})
 
+        # quotes 保留原始陣列格式
+        from_val = frm_list[0] if len(frm_list) == 1 else frm_list
+        to_val   = to_list[0]  if len(to_list)  == 1 else to_list
         if desc:
-            highlights.append({"session": sid, "desc": f"{frm}靠北{to}：{desc}"})
+            quotes.append({"session": sid, "from": from_val, "to": to_val, "desc": desc})
+            frm_label = "、".join(frm_list)
+            to_label  = "、".join(to_list)
+            highlights.append({"session": sid, "desc": f"{frm_label}靠北{to_label}：{desc}"})
 
     roast_stats["matrix"]     = matrix
     roast_stats["highlights"] = highlights
+    roast_stats["quotes"]     = quotes
     roast_stats["total"]      = sum(r["count"] for r in matrix)
     return roast_stats
 
