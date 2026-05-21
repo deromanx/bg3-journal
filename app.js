@@ -521,24 +521,18 @@ function triggerStatsAnimations(container) {
     countUp(el, parseInt(el.dataset.count), 800);
   });
 
-  // 死亡卡 stagger fade-in
+  // 死亡卡 / 友軍卡 stagger fade-in
   container.querySelectorAll('.death-card, .ff-card').forEach((el, i) => {
     el.style.animationDelay = `${i * 55}ms`;
     el.classList.add('si-fade-in');
   });
 
-  // 分組 fade-in 交錯
-  container.querySelectorAll('.stat-group').forEach((el, i) => {
-    el.style.animationDelay = `${i * 80}ms`;
-    el.classList.add('sg-fade-in');
+  // bar：CSS keyframe 動畫，用 --bar-w 自訂屬性控制目標寬度
+  // 不依賴 transition，避免父層 opacity 動畫遮蔽問題
+  container.querySelectorAll('[data-w]').forEach(el => {
+    el.style.setProperty('--bar-w', el.dataset.w);
+    el.classList.add('bar-anim');
   });
-
-  // bar 動畫：等 group fade-in（最長 ~580ms）完成後再展開
-  setTimeout(() => {
-    container.querySelectorAll('[data-w]').forEach(el => {
-      el.style.width = el.dataset.w;
-    });
-  }, 620);
 }
 
 function countUp(el, target, duration) {
@@ -627,22 +621,26 @@ function renderMatchupSplits(matchupData) {
 // ══════════════════════════════════════════════════════════
 // 靠北語錄大全
 // ══════════════════════════════════════════════════════════
-let _roastFilter = null;
+let _roastFilter = new Set();
 
 function filterRoastQuotes(charName) {
-  _roastFilter = _roastFilter === charName ? null : charName;
+  if (_roastFilter.has(charName)) {
+    _roastFilter.delete(charName);
+  } else {
+    _roastFilter.add(charName);
+  }
   const chars = charStats.characters || [];
 
   // 更新篩選按鈕狀態
   document.querySelectorAll('.rq-filter-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.char === _roastFilter);
+    btn.classList.toggle('active', _roastFilter.has(btn.dataset.char));
   });
 
   // 篩選顯示卡片
   const quotes = roastStats.quotes || roastStats.highlights || [];
-  const filtered = _roastFilter
-    ? quotes.filter(q => q.from === _roastFilter || q.to === _roastFilter)
-    : quotes;
+  const filtered = _roastFilter.size === 0
+    ? quotes
+    : quotes.filter(q => _roastFilter.has(q.from) || _roastFilter.has(q.to));
 
   const countEl = document.getElementById('rq-count');
   if (countEl) countEl.textContent = filtered.length;

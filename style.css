@@ -2887,11 +2887,15 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   animation: si-fade-in 0.30s ease both;
 }
 
-/* bar 動畫：覆蓋原本的 transition，改用更流暢的 cubic-bezier */
-.dr-bar      { transition: width 0.85s cubic-bezier(0.22, 1, 0.36, 1) !important; }
-.msp-fill    { transition: width 0.85s cubic-bezier(0.22, 1, 0.36, 1) !important; }
-.rb-bar-fill { transition: width 0.75s cubic-bezier(0.22, 1, 0.36, 1) !important; }
-.ib-bar-fill { transition: width 0.75s cubic-bezier(0.22, 1, 0.36, 1) !important; }
+/* bar 動畫：CSS keyframe，獨立於 opacity，不受 sg-fade-in 影響 */
+@keyframes bar-grow {
+  from { width: 0; }
+  to   { width: var(--bar-w, 0%); }
+}
+.bar-anim {
+  animation: bar-grow 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 250ms;
+}
 
 /* ── 桌機字級放大（≥ 1024px）─────────────────────────────── */
 @media (min-width: 1024px) {
