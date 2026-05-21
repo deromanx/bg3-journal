@@ -1987,24 +1987,21 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .ib-row {
   display: grid;
-  grid-template-columns: 22px 32px 1fr 80px 32px;
+  grid-template-columns: 36px 1fr 48px;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
-.ib-rank {
-  font-size: 13px;
-  color: var(--ink-mid);
-  text-align: center;
-}
+.ib-row.rb-crown .ib-count { color: #e8c060; }
 
 .ib-avatar {
-  width: 30px; height: 30px;
+  width: 34px; height: 34px;
   border-radius: 50%;
-  border: 2px solid rgba(217,176,122,0.20);
+  border: 2px solid rgba(217,176,122,0.25);
   overflow: hidden;
   position: relative;
   display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
 }
 
 .ib-avatar img {
@@ -2014,14 +2011,25 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .ib-avatar .av-initial { font-size: 11px; position: relative; z-index: 1; }
 
+.ib-info { display: flex; flex-direction: column; gap: 5px; }
+
 .ib-name {
-  font-size: 13px;
-  font-weight: 600;
+  font-size: 14px;
+  font-weight: 700;
   color: var(--ink);
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.ib-player {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--ink-light);
 }
 
 .ib-bar-track {
-  height: 5px;
+  height: 6px;
   background: rgba(139,90,40,0.12);
   border: 1px solid rgba(139,90,40,0.16);
   overflow: hidden;
@@ -2029,16 +2037,20 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .ib-bar-fill {
   height: 100%;
-  background: linear-gradient(to right, #1a4080, #4080c0);
+  background: linear-gradient(to right, #7a1515, #c94040);
   transition: width 0.6s ease;
 }
 
 .ib-count {
-  font-size: 14px;
+  font-family: 'Cinzel', serif;
+  font-size: 18px;
   font-weight: 700;
-  color: #7c9cc4;
+  color: #c47c7c;
   text-align: right;
+  line-height: 1;
 }
+
+.ib-unit { font-size: 11px; margin-left: 2px; color: var(--ink-light); font-family: inherit; }
 
 /* ── 靠北熱力圖 ─────────────────────────────────────────── */
 .heat-wrap { overflow-x: auto; margin-top: 8px; }
@@ -2346,5 +2358,5 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   .av-initial { font-size: 13px; }
   .char-quote { font-size: 14px; padding: 6px 10px; }
   .roast-columns { grid-template-columns: 1fr; }
-  .ib-row { grid-template-columns: 22px 30px 1fr 60px 28px; }
+  .ib-row { grid-template-columns: 36px 1fr 48px; }
 }

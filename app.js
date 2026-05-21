@@ -598,16 +598,19 @@ function renderRoastSection() {
   // 主動靠北排序 & mini badges
   const byInit = charNames.slice().sort((a, b) => initiated[b] - initiated[a]);
   const initBadges = byInit.map((name, i) => {
+    const c = chars.find(x => x.char === name);
     const pct = Math.round(initiated[name] / maxInit * 100);
+    const crown = i === 0 ? ' rb-crown' : '';
     return `
-      <div class="ib-row">
-        <div class="ib-rank">${i + 1}</div>
+      <div class="ib-row${crown}">
         <div class="ib-avatar av-${name}">
           <img src="data/images/avatars/${esc(name)}.webp" alt="" onerror="this.style.display='none'">
         </div>
-        <div class="ib-name">${esc(name)}</div>
-        <div class="ib-bar-track"><div class="ib-bar-fill" style="width:${pct}%"></div></div>
-        <div class="ib-count">${initiated[name]}</div>
+        <div class="ib-info">
+          <div class="ib-name">${esc(name)}<span class="ib-player">${esc(c?.player || '')}</span></div>
+          <div class="ib-bar-track"><div class="ib-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+        <div class="ib-count">${initiated[name]}<span class="ib-unit">次</span></div>
       </div>`;
   }).join('');
 
