@@ -359,6 +359,9 @@ function renderStats() {
     const duelTip = c.duels.detail || '';
     return `
       <div class="duel-row" data-tip="${esc(duelTip)}">
+        <div class="dr-av av-${esc(c.char)}">
+          <img src="data/images/avatars/${esc(c.char)}.webp" alt="" onerror="this.style.display='none'">
+        </div>
         <div class="dr-rank">${medal || (rank + 1)}</div>
         <div class="dr-name">
           <span class="dr-char">${esc(c.char)}</span>
@@ -483,19 +486,21 @@ function renderMatchupSplits(matchupData) {
     const d = m.draws || 0;
     const decisive = wa + wb;
     const pctA = decisive ? (wa / decisive * 100).toFixed(1) : 50;
+    const avA = `<div class="msp-av av-${esc(ca)}"><img src="data/images/avatars/${esc(ca)}.webp" alt="" onerror="this.style.display='none'"></div>`;
+    const avB = `<div class="msp-av av-${esc(cb)}"><img src="data/images/avatars/${esc(cb)}.webp" alt="" onerror="this.style.display='none'"></div>`;
     return `
       <div class="msp-row">
-        <div class="msp-name msp-a">${esc(ca)}</div>
+        <div class="msp-av-group">${avA}<span class="msp-name msp-a">${esc(ca)}</span></div>
         <div class="msp-bar-wrap"><div class="msp-fill" style="width:${pctA}%"></div></div>
-        <div class="msp-name msp-b">${esc(cb)}</div>
+        <div class="msp-av-group msp-bside"><span class="msp-name msp-b">${esc(cb)}</span>${avB}</div>
         <div class="msp-score">${wa}–${wb}${d > 0 ? ` (${d}平)` : ''}</div>
       </div>`;
   }).join('');
   return `
     <div class="stats-section">
       <div class="stats-section-title">對戰勝率一覽</div>
-      <div class="msp-legend"><span class="msp-lg-a">■ 左方勝場</span>&nbsp;&nbsp;<span class="msp-lg-b">■ 右方勝場</span></div>
       <div class="msp-board">${pairs}</div>
+      <p class="duel-note">綠色條 = 左方勝場比例；底色 = 右方勝場</p>
     </div>`;
 }
 
