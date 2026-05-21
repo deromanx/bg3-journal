@@ -66,6 +66,8 @@ function goHome() {
   hideAllViews();
   document.getElementById('welcome').classList.remove('hidden');
   document.querySelectorAll('.session-item').forEach(el => el.classList.remove('active'));
+  const journalNav = document.getElementById('journal-nav');
+  if (journalNav) journalNav.classList.remove('hidden-nav');
 }
 
 function restoreFromHash() {
@@ -102,6 +104,10 @@ function showView(view) {
   if (view === 'stats')      document.getElementById('stats-view').classList.remove('hidden');
   if (view === 'milestones') document.getElementById('milestones-view').classList.remove('hidden');
   if (view === 'story')      document.getElementById('story-view').classList.remove('hidden');
+
+  // 章節列表只在日誌分頁顯示
+  const journalNav = document.getElementById('journal-nav');
+  if (journalNav) journalNav.classList.toggle('hidden-nav', view !== 'journal');
 
   if (view === 'characters') { _setHash('#characters'); renderCharacters(); }
   if (view === 'stats')      { _setHash('#stats');      renderStats(); }
