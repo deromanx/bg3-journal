@@ -4,3 +4,4 @@ assets/
 __pycache__/
 *.pyc
 *.log
+data/.stats_processed.json
