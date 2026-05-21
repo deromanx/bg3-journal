@@ -2837,6 +2837,22 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .rq-filter-btn.active .rq-fname { color: var(--crimson); font-weight: 600; }
 
+.rq-clear-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border: 1px solid rgba(217,176,122,0.35);
+  border-radius: 20px;
+  background: transparent;
+  color: var(--ink-light);
+  font-size: 11px;
+  font-family: var(--font-body);
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+.rq-clear-btn:hover { background: rgba(217,176,122,0.12); color: var(--gold); }
+
 .rq-total {
   margin-left: auto;
   font-size: 12px;

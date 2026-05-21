@@ -644,6 +644,19 @@ const asArr = v => Array.isArray(v) ? v : [v];
 
 let _roastFilter = new Set();
 
+function clearRoastFilter() {
+  _roastFilter.clear();
+  document.querySelectorAll('.rq-filter-btn').forEach(btn => btn.classList.remove('active'));
+  const clearBtn = document.getElementById('rq-clear-btn');
+  if (clearBtn) clearBtn.classList.add('hidden');
+  const quotes = roastStats.quotes || roastStats.highlights || [];
+  const countEl = document.getElementById('rq-count');
+  if (countEl) countEl.textContent = quotes.length;
+  const grid = document.getElementById('rq-grid');
+  const chars = charStats.characters || [];
+  if (grid) grid.innerHTML = quotes.map(q => renderRoastCard(q, chars)).join('');
+}
+
 function filterRoastQuotes(charName) {
   if (_roastFilter.has(charName)) {
     _roastFilter.delete(charName);
@@ -656,6 +669,9 @@ function filterRoastQuotes(charName) {
   document.querySelectorAll('.rq-filter-btn').forEach(btn => {
     btn.classList.toggle('active', _roastFilter.has(btn.dataset.char));
   });
+
+  const clearBtn = document.getElementById('rq-clear-btn');
+  if (clearBtn) clearBtn.classList.toggle('hidden', _roastFilter.size === 0);
 
   // 篩選顯示卡片（交集：所有選取角色都須出現在 from 或 to）
   const quotes = roastStats.quotes || roastStats.highlights || [];
@@ -720,6 +736,7 @@ function renderRoastQuotes() {
       <div class="rq-filter-row">
         <span class="rq-filter-label">篩選角色：</span>
         ${filterBtns}
+        <button id="rq-clear-btn" class="rq-clear-btn hidden" onclick="clearRoastFilter()">✕ 清空</button>
         <span class="rq-total">共 <strong id="rq-count">${quotes.length}</strong> 條</span>
       </div>
       <div class="roast-quotes-grid" id="rq-grid">${cards}</div>
