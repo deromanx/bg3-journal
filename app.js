@@ -521,27 +521,24 @@ function triggerStatsAnimations(container) {
     countUp(el, parseInt(el.dataset.count), 800);
   });
 
+  // 死亡卡 stagger fade-in
+  container.querySelectorAll('.death-card, .ff-card').forEach((el, i) => {
+    el.style.animationDelay = `${i * 55}ms`;
+    el.classList.add('si-fade-in');
+  });
+
   // 分組 fade-in 交錯
   container.querySelectorAll('.stat-group').forEach((el, i) => {
     el.style.animationDelay = `${i * 80}ms`;
     el.classList.add('sg-fade-in');
   });
 
-  // 卡片 / 列 stagger fade-in
-  const staggerItems = container.querySelectorAll(
-    '.death-card, .duel-row, .ff-card, .msp-row, .rb-row, .ib-row, .hl-item'
-  );
-  staggerItems.forEach((el, i) => {
-    el.style.animationDelay = `${80 + i * 40}ms`;
-    el.classList.add('si-fade-in');
-  });
-
-  // bar 寬度動畫（在下一幀展開，讓 CSS transition 生效）
-  requestAnimationFrame(() => {
+  // bar 動畫：等 group fade-in（最長 ~580ms）完成後再展開
+  setTimeout(() => {
     container.querySelectorAll('[data-w]').forEach(el => {
       el.style.width = el.dataset.w;
     });
-  });
+  }, 620);
 }
 
 function countUp(el, target, duration) {
