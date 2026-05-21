@@ -43,7 +43,7 @@ function _setHash(h) {
   location.hash = h;
 }
 
-const ALL_VIEWS = ['journal', 'characters', 'stats', 'milestones', 'map'];
+const ALL_VIEWS = ['journal', 'characters', 'stats', 'milestones'];
 
 function hideAllViews() {
   document.getElementById('welcome').classList.add('hidden');
@@ -51,7 +51,6 @@ function hideAllViews() {
   document.getElementById('characters-view').classList.add('hidden');
   document.getElementById('stats-view').classList.add('hidden');
   document.getElementById('milestones-view').classList.add('hidden');
-  document.getElementById('map-view').classList.add('hidden');
   document.getElementById('hero-band').classList.add('hidden');
 }
 
@@ -74,7 +73,6 @@ function restoreFromHash() {
   if (h === '#characters') { showView('characters'); return; }
   if (h === '#stats')      { showView('stats');      return; }
   if (h === '#milestones') { showView('milestones'); return; }
-  if (h === '#map')        { showView('map');        return; }
   if (h === '#home')       { goHome(); return; }
   // 預設：載入最新集
   const first = sessions.slice().reverse().find(s => !s.placeholder) || sessions[sessions.length - 1];
@@ -98,12 +96,10 @@ function showView(view) {
   if (view === 'characters') document.getElementById('characters-view').classList.remove('hidden');
   if (view === 'stats')      document.getElementById('stats-view').classList.remove('hidden');
   if (view === 'milestones') document.getElementById('milestones-view').classList.remove('hidden');
-  if (view === 'map')        document.getElementById('map-view').classList.remove('hidden');
 
   if (view === 'characters') { _setHash('#characters'); renderCharacters(); }
   if (view === 'stats')      { _setHash('#stats');      renderStats(); }
   if (view === 'milestones') { _setHash('#milestones'); renderMilestones(); }
-  if (view === 'map')        { _setHash('#map');        renderMap(); }
   if (view === 'journal')    { _setHash(currentId ? '#s' + currentId : '#home'); }
 }
 
@@ -871,67 +867,6 @@ function renderCharacters(charName) {
         <div class="cp-section-title">⚔ 決鬥歷程</div>
         <p class="cp-duel-detail">${esc(c.duels.detail)}</p>
       </div>` : ''}
-    </div>`;
-}
-
-// ══════════════════════════════════════════════════════════
-// 戰役地圖
-// ══════════════════════════════════════════════════════════
-const MAP_MARKERS = [
-  { id: 1, label: '第一章起點', sub: '破碎海灘 · 抹心蟲墜機', x: 36, y: 72, type: 'start', session_id: 1 },
-  { id: 2, label: '翡翠林', sub: '德魯伊圓圈 · 提夫林難民', x: 31, y: 65, type: 'location', session_id: 2 },
-  { id: 3, label: '哥布林營地', sub: '絕對法眼的陰謀', x: 24, y: 70, type: 'boss', session_id: 3 },
-  { id: 4, label: '地底深淵', sub: '奧拓神祠 · 格拉迦', x: 38, y: 78, type: 'location', session_id: 5 },
-  { id: 5, label: '山道關口', sub: '魔形女 · 第一章終結', x: 44, y: 62, type: 'location', session_id: 6 },
-  { id: 6, label: '暗影詛咒地帶', sub: '月升塔 · 古拉斯', x: 46, y: 52, type: 'boss', session_id: 9 },
-  { id: 7, label: '最後之光旅館', sub: '伊茲遺跡 · 抵抗軍', x: 40, y: 47, type: 'location', session_id: 8 },
-  { id: 8, label: '月升塔', sub: '吉斯女王・真・團滅', x: 52, y: 50, type: 'boss', session_id: 10 },
-  { id: 9, label: '芮文頓', sub: '第三章序幕', x: 60, y: 36, type: 'location', session_id: 11 },
-  { id: 10, label: '柏德之門下城', sub: '最終決戰舞台', x: 63, y: 28, type: 'start', session_id: 14 },
-  { id: 11, label: '魔形女神廟', sub: '神界之戰', x: 68, y: 24, type: 'boss', session_id: 17 },
-];
-
-function renderMap() {
-  const inner = document.getElementById('map-inner');
-  const typeColor = { start: '#c9a84c', boss: '#e06060', location: '#6090c0' };
-  const typeLabel = { start: '起點', boss: '首領戰', location: '地點' };
-
-  const markers = MAP_MARKERS.map(m => {
-    const color = typeColor[m.type] || '#c9a84c';
-    const session = sessions.find(s => s.id === m.session_id);
-    const tip = `${m.label}&#10;${m.sub}${session ? '&#10;→ ' + session.title : ''}`;
-    return `<div class="map-marker map-marker-${m.type}"
-               style="left:${m.x}%;top:${m.y}%"
-               data-tip="${tip}"
-               ${session ? `onclick="loadSession(${m.session_id})"` : ''}>
-      <div class="map-dot" style="border-color:${color}"></div>
-      <div class="map-label-box">
-        <div class="map-label-title">${esc(m.label)}</div>
-        <div class="map-label-sub">${esc(m.sub)}</div>
-      </div>
-    </div>`;
-  }).join('');
-
-  const legend = Object.entries(typeLabel).map(([t, label]) => `
-    <div class="map-legend-item">
-      <div class="map-legend-dot map-legend-${t}"></div>
-      <span>${label}</span>
-    </div>`).join('');
-
-  inner.innerHTML = `
-    <div class="sub-header">
-      <div class="sub-rule"><span class="rule-line"></span><span class="sub-title">戰 役 地 圖</span><span class="rule-line"></span></div>
-    </div>
-    <p class="map-hint">點擊地標前往對應章節 · hover 查看詳情</p>
-    <div class="map-legend">${legend}</div>
-    <div class="map-container">
-      <div class="map-wrap">
-        <img src="https://bg3.wiki/w/images/9/9e/BG3_Map.png"
-             alt="柏德之門 3 世界地圖"
-             class="map-img"
-             onerror="this.parentElement.innerHTML='<div class=\\'map-fallback\\'>地圖圖片無法載入，請確認網路連線</div>'">
-        <div class="map-markers">${markers}</div>
-      </div>
     </div>`;
 }
 
