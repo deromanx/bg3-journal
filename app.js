@@ -625,6 +625,85 @@ function renderMatchupSplits(matchupData) {
 }
 
 // ══════════════════════════════════════════════════════════
+// 靠北語錄大全
+// ══════════════════════════════════════════════════════════
+let _roastFilter = null;
+
+function filterRoastQuotes(charName) {
+  _roastFilter = _roastFilter === charName ? null : charName;
+  const chars = charStats.characters || [];
+
+  // 更新篩選按鈕狀態
+  document.querySelectorAll('.rq-filter-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.char === _roastFilter);
+  });
+
+  // 篩選顯示卡片
+  const quotes = roastStats.quotes || roastStats.highlights || [];
+  const filtered = _roastFilter
+    ? quotes.filter(q => q.from === _roastFilter || q.to === _roastFilter)
+    : quotes;
+
+  const countEl = document.getElementById('rq-count');
+  if (countEl) countEl.textContent = filtered.length;
+
+  const grid = document.getElementById('rq-grid');
+  if (!grid) return;
+  grid.innerHTML = filtered.map(q => renderRoastCard(q, chars)).join('');
+}
+
+function renderRoastCard(q, chars) {
+  const fromChar = chars.find(c => c.char === q.from);
+  const toChar   = chars.find(c => c.char === q.to);
+  const src = char => `data/images/avatars/${esc(char)}.webp`;
+  return `
+    <div class="roast-quote-card">
+      <div class="rq-actors">
+        <div class="rq-av av-${esc(q.from)}" data-tip="${esc(q.from)}">
+          <img src="${src(q.from)}" alt="" onerror="this.style.display='none'">
+        </div>
+        <span class="rq-arrow">→</span>
+        <div class="rq-av av-${esc(q.to)}" data-tip="${esc(q.to)}">
+          <img src="${src(q.to)}" alt="" onerror="this.style.display='none'">
+        </div>
+      </div>
+      <div class="rq-body">
+        <span class="rq-ep">S${q.session}</span>
+        <span class="rq-text">${esc(q.desc)}</span>
+      </div>
+    </div>`;
+}
+
+function renderRoastQuotes() {
+  const quotes = roastStats.quotes || roastStats.highlights || [];
+  if (!quotes.length) return '';
+  const chars = charStats.characters || [];
+
+  const filterBtns = chars.map(c => `
+    <button class="rq-filter-btn" data-char="${esc(c.char)}"
+            onclick="filterRoastQuotes('${esc(c.char)}')"
+            data-tip="${esc(c.char)}">
+      <div class="rq-fav av-${esc(c.char)}">
+        <img src="data/images/avatars/${esc(c.char)}.webp" alt="" onerror="this.style.display='none'">
+      </div>
+      <span class="rq-fname">${esc(c.char)}</span>
+    </button>`).join('');
+
+  const cards = quotes.map(q => renderRoastCard(q, chars)).join('');
+
+  return `
+    <div class="stats-section">
+      <div class="stats-section-title">📜 靠北語錄大全</div>
+      <div class="rq-filter-row">
+        <span class="rq-filter-label">篩選角色：</span>
+        ${filterBtns}
+        <span class="rq-total">共 <strong id="rq-count">${quotes.length}</strong> 條</span>
+      </div>
+      <div class="roast-quotes-grid" id="rq-grid">${cards}</div>
+    </div>`;
+}
+
+// ══════════════════════════════════════════════════════════
 // 靠北統計區塊
 // ══════════════════════════════════════════════════════════
 function renderRoastSection() {
@@ -715,13 +794,6 @@ function renderRoastSection() {
       </th>${cells}</tr>`;
   }).join('');
 
-  // 靠北語錄大全
-  const allHighlights = (roastStats.highlights || []);
-  const highlightCards = allHighlights.map(h => `
-    <div class="roast-quote-card">
-      <span class="rq-ep">S${h.session}</span>
-      <span class="rq-text">${esc(h.desc)}</span>
-    </div>`).join('');
 
   return `
     <div class="stats-section">
@@ -753,12 +825,7 @@ function renderRoastSection() {
       </div>
     </div>
 
-    ${allHighlights.length ? `
-    <div class="stats-section">
-      <div class="stats-section-title">📜 靠北語錄大全</div>
-      <p class="roast-meta">按集數收錄所有記錄在案的靠北事件，共 <strong>${allHighlights.length}</strong> 條</p>
-      <div class="roast-quotes-grid">${highlightCards}</div>
-    </div>` : ''}`;
+    ${renderRoastQuotes()}`;
 }
 
 // ══════════════════════════════════════════════════════════
