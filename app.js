@@ -941,6 +941,113 @@ function renderMilestones() {
 // ══════════════════════════════════════════════════════════
 let _selectedChar = null;
 
+// ── 雷達圖 ────────────────────────────────────────────────────
+const RADAR_DIMS = [
+  { key: '嘴砲力', label: '嘴砲力', unit: '次', desc: '主動靠北次數' },
+  { key: '破壞力', label: '破壞力', unit: '次', desc: '戰鬥中被稱讚次數' },
+  { key: '躺平力', label: '躺平力', unit: '次', desc: '倒地次數' },
+  { key: '決鬥力', label: '決鬥力', unit: '%',  desc: '決鬥勝率' },
+  { key: '搞事力', label: '搞事力', unit: '次', desc: '被靠北次數' },
+];
+
+function buildRadarScores(allChars) {
+  const matrix = roastStats.matrix || [];
+  const raw = {};
+  allChars.forEach(c => {
+    const decisive = (c.duels?.wins || 0) + (c.duels?.losses || 0);
+    const initiated = matrix.filter(r => r.from === c.char).reduce((s, r) => s + r.count, 0);
+    const received  = matrix.filter(r => r.to   === c.char).reduce((s, r) => s + r.count, 0);
+    raw[c.char] = {
+      嘴砲力: initiated,
+      破壞力: c.praised || 0,
+      躺平力: c.downed  || 0,
+      決鬥力: decisive ? Math.round((c.duels.wins || 0) / decisive * 100) : 0,
+      搞事力: received,
+    };
+  });
+  // 各維度正規化到 0-100（決鬥力已是百分比，max=100）
+  const maxes = {};
+  RADAR_DIMS.forEach(d => {
+    maxes[d.key] = d.key === '決鬥力'
+      ? 100
+      : Math.max(...allChars.map(c => raw[c.char][d.key]), 1);
+  });
+  const norm = {};
+  allChars.forEach(c => {
+    norm[c.char] = {};
+    RADAR_DIMS.forEach(d => {
+      norm[c.char][d.key] = Math.round(raw[c.char][d.key] / maxes[d.key] * 100);
+    });
+  });
+  return { raw, norm };
+}
+
+function renderRadarSvg(scores) {
+  const cx = 118, cy = 118, r = 82;
+  const n = RADAR_DIMS.length;
+  const angles = RADAR_DIMS.map((_, i) => -Math.PI / 2 + i * 2 * Math.PI / n);
+
+  const pt = (val, idx) => {
+    const a = angles[idx];
+    const d = r * val / 100;
+    return [cx + d * Math.cos(a), cy + d * Math.sin(a)];
+  };
+
+  // 網格
+  const grid = [20, 40, 60, 80, 100].map(pct => {
+    const pts = angles.map((a, i) => pt(pct, i).join(',')).join(' ');
+    return `<polygon points="${pts}" fill="none" stroke="rgba(201,168,76,0.10)" stroke-width="1"/>`;
+  }).join('');
+
+  // 軸線
+  const axes = angles.map((a, i) => {
+    const [x, y] = pt(100, i);
+    return `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="rgba(201,168,76,0.18)" stroke-width="1"/>`;
+  }).join('');
+
+  // 資料多邊形
+  const dataPts = scores.map((v, i) => pt(v, i).join(',')).join(' ');
+  const poly = `<polygon points="${dataPts}" fill="rgba(201,168,76,0.13)" stroke="rgba(201,168,76,0.75)" stroke-width="1.8" stroke-linejoin="round"/>`;
+
+  // 節點
+  const dots = scores.map((v, i) => {
+    const [x, y] = pt(v, i);
+    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.2" fill="var(--gold)" opacity="0.9"/>`;
+  }).join('');
+
+  // 標籤
+  const labels = RADAR_DIMS.map((d, i) => {
+    const [x, y] = pt(132, i);
+    const anchor = x < cx - 6 ? 'end' : x > cx + 6 ? 'start' : 'middle';
+    const dy = y < cy - 6 ? '-0.3em' : y > cy + 6 ? '1em' : '0.35em';
+    return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="${anchor}" dy="${dy}"
+      font-size="10.5" fill="rgba(217,176,122,0.80)" font-family="Noto Sans TC, sans-serif">${d.label}</text>`;
+  }).join('');
+
+  return `<svg viewBox="0 0 236 236" width="200" height="200" style="overflow:visible">${grid}${axes}${poly}${dots}${labels}</svg>`;
+}
+
+function renderRadarSection(c, allChars) {
+  const { raw, norm } = buildRadarScores(allChars);
+  const scores = RADAR_DIMS.map(d => norm[c.char][d.key]);
+  const rawVals = raw[c.char];
+  const svg = renderRadarSvg(scores);
+  const statRows = RADAR_DIMS.map(d => `
+    <div class="radar-stat">
+      <span class="radar-stat-label">${d.label}</span>
+      <span class="radar-stat-val">${rawVals[d.key]}${d.unit}</span>
+      <span class="radar-stat-desc">${d.desc}</span>
+    </div>`).join('');
+  return `
+    <div class="cp-section">
+      <div class="cp-section-title">🕸 角色特質</div>
+      <div class="radar-wrap">
+        <div class="radar-svg-box">${svg}</div>
+        <div class="radar-stats">${statRows}</div>
+      </div>
+    </div>`;
+}
+
 function renderCharacters(charName) {
   const inner = document.getElementById('characters-inner');
   const chars = charStats.characters || [];
@@ -1004,6 +1111,8 @@ function renderCharacters(charName) {
           </div>
         </div>
       </div>
+
+      ${renderRadarSection(c, chars)}
 
       ${c.ai_intro ? `
       <div class="cp-section">
