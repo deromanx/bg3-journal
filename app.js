@@ -996,23 +996,23 @@ function renderRadarSvg(scores) {
   // 網格
   const grid = [20, 40, 60, 80, 100].map(pct => {
     const pts = angles.map((a, i) => pt(pct, i).join(',')).join(' ');
-    return `<polygon points="${pts}" fill="none" stroke="rgba(201,168,76,0.10)" stroke-width="1"/>`;
+    return `<polygon points="${pts}" fill="none" stroke="rgba(80,45,15,0.12)" stroke-width="1"/>`;
   }).join('');
 
   // 軸線
   const axes = angles.map((a, i) => {
     const [x, y] = pt(100, i);
-    return `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="rgba(201,168,76,0.18)" stroke-width="1"/>`;
+    return `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="rgba(80,45,15,0.18)" stroke-width="1"/>`;
   }).join('');
 
   // 資料多邊形
   const dataPts = scores.map((v, i) => pt(v, i).join(',')).join(' ');
-  const poly = `<polygon points="${dataPts}" fill="rgba(201,168,76,0.13)" stroke="rgba(201,168,76,0.75)" stroke-width="1.8" stroke-linejoin="round"/>`;
+  const poly = `<polygon points="${dataPts}" fill="rgba(122,21,21,0.12)" stroke="rgba(122,21,21,0.75)" stroke-width="2" stroke-linejoin="round"/>`;
 
   // 節點
   const dots = scores.map((v, i) => {
     const [x, y] = pt(v, i);
-    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.2" fill="var(--gold)" opacity="0.9"/>`;
+    return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.2" fill="var(--crimson)" opacity="0.9"/>`;
   }).join('');
 
   // 標籤
@@ -1021,7 +1021,7 @@ function renderRadarSvg(scores) {
     const anchor = x < cx - 6 ? 'end' : x > cx + 6 ? 'start' : 'middle';
     const dy = y < cy - 6 ? '-0.3em' : y > cy + 6 ? '1em' : '0.35em';
     return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="${anchor}" dy="${dy}"
-      font-size="10.5" fill="rgba(217,176,122,0.80)" font-family="Noto Sans TC, sans-serif">${d.label}</text>`;
+      font-size="10.5" fill="rgba(60,35,10,0.75)" font-family="Noto Sans TC, sans-serif" font-weight="500">${d.label}</text>`;
   }).join('');
 
   return `<svg viewBox="0 0 236 236" width="200" height="200" style="overflow:visible">${grid}${axes}${poly}${dots}${labels}</svg>`;
