@@ -850,6 +850,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     box-shadow: 4px 0 32px rgba(0,0,0,0.6);
   }
   #sidebar.open { transform: translateX(0); }
+  #sidebar.open ~ #sidebar-toggle { display: none; }
   #session-view { padding: 30px 24px 64px; }
   .header-title { font-size: 24px; }
   #session-body { font-size: 16px; }
