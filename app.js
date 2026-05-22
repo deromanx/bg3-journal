@@ -944,8 +944,8 @@ let _selectedChar = null;
 // ── 雷達圖 ────────────────────────────────────────────────────
 const RADAR_DIMS = [
   { key: '嘴砲力', label: '嘴砲力', unit: '次', desc: '主動靠北次數' },
-  { key: '破壞力', label: '破壞力', unit: '次', desc: '戰鬥中被稱讚次數' },
-  { key: '抗揍力', label: '抗揍力', unit: '次', desc: '倒地次數（越少越高）' },
+  { key: '破壞力', label: '破壞力', unit: '次', desc: '關鍵戰鬥貢獻次數' },
+  { key: '抗揍力', label: '抗揍力', unit: '',   desc: '陣亡×3＋倒地×1（越低越高）' },
   { key: '決鬥力', label: '決鬥力', unit: '%',  desc: '決鬥勝率' },
   { key: '搞事力', label: '搞事力', unit: '次', desc: '被靠北次數' },
 ];
@@ -959,14 +959,14 @@ function buildRadarScores(allChars) {
     const received  = matrix.filter(r => r.to   === c.char).reduce((s, r) => s + r.count, 0);
     raw[c.char] = {
       嘴砲力: initiated,
-      破壞力: c.praised || 0,
-      抗揍力: c.downed  || 0,
+      破壞力: c.combat_contrib || c.praised || 0,
+      抗揍力: (c.deaths || 0) * 3 + (c.downed || 0),  // 加權懲罰分（越低越好）
       決鬥力: decisive ? Math.round((c.duels.wins || 0) / decisive * 100) : 0,
       搞事力: received,
     };
   });
   // 各維度正規化到 0-100（決鬥力已是百分比；抗揍力反轉）
-  const maxDowned = Math.max(...allChars.map(c => raw[c.char]['抗揍力']), 1);
+  const maxDowned = Math.max(...allChars.map(c => raw[c.char]['抗揍力']), 1);  // 加權懲罰最大值
   const norm = {};
   allChars.forEach(c => {
     norm[c.char] = {};
@@ -1035,12 +1035,20 @@ function renderRadarSection(c, allChars) {
   const scores = RADAR_DIMS.map(d => norm[c.char][d.key]);
   const rawVals = raw[c.char];
   const svg = renderRadarSvg(scores);
-  const statRows = RADAR_DIMS.map(d => `
+  const statRows = RADAR_DIMS.map(d => {
+    let display;
+    if (d.key === '抗揍力') {
+      display = `陣亡${c.deaths || 0} 倒地${c.downed || 0}`;
+    } else {
+      display = `${rawVals[d.key]}${d.unit}`;
+    }
+    return `
     <div class="radar-stat">
       <span class="radar-stat-label">${d.label}</span>
-      <span class="radar-stat-val">${rawVals[d.key]}${d.unit}</span>
+      <span class="radar-stat-val">${display}</span>
       <span class="radar-stat-desc">${d.desc}</span>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   return `
     <div class="cp-section">
       <div class="cp-section-title">🕸 角色特質</div>
