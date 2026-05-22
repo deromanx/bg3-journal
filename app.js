@@ -105,9 +105,14 @@ function showView(view) {
   if (view === 'milestones') document.getElementById('milestones-view').classList.remove('hidden');
   if (view === 'story')      document.getElementById('story-view').classList.remove('hidden');
 
-  // 章節列表只在日誌分頁顯示
+  // 章節列表只在日誌分頁顯示，故事目錄只在故事分頁顯示
   const journalNav = document.getElementById('journal-nav');
   if (journalNav) journalNav.classList.toggle('hidden-nav', view !== 'journal');
+  const storyNav = document.getElementById('story-nav');
+  if (storyNav) {
+    storyNav.classList.toggle('hidden-nav', view !== 'story');
+    if (view === 'story') renderStoryNav();
+  }
 
   if (view === 'characters') { _setHash('#characters'); renderCharacters(); }
   if (view === 'stats')      { _setHash('#stats');      renderStats(); }
@@ -1132,6 +1137,57 @@ function esc(s) {
 // ══════════════════════════════════════════════════════════
 // 故事分頁
 // ══════════════════════════════════════════════════════════
+let _storyScrollObserver = null;
+
+function renderStoryNav() {
+  const list = document.getElementById('story-chapter-list');
+  if (!list) return;
+  const chapters = (storyData.chapters || []).slice().sort((a, b) => a.session_id - b.session_id);
+  const romanNumerals = ['I','II','III','IV','V','VI','VII','VIII','IX','X',
+    'XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX'];
+
+  list.innerHTML = chapters.map((ch, i) => {
+    const num = romanNumerals[i] || (i + 1);
+    return `<li class="session-item" id="story-nav-${ch.session_id}"
+        onclick="storyScrollTo(${ch.session_id})">
+      <div class="item-chapter">第 ${num} 章</div>
+      <div class="item-title">${esc(ch.title || '')}</div>
+    </li>`;
+  }).join('');
+
+  // 重建 scroll-spy
+  if (_storyScrollObserver) _storyScrollObserver.disconnect();
+  const sv = document.getElementById('story-view');
+  _storyScrollObserver = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const sid = entry.target.dataset.sid;
+        list.querySelectorAll('.session-item').forEach(el => el.classList.remove('active'));
+        const nav = document.getElementById('story-nav-' + sid);
+        if (nav) {
+          nav.classList.add('active');
+          nav.scrollIntoView({ block: 'nearest' });
+        }
+      }
+    });
+  }, { root: sv, rootMargin: '0px 0px -75% 0px', threshold: 0 });
+
+  chapters.forEach(ch => {
+    const el = document.getElementById('story-ch-' + ch.session_id);
+    if (el) {
+      el.dataset.sid = ch.session_id;
+      _storyScrollObserver.observe(el);
+    }
+  });
+}
+
+function storyScrollTo(sid) {
+  const t = document.getElementById('story-ch-' + sid);
+  const sv = document.getElementById('story-view');
+  if (t && sv) sv.scrollTo({ top: t.offsetTop - 24, behavior: 'smooth' });
+  if (window.innerWidth < 768) toggleSidebar();
+}
+
 function renderStory() {
   const inner = document.getElementById('story-inner');
   if (!inner) return;
@@ -1152,23 +1208,9 @@ function renderStory() {
   const romanNumerals = ['I','II','III','IV','V','VI','VII','VIII','IX','X',
     'XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX'];
 
-  const tocItems = chapters.map((ch, i) => {
-    const num = romanNumerals[i] || (i + 1);
-    return `<li class="story-toc-item">
-      <a class="story-toc-link" href="#story-ch-${ch.session_id}" onclick="event.preventDefault();(function(){const t=document.getElementById('story-ch-${ch.session_id}');const sv=document.getElementById('story-view');if(t&&sv)sv.scrollTo({top:t.offsetTop-24,behavior:'smooth'});})()">
-        <span class="story-toc-num">${num}</span>
-        <span class="story-toc-title">${esc(ch.title || '')}</span>
-      </a>
-    </li>`;
-  }).join('');
-
   inner.innerHTML = `
     <div class="sub-header">
       <div class="sub-rule"><span class="rule-line"></span><span class="sub-title">冒 險 故 事</span><span class="rule-line"></span></div>
-    </div>
-    <div class="story-toc">
-      <div class="story-toc-header">目 錄</div>
-      <ol class="story-toc-list">${tocItems}</ol>
     </div>
     <div class="story-chapters">
       ${chapters.map((ch, i) => {
