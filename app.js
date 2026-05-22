@@ -263,6 +263,7 @@ function initKeyboard() {
 
 // ── Tooltip 系統 ──────────────────────────────────────────
 function initTooltip() {
+  if (window.matchMedia('(hover: none)').matches) return; // 觸控裝置不啟用
   const tip = document.createElement('div');
   tip.id = 'tooltip';
   document.body.appendChild(tip);
@@ -1059,6 +1060,25 @@ function renderRadarSection(c, allChars) {
     </div>`;
 }
 
+let _charSwipeX = null;
+
+function initCharSwipe() {
+  const view = document.getElementById('characters-view');
+  if (!view || view.dataset.swipe) return;
+  view.dataset.swipe = '1';
+  view.addEventListener('touchstart', e => { _charSwipeX = e.touches[0].clientX; }, { passive: true });
+  view.addEventListener('touchend', e => {
+    if (_charSwipeX === null) return;
+    const dx = e.changedTouches[0].clientX - _charSwipeX;
+    _charSwipeX = null;
+    if (Math.abs(dx) < 50) return;
+    const chars = charStats.characters || [];
+    const idx = chars.findIndex(c => c.char === _selectedChar);
+    if (dx < 0 && idx < chars.length - 1) renderCharacters(chars[idx + 1].char);
+    else if (dx > 0 && idx > 0) renderCharacters(chars[idx - 1].char);
+  });
+}
+
 function renderCharacters(charName) {
   const inner = document.getElementById('characters-inner');
   const chars = charStats.characters || [];
@@ -1066,6 +1086,7 @@ function renderCharacters(charName) {
 
   if (!charName) charName = _selectedChar || chars[0].char;
   _selectedChar = charName;
+  initCharSwipe();
 
   const portraitBtns = chars.map(c => `
     <button class="cp-portrait-btn${c.char === charName ? ' active' : ''}"
