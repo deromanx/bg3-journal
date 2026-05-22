@@ -2807,6 +2807,9 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   padding: 14px 18px;
 }
 
+/* 角色滑動容器 */
+#characters-view { overflow-x: hidden; }
+
 /* 雷達圖 */
 .radar-wrap {
   display: flex;

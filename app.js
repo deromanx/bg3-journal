@@ -1060,22 +1060,70 @@ function renderRadarSection(c, allChars) {
     </div>`;
 }
 
-let _charSwipeX = null;
+let _charSwipeX = null, _charSwipeY = null, _charSwipeDir = null, _charSwipeDx = 0;
 
 function initCharSwipe() {
   const view = document.getElementById('characters-view');
   if (!view || view.dataset.swipe) return;
   view.dataset.swipe = '1';
-  view.addEventListener('touchstart', e => { _charSwipeX = e.touches[0].clientX; }, { passive: true });
-  view.addEventListener('touchend', e => {
+
+  view.addEventListener('touchstart', e => {
+    _charSwipeX = e.touches[0].clientX;
+    _charSwipeY = e.touches[0].clientY;
+    _charSwipeDir = null;
+    _charSwipeDx = 0;
+    const inner = document.getElementById('characters-inner');
+    if (inner) inner.style.transition = 'none';
+  }, { passive: true });
+
+  view.addEventListener('touchmove', e => {
     if (_charSwipeX === null) return;
-    const dx = e.changedTouches[0].clientX - _charSwipeX;
+    const dx = e.touches[0].clientX - _charSwipeX;
+    const dy = e.touches[0].clientY - _charSwipeY;
+    if (_charSwipeDir === null) {
+      if (Math.abs(dx) > Math.abs(dy) + 5) _charSwipeDir = 'h';
+      else if (Math.abs(dy) > Math.abs(dx) + 5) { _charSwipeX = null; return; }
+      else return;
+    }
+    if (_charSwipeDir !== 'h') return;
+    _charSwipeDx = dx;
+    const inner = document.getElementById('characters-inner');
+    if (inner) inner.style.transform = `translateX(${dx}px)`;
+  }, { passive: true });
+
+  view.addEventListener('touchend', () => {
+    if (_charSwipeX === null) return;
+    const dx = _charSwipeDx;
     _charSwipeX = null;
-    if (Math.abs(dx) < 50) return;
+    const inner = document.getElementById('characters-inner');
     const chars = charStats.characters || [];
     const idx = chars.findIndex(c => c.char === _selectedChar);
-    if (dx < 0 && idx < chars.length - 1) renderCharacters(chars[idx + 1].char);
-    else if (dx > 0 && idx > 0) renderCharacters(chars[idx - 1].char);
+    const canNext = dx < -50 && idx < chars.length - 1;
+    const canPrev = dx >  50 && idx > 0;
+
+    if (!canNext && !canPrev) {
+      // 回彈
+      if (inner) { inner.style.transition = 'transform 0.28s ease'; inner.style.transform = 'translateX(0)'; }
+      return;
+    }
+    // 滑出
+    const slideOut = dx < 0 ? '-110%' : '110%';
+    if (inner) { inner.style.transition = 'transform 0.25s ease'; inner.style.transform = `translateX(${slideOut})`; }
+    setTimeout(() => {
+      const newChar = canNext ? chars[idx + 1].char : chars[idx - 1].char;
+      renderCharacters(newChar);
+      // 新內容從反方向滑入
+      const slideIn = dx < 0 ? '110%' : '-110%';
+      const ni = document.getElementById('characters-inner');
+      if (ni) {
+        ni.style.transition = 'none';
+        ni.style.transform = `translateX(${slideIn})`;
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          ni.style.transition = 'transform 0.28s ease';
+          ni.style.transform = 'translateX(0)';
+        }));
+      }
+    }, 240);
   });
 }
 
