@@ -109,15 +109,12 @@ function showView(view) {
   const journalNav = document.getElementById('journal-nav');
   if (journalNav) journalNav.classList.toggle('hidden-nav', view !== 'journal');
   const storyNav = document.getElementById('story-nav');
-  if (storyNav) {
-    storyNav.classList.toggle('hidden-nav', view !== 'story');
-    if (view === 'story') renderStoryNav();
-  }
+  if (storyNav) storyNav.classList.toggle('hidden-nav', view !== 'story');
 
   if (view === 'characters') { _setHash('#characters'); renderCharacters(); }
   if (view === 'stats')      { _setHash('#stats');      renderStats(); }
   if (view === 'milestones') { _setHash('#milestones'); renderMilestones(); }
-  if (view === 'story')      { _setHash('#story');      renderStory(); }
+  if (view === 'story')      { _setHash('#story');      renderStory(); renderStoryNav(); }
   if (view === 'journal')    { _setHash(currentId ? '#s' + currentId : '#home'); }
 }
 
@@ -1170,7 +1167,7 @@ function renderStoryNav() {
         }
       }
     });
-  }, { root: sv, rootMargin: '0px 0px -75% 0px', threshold: 0 });
+  }, { root: sv, rootMargin: '-5% 0px -50% 0px', threshold: 0 });
 
   chapters.forEach(ch => {
     const el = document.getElementById('story-ch-' + ch.session_id);
