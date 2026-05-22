@@ -945,7 +945,7 @@ let _selectedChar = null;
 const RADAR_DIMS = [
   { key: '嘴砲力', label: '嘴砲力', unit: '次', desc: '主動靠北次數' },
   { key: '破壞力', label: '破壞力', unit: '次', desc: '戰鬥中被稱讚次數' },
-  { key: '躺平力', label: '躺平力', unit: '次', desc: '倒地次數' },
+  { key: '抗揍力', label: '抗揍力', unit: '次', desc: '倒地次數（越少越高）' },
   { key: '決鬥力', label: '決鬥力', unit: '%',  desc: '決鬥勝率' },
   { key: '搞事力', label: '搞事力', unit: '次', desc: '被靠北次數' },
 ];
@@ -960,30 +960,33 @@ function buildRadarScores(allChars) {
     raw[c.char] = {
       嘴砲力: initiated,
       破壞力: c.praised || 0,
-      躺平力: c.downed  || 0,
+      抗揍力: c.downed  || 0,
       決鬥力: decisive ? Math.round((c.duels.wins || 0) / decisive * 100) : 0,
       搞事力: received,
     };
   });
-  // 各維度正規化到 0-100（決鬥力已是百分比，max=100）
-  const maxes = {};
-  RADAR_DIMS.forEach(d => {
-    maxes[d.key] = d.key === '決鬥力'
-      ? 100
-      : Math.max(...allChars.map(c => raw[c.char][d.key]), 1);
-  });
+  // 各維度正規化到 0-100（決鬥力已是百分比；抗揍力反轉）
+  const maxDowned = Math.max(...allChars.map(c => raw[c.char]['抗揍力']), 1);
   const norm = {};
   allChars.forEach(c => {
     norm[c.char] = {};
     RADAR_DIMS.forEach(d => {
-      norm[c.char][d.key] = Math.round(raw[c.char][d.key] / maxes[d.key] * 100);
+      if (d.key === '決鬥力') {
+        norm[c.char][d.key] = raw[c.char][d.key];
+      } else if (d.key === '抗揍力') {
+        // 倒地越少分越高
+        norm[c.char][d.key] = Math.round((maxDowned - raw[c.char][d.key]) / maxDowned * 100);
+      } else {
+        const max = Math.max(...allChars.map(c2 => raw[c2.char][d.key]), 1);
+        norm[c.char][d.key] = Math.round(raw[c.char][d.key] / max * 100);
+      }
     });
   });
   return { raw, norm };
 }
 
 function renderRadarSvg(scores) {
-  const cx = 118, cy = 118, r = 82;
+  const cx = 148, cy = 148, r = 108;
   const n = RADAR_DIMS.length;
   const angles = RADAR_DIMS.map((_, i) => -Math.PI / 2 + i * 2 * Math.PI / n);
 
@@ -1017,14 +1020,14 @@ function renderRadarSvg(scores) {
 
   // 標籤
   const labels = RADAR_DIMS.map((d, i) => {
-    const [x, y] = pt(132, i);
+    const [x, y] = pt(128, i);
     const anchor = x < cx - 6 ? 'end' : x > cx + 6 ? 'start' : 'middle';
     const dy = y < cy - 6 ? '-0.3em' : y > cy + 6 ? '1em' : '0.35em';
     return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="${anchor}" dy="${dy}"
       font-size="10.5" fill="rgba(60,35,10,0.75)" font-family="Noto Sans TC, sans-serif" font-weight="500">${d.label}</text>`;
   }).join('');
 
-  return `<svg viewBox="0 0 236 236" width="200" height="200" style="overflow:visible">${grid}${axes}${poly}${dots}${labels}</svg>`;
+  return `<svg viewBox="0 0 296 296" width="280" height="280" style="overflow:visible">${grid}${axes}${poly}${dots}${labels}</svg>`;
 }
 
 function renderRadarSection(c, allChars) {
