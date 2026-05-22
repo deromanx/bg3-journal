@@ -1194,7 +1194,7 @@ function renderStory() {
   if (!chapters.length) {
     inner.innerHTML = `
       <div class="sub-header">
-        <div class="sub-rule"><span class="rule-line"></span><span class="sub-title">冒 險 故 事</span><span class="rule-line"></span></div>
+        <div class="sub-rule"><span class="rule-line"></span><span class="sub-title">瓦羅的故事集</span><span class="rule-line"></span></div>
       </div>
       <div class="story-empty">
         故事尚未生成。<br>新增集數後執行 <code>python3 update_stats.py</code> 即可自動產生。
@@ -1207,7 +1207,7 @@ function renderStory() {
 
   inner.innerHTML = `
     <div class="sub-header">
-      <div class="sub-rule"><span class="rule-line"></span><span class="sub-title">冒 險 故 事</span><span class="rule-line"></span></div>
+      <div class="sub-rule"><span class="rule-line"></span><span class="sub-title">瓦羅的故事集</span><span class="rule-line"></span></div>
     </div>
     <div class="story-chapters">
       ${chapters.map((ch, i) => {
