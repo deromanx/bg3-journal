@@ -3035,6 +3035,58 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   border-radius: 3px;
 }
 
+.story-toc {
+  max-width: 680px;
+  margin: 0 auto 52px;
+  border: 1px solid rgba(201,168,76,0.18);
+  border-radius: 8px;
+  background: rgba(139,90,40,0.05);
+  padding: 24px 28px 20px;
+}
+.story-toc-header {
+  font-family: var(--font-title);
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: var(--gold);
+  opacity: 0.7;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.story-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  columns: 2;
+  column-gap: 24px;
+}
+.story-toc-item {
+  break-inside: avoid;
+  margin-bottom: 6px;
+}
+.story-toc-link {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  text-decoration: none;
+  color: var(--ink-light);
+  font-size: 13px;
+  line-height: 1.5;
+  transition: color 0.15s;
+  padding: 2px 0;
+}
+.story-toc-link:hover { color: var(--gold); }
+.story-toc-num {
+  font-family: var(--font-title);
+  font-size: 10px;
+  color: var(--gold);
+  opacity: 0.75;
+  flex-shrink: 0;
+  min-width: 20px;
+}
+.story-toc-title {
+  opacity: 0.85;
+}
+
 .story-chapters {
   max-width: 680px;
   margin: 0 auto;

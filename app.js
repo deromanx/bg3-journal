@@ -1152,9 +1152,23 @@ function renderStory() {
   const romanNumerals = ['I','II','III','IV','V','VI','VII','VIII','IX','X',
     'XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX'];
 
+  const tocItems = chapters.map((ch, i) => {
+    const num = romanNumerals[i] || (i + 1);
+    return `<li class="story-toc-item">
+      <a class="story-toc-link" href="#story-ch-${ch.session_id}" onclick="event.preventDefault();(function(){const t=document.getElementById('story-ch-${ch.session_id}');const sv=document.getElementById('story-view');if(t&&sv)sv.scrollTo({top:t.offsetTop-24,behavior:'smooth'});})()">
+        <span class="story-toc-num">${num}</span>
+        <span class="story-toc-title">${esc(ch.title || '')}</span>
+      </a>
+    </li>`;
+  }).join('');
+
   inner.innerHTML = `
     <div class="sub-header">
       <div class="sub-rule"><span class="rule-line"></span><span class="sub-title">冒 險 故 事</span><span class="rule-line"></span></div>
+    </div>
+    <div class="story-toc">
+      <div class="story-toc-header">目 錄</div>
+      <ol class="story-toc-list">${tocItems}</ol>
     </div>
     <div class="story-chapters">
       ${chapters.map((ch, i) => {
