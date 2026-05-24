@@ -3079,6 +3079,279 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   animation-delay: 250ms;
 }
 
+/* ══════════════════════════════════════════════════════════
+   回顧頁時間軸卡片
+   ══════════════════════════════════════════════════════════ */
+.tl-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+  padding: 24px;
+}
+
+.tl-card {
+  border: 1px solid rgba(139,90,40,0.20);
+  background: linear-gradient(135deg, rgba(122,21,21,0.03) 0%, rgba(139,90,40,0.04) 100%);
+  padding: 16px 18px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.tl-card:hover {
+  border-color: rgba(139,90,40,0.40);
+  background: linear-gradient(135deg, rgba(122,21,21,0.06) 0%, rgba(139,90,40,0.07) 100%);
+}
+
+.tl-placeholder {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.tl-placeholder:hover {
+  border-color: rgba(139,90,40,0.20);
+  background: linear-gradient(135deg, rgba(122,21,21,0.03) 0%, rgba(139,90,40,0.04) 100%);
+}
+
+.tl-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.tl-chapter {
+  font-family: 'Cinzel', serif;
+  font-size: 9.5px;
+  letter-spacing: 2px;
+  color: var(--crimson);
+  opacity: 0.7;
+  background: rgba(122,21,21,0.07);
+  padding: 2px 7px;
+  border-radius: 2px;
+}
+
+.tl-date {
+  font-size: 11px;
+  color: var(--ink-light);
+  opacity: 0.5;
+  letter-spacing: 0.5px;
+}
+
+.tl-title {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--ink-dark);
+  line-height: 1.3;
+  margin-bottom: 10px;
+}
+
+.tl-mvp {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.tl-mvp-label {
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--ink-light);
+  opacity: 0.45;
+  background: rgba(139,90,40,0.08);
+  padding: 1px 5px;
+}
+
+.tl-mvp-av {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.tl-mvp-av img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tl-mvp-name {
+  font-size: 12px;
+  color: var(--ink-mid);
+}
+
+.tl-highlight {
+  font-size: 12px;
+  color: var(--ink-light);
+  line-height: 1.65;
+  font-style: italic;
+  opacity: 0.75;
+}
+
+.tl-pending {
+  font-size: 12px;
+  color: var(--ink-light);
+  opacity: 0.4;
+  font-style: italic;
+}
+
+/* ══════════════════════════════════════════════════════════
+   角色活躍度熱力圖
+   ══════════════════════════════════════════════════════════ */
+.gc-tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.gc-tab {
+  background: rgba(139,90,40,0.06);
+  border: 1px solid rgba(139,90,40,0.15);
+  color: var(--ink-light);
+  font-size: 12px;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.gc-tab.active {
+  background: rgba(122,21,21,0.10);
+  border-color: rgba(122,21,21,0.30);
+  color: var(--crimson);
+  font-weight: 600;
+}
+
+.gc-tab:hover:not(.active) {
+  border-color: rgba(139,90,40,0.30);
+}
+
+.gc-legend {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.gc-leg-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--ink-light);
+  opacity: 0.65;
+}
+
+.gc-leg-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.gc-hidden { display: none; }
+
+.gc-grid { overflow-x: auto; }
+
+.gc-sid-row, .gc-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.gc-char-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 100px;
+  width: 100px;
+  flex-shrink: 0;
+}
+
+.gc-av {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.gc-av img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gc-char-name {
+  font-size: 11.5px;
+  color: var(--ink-mid);
+  white-space: nowrap;
+}
+
+.gc-cells {
+  display: flex;
+  gap: 3px;
+}
+
+.gc-cell, .gc-leg-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.gc-sid-label {
+  width: 20px;
+  font-size: 9px;
+  color: var(--ink-light);
+  opacity: 0.45;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* 無資料 */
+.gc-0 { background: rgba(139,90,40,0.07); }
+
+/* 橘 palette（靠北輸出）*/
+.gc-1.gc-orange { background: rgba(210,120,30,0.28); }
+.gc-2.gc-orange { background: rgba(210,120,30,0.52); }
+.gc-3.gc-orange { background: rgba(210,120,30,0.72); }
+.gc-4.gc-orange { background: rgba(190,90,15,0.85); }
+
+/* 紅 palette（靠北被轟）*/
+.gc-1.gc-red { background: rgba(180,30,30,0.22); }
+.gc-2.gc-red { background: rgba(180,30,30,0.42); }
+.gc-3.gc-red { background: rgba(180,30,30,0.62); }
+.gc-4.gc-red { background: rgba(160,20,20,0.78); }
+
+/* 藍 palette（戰功貢獻）*/
+.gc-1.gc-blue { background: rgba(30,90,180,0.22); }
+.gc-2.gc-blue { background: rgba(30,90,180,0.40); }
+.gc-3.gc-blue { background: rgba(30,90,180,0.58); }
+.gc-4.gc-blue { background: rgba(20,70,160,0.75); }
+
+/* 金 palette（MVP）*/
+.gc-1.gc-gold { background: rgba(200,160,20,0.55); }
+.gc-2.gc-gold { background: rgba(200,160,20,0.75); }
+.gc-3.gc-gold { background: rgba(200,160,20,0.75); }
+.gc-4.gc-gold { background: rgba(200,160,20,0.75); }
+
+@media (max-width: 720px) {
+  .tl-grid { grid-template-columns: 1fr 1fr; gap: 10px; padding: 14px; }
+  .tl-card { padding: 12px 14px; }
+  .tl-title { font-size: 13.5px; }
+
+  .gc-char-label { min-width: 80px; width: 80px; }
+  .gc-char-name { font-size: 10.5px; }
+  .gc-cell, .gc-leg-dot { width: 16px; height: 16px; }
+  .gc-sid-label { width: 16px; font-size: 8px; }
+}
+
+@media (max-width: 480px) {
+  .tl-grid { grid-template-columns: 1fr; }
+}
+
 /* ── 桌機字級放大（≥ 1024px）─────────────────────────────── */
 @media (min-width: 1024px) {
   /* 分組 & 小節標題 */

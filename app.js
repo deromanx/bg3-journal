@@ -46,7 +46,7 @@ function _setHash(h) {
   location.hash = h;
 }
 
-const ALL_VIEWS = ['journal', 'characters', 'stats', 'milestones', 'story'];
+const ALL_VIEWS = ['journal', 'characters', 'stats', 'milestones', 'timeline', 'story'];
 
 function hideAllViews() {
   document.getElementById('welcome').classList.add('hidden');
@@ -54,6 +54,7 @@ function hideAllViews() {
   document.getElementById('characters-view').classList.add('hidden');
   document.getElementById('stats-view').classList.add('hidden');
   document.getElementById('milestones-view').classList.add('hidden');
+  document.getElementById('timeline-view').classList.add('hidden');
   document.getElementById('story-view').classList.add('hidden');
   document.getElementById('hero-band').classList.add('hidden');
 }
@@ -79,6 +80,7 @@ function restoreFromHash() {
   if (h === '#characters') { showView('characters'); return; }
   if (h === '#stats')      { showView('stats');      return; }
   if (h === '#milestones') { showView('milestones'); return; }
+  if (h === '#timeline')   { showView('timeline');   return; }
   if (h === '#story')      { showView('story');      return; }
   if (h === '#home')       { goHome(); return; }
   // 預設：載入最新集
@@ -103,6 +105,7 @@ function showView(view) {
   if (view === 'characters') document.getElementById('characters-view').classList.remove('hidden');
   if (view === 'stats')      document.getElementById('stats-view').classList.remove('hidden');
   if (view === 'milestones') document.getElementById('milestones-view').classList.remove('hidden');
+  if (view === 'timeline')   document.getElementById('timeline-view').classList.remove('hidden');
   if (view === 'story')      document.getElementById('story-view').classList.remove('hidden');
 
   // 章節列表只在日誌分頁顯示，故事目錄只在故事分頁顯示
@@ -114,6 +117,7 @@ function showView(view) {
   if (view === 'characters') { _setHash('#characters'); renderCharacters(); }
   if (view === 'stats')      { _setHash('#stats');      renderStats(); }
   if (view === 'milestones') { _setHash('#milestones'); renderMilestones(); }
+  if (view === 'timeline')   { _setHash('#timeline');   renderTimeline(); }
   if (view === 'story')      { _setHash('#story');      renderStory(); renderStoryNav(); }
   if (view === 'journal')    { _setHash(currentId ? '#s' + currentId : '#home'); }
 }
@@ -566,6 +570,11 @@ function renderStats() {
     <div class="stat-group">
       <div class="stat-group-title">💬 靠北統計</div>
       ${renderRoastSection()}
+    </div>
+
+    <div class="stat-group">
+      <div class="stat-group-title">📈 角色活躍度</div>
+      ${renderGrowthGrid(chars)}
     </div>`;
 
   requestAnimationFrame(() => initStatsAnimations(inner));
@@ -791,6 +800,106 @@ function renderRoastQuotes() {
 }
 
 // ══════════════════════════════════════════════════════════
+// 角色活躍度熱力圖
+// ══════════════════════════════════════════════════════════
+function renderGrowthGrid(chars) {
+  const CHAR_ORDER = ['影心', '阿斯代倫', '曹', '卡拉克', '貓咕咕'];
+  const activeSessions = sessions.filter(s => !s.placeholder);
+  const sids = activeSessions.map(s => s.id);
+
+  // 預計算各維度
+  const roastOut = {}, roastIn = {}, combat = {}, mvpMap = {};
+  CHAR_ORDER.forEach(c => { roastOut[c] = {}; roastIn[c] = {}; combat[c] = {}; mvpMap[c] = {}; });
+
+  const quotes = roastStats.quotes || [];
+  quotes.forEach(q => {
+    const sid = q.session;
+    const froms = Array.isArray(q.from) ? q.from : [q.from];
+    const tos   = Array.isArray(q.to)   ? q.to   : [q.to];
+    froms.forEach(c => { if (roastOut[c]) roastOut[c][sid] = (roastOut[c][sid] || 0) + 1; });
+    tos.forEach(c   => { if (roastIn[c])  roastIn[c][sid]  = (roastIn[c][sid]  || 0) + 1; });
+  });
+
+  chars.forEach(c => {
+    const cbs = c.combat_contrib_by_session || {};
+    Object.entries(cbs).forEach(([sid, v]) => { if (combat[c.char]) combat[c.char][sid] = v; });
+  });
+
+  Object.entries(awards).forEach(([sid, aw]) => {
+    if (!aw.mvp) return;
+    const char = CHAR_ORDER.find(c => aw.mvp.includes(c));
+    if (char) mvpMap[char][sid] = 1;
+  });
+
+  const METRICS = [
+    { key: 'out',    label: '靠北輸出', data: roastOut, palette: 'orange' },
+    { key: 'in',     label: '靠北被轟', data: roastIn,  palette: 'red'    },
+    { key: 'combat', label: '戰功貢獻', data: combat,   palette: 'blue'   },
+    { key: 'mvp',    label: 'MVP 獲選', data: mvpMap,   palette: 'gold'   },
+  ];
+
+  function cellClass(val, palette) {
+    if (!val) return `gc-cell gc-0`;
+    if (val >= 4) return `gc-cell gc-3 gc-${palette}`;
+    if (val >= 2) return `gc-cell gc-2 gc-${palette}`;
+    return `gc-cell gc-1 gc-${palette}`;
+  }
+
+  function buildGrid(metric) {
+    const rows = CHAR_ORDER.map(char => {
+      const cells = sids.map(sid => {
+        const val = metric.data[char]?.[sid] || 0;
+        return `<div class="${cellClass(val, metric.palette)}" title="S${sid} ${char}：${val}"></div>`;
+      }).join('');
+      return `
+        <div class="gc-row">
+          <div class="gc-char-label">
+            <span class="gc-av av-${esc(char)}">
+              <img src="data/images/avatars/${esc(char)}.webp" alt="" onerror="this.style.display='none'">
+            </span>
+            <span class="gc-char-name">${esc(char)}</span>
+          </div>
+          <div class="gc-cells">${cells}</div>
+        </div>`;
+    }).join('');
+
+    const sessionLabels = sids.map(sid => `<div class="gc-sid-label">S${sid}</div>`).join('');
+    return `
+      <div class="gc-grid">
+        <div class="gc-sid-row"><div class="gc-char-label"></div><div class="gc-cells">${sessionLabels}</div></div>
+        ${rows}
+      </div>`;
+  }
+
+  const grids = METRICS.map((m, i) =>
+    `<div class="gc-panel${i === 0 ? '' : ' gc-hidden'}" data-metric="${m.key}">${buildGrid(m)}</div>`
+  ).join('');
+
+  const tabs = METRICS.map((m, i) =>
+    `<button class="gc-tab${i === 0 ? ' active' : ''}" onclick="switchGrowthTab('${m.key}')">${m.label}</button>`
+  ).join('');
+
+  return `
+    <div class="stats-section">
+      <div class="gc-tabs">${tabs}</div>
+      <div class="gc-legend" id="gc-legend-bar">
+        <span class="gc-leg-item"><span class="gc-leg-dot gc-0"></span>無</span>
+        <span class="gc-leg-item"><span class="gc-leg-dot gc-1 gc-orange"></span>1次</span>
+        <span class="gc-leg-item"><span class="gc-leg-dot gc-2 gc-orange"></span>2–3次</span>
+        <span class="gc-leg-item"><span class="gc-leg-dot gc-3 gc-orange"></span>4+次</span>
+      </div>
+      ${grids}
+    </div>`;
+}
+
+function switchGrowthTab(key) {
+  document.querySelectorAll('.gc-tab').forEach(b => b.classList.toggle('active', b.textContent.includes(
+    { out:'靠北輸出', in:'靠北被轟', combat:'戰功貢獻', mvp:'MVP' }[key]
+  )));
+  document.querySelectorAll('.gc-panel').forEach(p => p.classList.toggle('gc-hidden', p.dataset.metric !== key));
+}
+
+// ══════════════════════════════════════════════════════════
 // 靠北統計區塊
 // ══════════════════════════════════════════════════════════
 function renderRoastSection() {
@@ -921,6 +1030,59 @@ function renderRoastSection() {
     </div>
 
     ${renderRoastQuotes()}`;
+}
+
+// ══════════════════════════════════════════════════════════
+// 回顧頁（集數時間軸）
+// ══════════════════════════════════════════════════════════
+function renderTimeline() {
+  const inner = document.getElementById('timeline-inner');
+
+  const CHAR_ORDER = ['影心', '阿斯代倫', '曹', '卡拉克', '貓咕咕'];
+
+  const cards = sessions.slice().reverse().map(s => {
+    const aw = awards[String(s.id)] || {};
+    const mvpChar = aw.mvp ? aw.mvp.replace(/.*[（(](.+)[）)].*/,'$1').trim() : null;
+    const resolvedMvp = mvpChar && CHAR_ORDER.includes(mvpChar) ? mvpChar
+      : CHAR_ORDER.find(c => aw.mvp && aw.mvp.includes(c)) || null;
+    const highlight = aw.highlight ? aw.highlight.slice(0, 80) + (aw.highlight.length > 80 ? '…' : '') : '';
+
+    if (s.placeholder) {
+      return `
+      <div class="tl-card tl-placeholder">
+        <div class="tl-top">
+          <span class="tl-chapter">${esc(s.chapter)}</span>
+          <span class="tl-date">${(s.date || '').replace(/-/g,'.')}</span>
+        </div>
+        <div class="tl-title">${esc(s.title)}</div>
+        <div class="tl-pending">日誌撰寫中…</div>
+      </div>`;
+    }
+
+    return `
+    <div class="tl-card" onclick="loadSession(${s.id}); showView('journal');">
+      <div class="tl-top">
+        <span class="tl-chapter">${esc(s.chapter)}</span>
+        <span class="tl-date">${(s.date || '').replace(/-/g,'.')}</span>
+      </div>
+      <div class="tl-title">${esc(s.title)}</div>
+      ${resolvedMvp ? `
+      <div class="tl-mvp">
+        <span class="tl-mvp-label">MVP</span>
+        <span class="tl-mvp-av av-${esc(resolvedMvp)}">
+          <img src="data/images/avatars/${esc(resolvedMvp)}.webp" alt="" onerror="this.style.display='none'">
+        </span>
+        <span class="tl-mvp-name">${esc(resolvedMvp)}</span>
+      </div>` : ''}
+      ${highlight ? `<div class="tl-highlight">${esc(highlight)}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  inner.innerHTML = `
+    <div class="sub-header">
+      <div class="sub-rule"><span class="rule-line"></span><span class="sub-title">冒 險 回 顧</span><span class="rule-line"></span></div>
+    </div>
+    <div class="tl-grid">${cards}</div>`;
 }
 
 // ══════════════════════════════════════════════════════════

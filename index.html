@@ -55,6 +55,9 @@
       <button class="stab" data-view="milestones" onclick="showView('milestones')">
         <span class="stab-icon">🗺</span><span class="stab-label">里程碑</span>
       </button>
+      <button class="stab" data-view="timeline" onclick="showView('timeline')">
+        <span class="stab-icon">📅</span><span class="stab-label">回顧</span>
+      </button>
       <button class="stab" data-view="story" onclick="showView('story')">
         <span class="stab-icon">📕</span><span class="stab-label">瓦羅的故事集</span>
       </button>
@@ -174,6 +177,11 @@
     <!-- ── 里程碑頁面 ─────────────────────────────── -->
     <div id="milestones-view" class="hidden content-scroll">
       <div id="milestones-inner"></div>
+    </div>
+
+    <!-- ── 時間軸頁面 ─────────────────────────────── -->
+    <div id="timeline-view" class="hidden content-scroll">
+      <div id="timeline-inner"></div>
     </div>
 
     <!-- ── 故事頁面 ──────────────────────────────── -->
