@@ -1325,6 +1325,12 @@ function renderContent(items) {
       case 'ai':
         return `<div class="ai-note">${renderInline(item.v)}</div>`;
 
+      case 'li':
+        return `<div class="session-li">${renderInline(item.v)}</div>`;
+
+      case 'li2':
+        return `<div class="session-li2">${renderInline(item.v)}</div>`;
+
       case 'p':
       default: {
         // Pattern 1: 「...」——角色名

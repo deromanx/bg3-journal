@@ -699,6 +699,24 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   clear: both;
 }
 
+/* ── 縮排列表項（li = 一層，li2 = 兩層） */
+.session-li {
+  margin: 0 0 10px 1.4em;
+  padding-left: 0.9em;
+  border-left: 2px solid rgba(139,90,40,0.22);
+  font-size: 15.5px;
+  line-height: 1.85;
+  color: var(--ink-mid);
+}
+.session-li2 {
+  margin: 0 0 8px 2.6em;
+  padding-left: 0.8em;
+  border-left: 2px solid rgba(139,90,40,0.12);
+  font-size: 14.5px;
+  line-height: 1.8;
+  color: var(--ink-light);
+}
+
 /* ── AI 點評 */
 .ai-note {
   background: linear-gradient(135deg, rgba(56,26,84,0.09), rgba(56,26,84,0.05));
