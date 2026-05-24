@@ -1300,6 +1300,21 @@ function makeQuoteWrap(speaker, content, attr) {
   </div>`;
 }
 
+// ── 對話頭像偵測（p / li / li2 共用） ────────────────────
+function tryQuoteWrap(text) {
+  const qm = text.match(/^「([\s\S]+?)」[—\-]{1,2}(.{1,12})$/);
+  if (qm) {
+    const speaker = resolveChar(qm[2].trim());
+    if (speaker) return makeQuoteWrap(speaker, qm[1], qm[2].trim());
+  }
+  const qm2 = text.match(/^([^「]{1,30})：「([\s\S]+?)」$/);
+  if (qm2) {
+    const speaker = resolveChar(qm2[1]);
+    if (speaker) return makeQuoteWrap(speaker, qm2[2], speaker);
+  }
+  return null;
+}
+
 // ── 結構化內容渲染 ────────────────────────────────────────
 function renderContent(items) {
   if (!items?.length) return '<p style="text-align:center;opacity:.4">尚無內容</p>';
@@ -1325,31 +1340,14 @@ function renderContent(items) {
         return `<div class="ai-note">${renderInline(item.v)}</div>`;
 
       case 'li':
-        return `<div class="session-li">${renderInline(item.v)}</div>`;
+        return tryQuoteWrap(item.v) ?? `<div class="session-li">${renderInline(item.v)}</div>`;
 
       case 'li2':
-        return `<div class="session-li2">${renderInline(item.v)}</div>`;
+        return tryQuoteWrap(item.v) ?? `<div class="session-li2">${renderInline(item.v)}</div>`;
 
       case 'p':
-      default: {
-        // Pattern 1: 「...」——角色名
-        const qm = item.v.match(/^「([\s\S]+?)」[—\-]{1,2}(.{1,12})$/);
-        if (qm) {
-          const speaker = resolveChar(qm[2].trim());
-          if (speaker) {
-            return makeQuoteWrap(speaker, qm[1], qm[2].trim());
-          }
-        }
-        // Pattern 2: 角色[描述]：「...」
-        const qm2 = item.v.match(/^([^「]{1,30})：「([\s\S]+?)」$/);
-        if (qm2) {
-          const speaker = resolveChar(qm2[1]);
-          if (speaker) {
-            return makeQuoteWrap(speaker, qm2[2], speaker);
-          }
-        }
-        return `<p>${renderInline(item.v)}</p>`;
-      }
+      default:
+        return tryQuoteWrap(item.v) ?? `<p>${renderInline(item.v)}</p>`;
     }
   }).join('\n');
 }
