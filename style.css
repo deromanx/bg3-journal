@@ -2549,8 +2549,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   .content-scroll { padding: 30px 22px 64px; }
   .hero-num { font-size: 52px; }
   .death-grid { grid-template-columns: repeat(3, 1fr); }
-  .duel-row { grid-template-columns: 32px 24px 1fr auto; }
-  .dr-bar-wrap, .dr-pct { display: none; }
+  .duel-row { grid-template-columns: 32px 24px 1fr auto 44px; }
+  .dr-bar-wrap { display: none; }
   .dr-total { display: none; }
   .award-body { flex-direction: column; }
   .aw-item { border-right: none; border-bottom: 1px solid rgba(139,90,40,0.10); }
