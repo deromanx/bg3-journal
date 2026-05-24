@@ -1359,7 +1359,6 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   font-size: 13.5px;
   line-height: 1.75;
   color: var(--ink-mid);
-  font-style: italic;
   border-bottom: 1px solid rgba(139,90,40,0.10);
   background: rgba(139,90,40,0.02);
 }
