@@ -749,11 +749,10 @@ function renderRoastCard(q, chars) {
         <div class="rq-av-group">${froms.map(avatar).join('')}</div>
         <span class="rq-arrow">→</span>
         <div class="rq-av-group">${tos.map(avatar).join('')}</div>
-      </div>
-      <div class="rq-body">
         <span class="rq-ep">S${q.session}</span>
-        <span class="rq-text">${esc(q.desc)}</span>
       </div>
+      ${q.quote ? `<div class="rq-quote">「${esc(q.quote)}」</div>` : ''}
+      <div class="rq-text">${esc(q.desc)}</div>
     </div>`;
 }
 
