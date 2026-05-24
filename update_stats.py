@@ -82,7 +82,7 @@ def gemini_analyze(text):
 
     result = subprocess.run(
         ["gemini", "-p", prompt],
-        capture_output=True, text=True, timeout=180
+        capture_output=True, text=True, timeout=600
     )
 
     if result.returncode != 0:
