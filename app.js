@@ -478,6 +478,39 @@ function renderStats() {
       </div>
       <p class="duel-note">* 源自日誌表格記錄；部分場次數據可能略有出入</p>` : '';
 
+  // MVP 排行（依次數降序）
+  const byMvp = chars.slice().sort((a, b) => (b.mvp_count || 0) - (a.mvp_count || 0));
+  const maxMvp = Math.max(...byMvp.map(c => c.mvp_count || 0), 1);
+  const mvpRows = byMvp.map((c, rank) => {
+    const count = c.mvp_count || 0;
+    const medal = rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : '';
+    const pct = Math.round(count / maxMvp * 100);
+    // 找出這個角色哪幾集拿到 MVP
+    const mvpSessions = Object.entries(awards)
+      .filter(([, a]) => a.mvp === c.char)
+      .map(([sid, a]) => `S${sid}：${a.mvp_reason || ''}`)
+      .join('\n');
+    const tip = count === 0 ? '尚未獲選 MVP' : mvpSessions;
+    return `
+      <div class="duel-row" data-tip="${esc(tip)}">
+        <div class="dr-av av-${esc(c.char)}">
+          <img src="data/images/avatars/${esc(c.char)}.webp" alt="" onerror="this.style.display='none'">
+        </div>
+        <div class="dr-rank">${medal || (rank + 1)}</div>
+        <div class="dr-name">
+          <span class="dr-char">${esc(c.char)}</span>
+          <span class="dr-player">${esc(c.player)}</span>
+        </div>
+        <div class="dr-record">
+          <span class="dr-w">${count} 次</span>
+        </div>
+        <div class="dr-bar-wrap">
+          <div class="dr-bar" style="width:0" data-w="${pct}%"></div>
+        </div>
+        <div class="dr-pct">${count}</div>
+      </div>`;
+  }).join('');
+
   const ffSection = renderFriendlyFire();
 
   inner.innerHTML = `
@@ -506,6 +539,14 @@ function renderStats() {
         <div class="death-grid">${deathCards}</div>
       </div>
       ${ffSection}
+    </div>
+
+    <div class="stat-group">
+      <div class="stat-group-title">🏆 MVP 排行</div>
+      <div class="stats-section">
+        <div class="stats-section-title">各集 MVP 獲選次數</div>
+        <div class="duel-board">${mvpRows}</div>
+      </div>
     </div>
 
     ${duelRows ? `
