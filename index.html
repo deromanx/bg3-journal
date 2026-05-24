@@ -55,9 +55,6 @@
       <button class="stab" data-view="milestones" onclick="showView('milestones')">
         <span class="stab-icon">🗺</span><span class="stab-label">里程碑</span>
       </button>
-      <button class="stab" data-view="timeline" onclick="showView('timeline')">
-        <span class="stab-icon">📅</span><span class="stab-label">回顧</span>
-      </button>
       <button class="stab" data-view="story" onclick="showView('story')">
         <span class="stab-icon">📕</span><span class="stab-label">瓦羅的故事集</span>
       </button>
@@ -129,11 +126,11 @@
           <div class="cast-roles">影心 · 阿斯代倫 · 曹 · 卡拉克 · 貓咕咕</div>
         </div>
         <button class="welcome-cta" onclick="loadSession(sessions.slice().reverse().find(s=>!s.placeholder)?.id)">
-          <span class="cta-arrow">⚔</span> 開始閱讀冒險日誌
+          <span class="cta-arrow">⚔</span> 最新一集
         </button>
-        <p class="welcome-hint">或從左側選擇章節</p>
       </div>
     </div>
+    <div id="timeline-inner"></div>
 
     <!-- 場次閱讀器 -->
     <article id="session-view" class="hidden">
@@ -177,11 +174,6 @@
     <!-- ── 里程碑頁面 ─────────────────────────────── -->
     <div id="milestones-view" class="hidden content-scroll">
       <div id="milestones-inner"></div>
-    </div>
-
-    <!-- ── 時間軸頁面 ─────────────────────────────── -->
-    <div id="timeline-view" class="hidden content-scroll">
-      <div id="timeline-inner"></div>
     </div>
 
     <!-- ── 故事頁面 ──────────────────────────────── -->

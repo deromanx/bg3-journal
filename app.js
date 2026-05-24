@@ -46,7 +46,7 @@ function _setHash(h) {
   location.hash = h;
 }
 
-const ALL_VIEWS = ['journal', 'characters', 'stats', 'milestones', 'timeline', 'story'];
+const ALL_VIEWS = ['journal', 'characters', 'stats', 'milestones', 'story'];
 
 function hideAllViews() {
   document.getElementById('welcome').classList.add('hidden');
@@ -54,7 +54,6 @@ function hideAllViews() {
   document.getElementById('characters-view').classList.add('hidden');
   document.getElementById('stats-view').classList.add('hidden');
   document.getElementById('milestones-view').classList.add('hidden');
-  document.getElementById('timeline-view').classList.add('hidden');
   document.getElementById('story-view').classList.add('hidden');
   document.getElementById('hero-band').classList.add('hidden');
 }
@@ -69,6 +68,7 @@ function goHome() {
   document.querySelectorAll('.session-item').forEach(el => el.classList.remove('active'));
   const journalNav = document.getElementById('journal-nav');
   if (journalNav) journalNav.classList.remove('hidden-nav');
+  renderTimeline();
 }
 
 function restoreFromHash() {
@@ -80,7 +80,6 @@ function restoreFromHash() {
   if (h === '#characters') { showView('characters'); return; }
   if (h === '#stats')      { showView('stats');      return; }
   if (h === '#milestones') { showView('milestones'); return; }
-  if (h === '#timeline')   { showView('timeline');   return; }
   if (h === '#story')      { showView('story');      return; }
   if (h === '#home')       { goHome(); return; }
   // 預設：載入最新集
@@ -105,7 +104,6 @@ function showView(view) {
   if (view === 'characters') document.getElementById('characters-view').classList.remove('hidden');
   if (view === 'stats')      document.getElementById('stats-view').classList.remove('hidden');
   if (view === 'milestones') document.getElementById('milestones-view').classList.remove('hidden');
-  if (view === 'timeline')   document.getElementById('timeline-view').classList.remove('hidden');
   if (view === 'story')      document.getElementById('story-view').classList.remove('hidden');
 
   // 章節列表只在日誌分頁顯示，故事目錄只在故事分頁顯示
@@ -117,7 +115,6 @@ function showView(view) {
   if (view === 'characters') { _setHash('#characters'); renderCharacters(); }
   if (view === 'stats')      { _setHash('#stats');      renderStats(); }
   if (view === 'milestones') { _setHash('#milestones'); renderMilestones(); }
-  if (view === 'timeline')   { _setHash('#timeline');   renderTimeline(); }
   if (view === 'story')      { _setHash('#story');      renderStory(); renderStoryNav(); }
   if (view === 'journal')    { _setHash(currentId ? '#s' + currentId : '#home'); }
 }
@@ -1078,11 +1075,7 @@ function renderTimeline() {
     </div>`;
   }).join('');
 
-  inner.innerHTML = `
-    <div class="sub-header">
-      <div class="sub-rule"><span class="rule-line"></span><span class="sub-title">冒 險 回 顧</span><span class="rule-line"></span></div>
-    </div>
-    <div class="tl-grid">${cards}</div>`;
+  inner.innerHTML = `<div class="tl-grid">${cards}</div>`;
 }
 
 // ══════════════════════════════════════════════════════════

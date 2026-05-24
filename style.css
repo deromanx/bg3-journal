@@ -453,8 +453,14 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .welcome-inner {
   text-align: center;
-  padding: 36px 40px 60px;
+  padding: 36px 40px 32px;
   width: 100%;
+}
+
+#welcome #timeline-inner {
+  width: 100%;
+  border-top: 1px solid rgba(139,90,40,0.14);
+  padding-bottom: 40px;
 }
 
 .welcome-title {
