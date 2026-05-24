@@ -187,6 +187,22 @@ function loadSession(id) {
 }
 
 // ── 本集戰報 ──────────────────────────────────────────────
+const CHARS_SET = new Set(['影心', '阿斯代倫', '曹', '卡拉克', '貓咕咕']);
+
+function extractChar(str) {
+  if (!str) return null;
+  // 「游尚傑（影心）」→ 影心；或直接是角色名
+  const m = str.match(/[（(](.+?)[）)]/);
+  if (m && CHARS_SET.has(m[1])) return m[1];
+  for (const c of CHARS_SET) if (str.includes(c)) return c;
+  return null;
+}
+
+function awAvatar(char) {
+  if (!char) return '';
+  return `<span class="aw-av av-${esc(char)}"><img src="data/images/avatars/${esc(char)}.webp" alt="${esc(char)}" onerror="this.style.display='none'"></span>`;
+}
+
 function renderAwardCard(sessionId) {
   const card  = document.getElementById('award-card');
   const award = awards[String(sessionId)];
@@ -195,10 +211,29 @@ function renderAwardCard(sessionId) {
   const highlight = award.highlight
     ? `<div class="aw-highlight">${esc(award.highlight)}</div>` : '';
 
+  const mvpChar   = extractChar(award.mvp);
+  const quoteChar = extractChar(award.best_quote_by);
+
   const items = [
-    award.mvp          ? `<div class="aw-item"><span class="aw-icon">🏆</span><span class="aw-key">MVP</span><span class="aw-val">${esc(award.mvp)}</span>${award.mvp_reason ? `<span class="aw-sub">${esc(award.mvp_reason)}</span>` : ''}</div>` : '',
-    award.best_quote   ? `<div class="aw-item"><span class="aw-icon">💬</span><span class="aw-key">最佳金句</span><span class="aw-val aw-quote">「${esc(award.best_quote)}」</span></div>` : '',
-    award.worst_moment ? `<div class="aw-item"><span class="aw-icon">💀</span><span class="aw-key">最慘時刻</span><span class="aw-val">${esc(award.worst_moment)}</span></div>` : '',
+    award.mvp ? `
+      <div class="aw-item">
+        ${mvpChar ? awAvatar(mvpChar) : '<span class="aw-icon">🏆</span>'}
+        <span class="aw-key">MVP</span>
+        <span class="aw-val">${esc(award.mvp)}</span>
+        ${award.mvp_reason ? `<span class="aw-sub">${esc(award.mvp_reason)}</span>` : ''}
+      </div>` : '',
+    award.best_quote ? `
+      <div class="aw-item">
+        ${quoteChar ? awAvatar(quoteChar) : '<span class="aw-icon">💬</span>'}
+        <span class="aw-key">最佳金句</span>
+        <span class="aw-val aw-quote">「${esc(award.best_quote)}」</span>
+      </div>` : '',
+    award.worst_moment ? `
+      <div class="aw-item">
+        <span class="aw-icon">💀</span>
+        <span class="aw-key">最慘時刻</span>
+        <span class="aw-val">${esc(award.worst_moment)}</span>
+      </div>` : '',
   ].filter(Boolean).join('');
 
   card.classList.remove('hidden');
