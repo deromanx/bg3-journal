@@ -111,7 +111,7 @@ def extract_docx(docx_path: Path, session_id: int) -> list[dict]:
     rels = doc.part.rels
     img_dir = IMAGES_DIR / str(session_id)
     img_counter = 0
-    items = []
+    raw = []  # {"t": ..., "v": ..., "left": int}
 
     for para in doc.paragraphs:
         drawings = para._element.findall(".//" + qn("w:drawing"))
@@ -135,8 +135,9 @@ def extract_docx(docx_path: Path, session_id: int) -> list[dict]:
                     fname = f"img_{img_counter:03d}.jpg"
                     out   = img_dir / fname
                     if save_image(blob, out, ext):
-                        items.append({"t": "img",
-                                      "v": f"data/images/{session_id}/{fname}"})
+                        raw.append({"t": "img",
+                                    "v": f"data/images/{session_id}/{fname}",
+                                    "left": 0})
                 except Exception as e:
                     print(f"    ⚠ 圖片關係錯誤：{e}")
 
@@ -157,7 +158,23 @@ def extract_docx(docx_path: Path, session_id: int) -> list[dict]:
                 t = "li2"
             elif left >= 660:
                 t = "li"
-        items.append({"t": t, "v": text})
+        raw.append({"t": t, "v": text, "left": left})
+
+    # ── 後處理：h1 後若緊跟深縮排 body（left≥660）則降為 h2 ──
+    items = []
+    for i, item in enumerate(raw):
+        t = item["t"]
+        if t == "h1":
+            for j in range(i + 1, min(i + 6, len(raw))):
+                nxt = raw[j]
+                if nxt["t"] == "img":
+                    continue
+                if nxt["t"] in ("h1", "h2"):
+                    break  # 另一個標題緊跟 → 保持 h1
+                if nxt["left"] >= 660:
+                    t = "h2"
+                break
+        items.append({"t": t, "v": item["v"]})
 
     return items
 
