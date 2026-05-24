@@ -657,7 +657,7 @@ function clearRoastFilter() {
   if (countEl) countEl.textContent = quotes.length;
   const grid = document.getElementById('rq-grid');
   const chars = charStats.characters || [];
-  if (grid) grid.innerHTML = quotes.map(q => renderRoastCard(q, chars)).join('');
+  if (grid) grid.innerHTML = quotes.slice().sort((a, b) => b.session - a.session).map(q => renderRoastCard(q, chars)).join('');
 }
 
 function filterRoastQuotes(charName) {
@@ -690,7 +690,7 @@ function filterRoastQuotes(charName) {
 
   const grid = document.getElementById('rq-grid');
   if (!grid) return;
-  grid.innerHTML = filtered.map(q => renderRoastCard(q, chars)).join('');
+  grid.innerHTML = filtered.slice().sort((a, b) => b.session - a.session).map(q => renderRoastCard(q, chars)).join('');
 }
 
 function renderRoastCard(q, chars) {
@@ -731,7 +731,7 @@ function renderRoastQuotes() {
       <span class="rq-fname">${esc(c.char)}</span>
     </button>`).join('');
 
-  const cards = quotes.map(q => renderRoastCard(q, chars)).join('');
+  const cards = quotes.slice().sort((a, b) => b.session - a.session).map(q => renderRoastCard(q, chars)).join('');
 
   return `
     <div class="stats-section">
@@ -849,7 +849,7 @@ function renderRoastSection() {
   return `
     <div class="stats-section">
       <div class="stats-section-title">互相靠北排行</div>
-      <div class="roast-meta">全 18 集共計 <strong>${roastStats.total || 0}</strong> 次記錄在案的靠北事件</div>
+      <div class="roast-meta">全 ${sessions.filter(s => !s.placeholder && s.content && s.content.length > 0).length} 集共計 <strong>${roastStats.total || 0}</strong> 次記錄在案的靠北事件</div>
 
       <div class="roast-columns">
         <div class="roast-col">
@@ -1188,6 +1188,8 @@ function renderCharacters(charName) {
             <span class="cp-qs-item"><span class="cp-qs-icon">⚔</span>${c.duels.wins}勝${c.duels.losses}敗${c.duels.draws > 0 ? c.duels.draws + '平' : ''}</span>
             <span class="cp-qs-sep">·</span>
             <span class="cp-qs-item ${pct >= 50 ? 'cp-qs-win' : 'cp-qs-lose'}">${pct}%</span>
+            <span class="cp-qs-sep">·</span>
+            <span class="cp-qs-item"><span class="cp-qs-icon">🏆</span>${c.mvp_count || 0} 次 MVP</span>
           </div>
         </div>
       </div>
