@@ -453,14 +453,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .welcome-inner {
   text-align: center;
-  padding: 36px 40px 32px;
+  padding: 36px 40px 60px;
   width: 100%;
-}
-
-#welcome #timeline-inner {
-  width: 100%;
-  border-top: 1px solid rgba(139,90,40,0.14);
-  padding-bottom: 40px;
 }
 
 .welcome-title {
@@ -3086,122 +3080,6 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 /* ══════════════════════════════════════════════════════════
-   回顧頁時間軸卡片
-   ══════════════════════════════════════════════════════════ */
-.tl-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 14px;
-  padding: 24px;
-}
-
-.tl-card {
-  border: 1px solid rgba(139,90,40,0.20);
-  background: linear-gradient(135deg, rgba(122,21,21,0.03) 0%, rgba(139,90,40,0.04) 100%);
-  padding: 16px 18px;
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.tl-card:hover {
-  border-color: rgba(139,90,40,0.40);
-  background: linear-gradient(135deg, rgba(122,21,21,0.06) 0%, rgba(139,90,40,0.07) 100%);
-}
-
-.tl-placeholder {
-  opacity: 0.45;
-  cursor: default;
-}
-
-.tl-placeholder:hover {
-  border-color: rgba(139,90,40,0.20);
-  background: linear-gradient(135deg, rgba(122,21,21,0.03) 0%, rgba(139,90,40,0.04) 100%);
-}
-
-.tl-top {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.tl-chapter {
-  font-family: 'Cinzel', serif;
-  font-size: 9.5px;
-  letter-spacing: 2px;
-  color: var(--crimson);
-  opacity: 0.7;
-  background: rgba(122,21,21,0.07);
-  padding: 2px 7px;
-  border-radius: 2px;
-}
-
-.tl-date {
-  font-size: 11px;
-  color: var(--ink-light);
-  opacity: 0.5;
-  letter-spacing: 0.5px;
-}
-
-.tl-title {
-  font-size: 14.5px;
-  font-weight: 600;
-  color: var(--ink-dark);
-  line-height: 1.3;
-  margin-bottom: 10px;
-}
-
-.tl-mvp {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 8px;
-}
-
-.tl-mvp-label {
-  font-size: 9px;
-  letter-spacing: 2px;
-  color: var(--ink-light);
-  opacity: 0.45;
-  background: rgba(139,90,40,0.08);
-  padding: 1px 5px;
-}
-
-.tl-mvp-av {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.tl-mvp-av img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.tl-mvp-name {
-  font-size: 12px;
-  color: var(--ink-mid);
-}
-
-.tl-highlight {
-  font-size: 12px;
-  color: var(--ink-light);
-  line-height: 1.65;
-  font-style: italic;
-  opacity: 0.75;
-}
-
-.tl-pending {
-  font-size: 12px;
-  color: var(--ink-light);
-  opacity: 0.4;
-  font-style: italic;
-}
-
-/* ══════════════════════════════════════════════════════════
    角色活躍度熱力圖
    ══════════════════════════════════════════════════════════ */
 .gc-tabs {
@@ -3344,9 +3222,6 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .gc-4.gc-gold { background: rgba(200,160,20,0.75); }
 
 @media (max-width: 720px) {
-  .tl-grid { grid-template-columns: 1fr 1fr; gap: 10px; padding: 14px; }
-  .tl-card { padding: 12px 14px; }
-  .tl-title { font-size: 13.5px; }
 
   .gc-char-label { min-width: 80px; width: 80px; }
   .gc-char-name { font-size: 10.5px; }
@@ -3355,7 +3230,6 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 @media (max-width: 480px) {
-  .tl-grid { grid-template-columns: 1fr; }
 }
 
 /* ── 桌機字級放大（≥ 1024px）─────────────────────────────── */

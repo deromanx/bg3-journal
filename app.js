@@ -68,7 +68,6 @@ function goHome() {
   document.querySelectorAll('.session-item').forEach(el => el.classList.remove('active'));
   const journalNav = document.getElementById('journal-nav');
   if (journalNav) journalNav.classList.remove('hidden-nav');
-  renderTimeline();
 }
 
 function restoreFromHash() {
@@ -1030,54 +1029,6 @@ function renderRoastSection() {
 }
 
 // ══════════════════════════════════════════════════════════
-// 回顧頁（集數時間軸）
-// ══════════════════════════════════════════════════════════
-function renderTimeline() {
-  const inner = document.getElementById('timeline-inner');
-
-  const CHAR_ORDER = ['影心', '阿斯代倫', '曹', '卡拉克', '貓咕咕'];
-
-  const cards = sessions.slice().reverse().map(s => {
-    const aw = awards[String(s.id)] || {};
-    const mvpChar = aw.mvp ? aw.mvp.replace(/.*[（(](.+)[）)].*/,'$1').trim() : null;
-    const resolvedMvp = mvpChar && CHAR_ORDER.includes(mvpChar) ? mvpChar
-      : CHAR_ORDER.find(c => aw.mvp && aw.mvp.includes(c)) || null;
-    const highlight = aw.highlight ? aw.highlight.slice(0, 80) + (aw.highlight.length > 80 ? '…' : '') : '';
-
-    if (s.placeholder) {
-      return `
-      <div class="tl-card tl-placeholder">
-        <div class="tl-top">
-          <span class="tl-chapter">${esc(s.chapter)}</span>
-          <span class="tl-date">${(s.date || '').replace(/-/g,'.')}</span>
-        </div>
-        <div class="tl-title">${esc(s.title)}</div>
-        <div class="tl-pending">日誌撰寫中…</div>
-      </div>`;
-    }
-
-    return `
-    <div class="tl-card" onclick="loadSession(${s.id}); showView('journal');">
-      <div class="tl-top">
-        <span class="tl-chapter">${esc(s.chapter)}</span>
-        <span class="tl-date">${(s.date || '').replace(/-/g,'.')}</span>
-      </div>
-      <div class="tl-title">${esc(s.title)}</div>
-      ${resolvedMvp ? `
-      <div class="tl-mvp">
-        <span class="tl-mvp-label">MVP</span>
-        <span class="tl-mvp-av av-${esc(resolvedMvp)}">
-          <img src="data/images/avatars/${esc(resolvedMvp)}.webp" alt="" onerror="this.style.display='none'">
-        </span>
-        <span class="tl-mvp-name">${esc(resolvedMvp)}</span>
-      </div>` : ''}
-      ${highlight ? `<div class="tl-highlight">${esc(highlight)}</div>` : ''}
-    </div>`;
-  }).join('');
-
-  inner.innerHTML = `<div class="tl-grid">${cards}</div>`;
-}
-
 // ══════════════════════════════════════════════════════════
 // 里程碑時間軸
 // ══════════════════════════════════════════════════════════
