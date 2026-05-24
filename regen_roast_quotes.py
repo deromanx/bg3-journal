@@ -47,6 +47,7 @@ def gemini_extract_roasts(sid, text):
   {{
     "from": "靠北發起者角色名，若多人一起靠北同一目標則用陣列，例如 [\\"曹\\", \\"阿斯代倫\\"]",
     "to": "被靠北的角色名，若同時靠北多人則用陣列",
+    "quote": "靠北的原話或最精華句子，直接引用日誌原文，20字內，不需加引號",
     "desc": "事件描述，50-80字，包含前因後果，說明為什麼靠北、靠北的內容是什麼"
   }}
 ]
@@ -147,7 +148,11 @@ def main():
                 continue
             from_val = frm_list[0] if len(frm_list) == 1 else frm_list
             to_val   = to_list[0]  if len(to_list)  == 1 else to_list
-            new_quotes.append({"session": sid, "from": from_val, "to": to_val, "desc": desc})
+            quote    = r.get("quote", "").strip()
+            entry = {"session": sid, "from": from_val, "to": to_val, "desc": desc}
+            if quote:
+                entry["quote"] = quote
+            new_quotes.append(entry)
             count += 1
 
         print(f"  S{sid}: {count} 事件")
