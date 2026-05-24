@@ -1354,6 +1354,16 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   background: rgba(139,90,40,0.03);
 }
 
+.aw-highlight {
+  padding: 14px 20px 12px;
+  font-size: 13.5px;
+  line-height: 1.75;
+  color: var(--ink-mid);
+  font-style: italic;
+  border-bottom: 1px solid rgba(139,90,40,0.10);
+  background: rgba(139,90,40,0.02);
+}
+
 .award-body {
   display: flex;
   flex-wrap: wrap;

@@ -192,6 +192,9 @@ function renderAwardCard(sessionId) {
   const award = awards[String(sessionId)];
   if (!award) { card.classList.add('hidden'); return; }
 
+  const highlight = award.highlight
+    ? `<div class="aw-highlight">${esc(award.highlight)}</div>` : '';
+
   const items = [
     award.mvp          ? `<div class="aw-item"><span class="aw-icon">🏆</span><span class="aw-key">MVP</span><span class="aw-val">${esc(award.mvp)}</span>${award.mvp_reason ? `<span class="aw-sub">${esc(award.mvp_reason)}</span>` : ''}</div>` : '',
     award.best_quote   ? `<div class="aw-item"><span class="aw-icon">💬</span><span class="aw-key">最佳金句</span><span class="aw-val aw-quote">「${esc(award.best_quote)}」</span></div>` : '',
@@ -202,6 +205,7 @@ function renderAwardCard(sessionId) {
   card.innerHTML = `
     <div class="award-card">
       <div class="award-label">✦ 本集戰報</div>
+      ${highlight}
       <div class="award-body">${items}</div>
     </div>`;
 }
