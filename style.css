@@ -3098,6 +3098,43 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .rq-total strong { color: var(--crimson); font-size: 14px; }
 
+/* ── 分頁控制列 ────────────────────────────────── */
+.rq-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(139,90,40,0.14);
+}
+.rq-pg-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--ink-light);
+  padding: 7px 16px;
+  border: 1px solid rgba(139,90,40,0.30);
+  transition: all var(--ease);
+  opacity: 0.75;
+}
+.rq-pg-btn:hover:not(:disabled) {
+  opacity: 1;
+  background: rgba(139,90,40,0.08);
+  border-color: rgba(201,168,76,0.50);
+  color: var(--crimson);
+}
+.rq-pg-btn:disabled { opacity: 0.20; cursor: default; }
+.rq-pg-info {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--ink-light);
+  opacity: 0.55;
+  min-width: 80px;
+  text-align: center;
+}
+
 /* 語錄格狀佈局 */
 .roast-quotes-grid {
   display: grid;

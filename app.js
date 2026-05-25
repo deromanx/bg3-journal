@@ -765,22 +765,66 @@ function renderMatchupSplits(matchupData) {
 // ══════════════════════════════════════════════════════════
 const asArr = v => Array.isArray(v) ? v : [v];
 
-let _roastFilter = new Set();
-let _roastPairFilter = null; // {from, to} or null
+const ROAST_PAGE_SIZE = 24;
+let _roastFilter     = new Set();
+let _roastPairFilter = null;   // {from, to} or null
+let _roastFiltered   = null;   // null = 全部；array = 已篩選（排序後）
+let _roastPage       = 1;
+
+function _roastAllSorted() {
+  return (roastStats.quotes || roastStats.highlights || [])
+    .slice().sort((a, b) => b.session - a.session);
+}
+
+function applyRoastGrid() {
+  const quotes = _roastFiltered ?? _roastAllSorted();
+  const total  = quotes.length;
+  const totalPages = Math.max(1, Math.ceil(total / ROAST_PAGE_SIZE));
+  _roastPage = Math.min(Math.max(_roastPage, 1), totalPages);
+
+  const chars = charStats.characters || [];
+  const start = (_roastPage - 1) * ROAST_PAGE_SIZE;
+  const pageQuotes = quotes.slice(start, start + ROAST_PAGE_SIZE);
+
+  const countEl = document.getElementById('rq-count');
+  if (countEl) countEl.textContent = total;
+
+  const grid = document.getElementById('rq-grid');
+  if (grid) {
+    grid.innerHTML = total === 0
+      ? `<div class="rq-empty">（${_roastPairFilter
+          ? esc(_roastPairFilter.from) + ' → ' + esc(_roastPairFilter.to) + ' 無靠北紀錄'
+          : '無符合語錄'}）</div>`
+      : pageQuotes.map(q => renderRoastCard(q, chars)).join('');
+  }
+
+  const pager = document.getElementById('rq-pager');
+  if (!pager) return;
+  if (totalPages <= 1) { pager.innerHTML = ''; return; }
+  pager.innerHTML = `
+    <button class="rq-pg-btn" onclick="setRoastPage(${_roastPage - 1})"
+            ${_roastPage <= 1 ? 'disabled' : ''}>← 上頁</button>
+    <span class="rq-pg-info">第 ${_roastPage} / ${totalPages} 頁</span>
+    <button class="rq-pg-btn" onclick="setRoastPage(${_roastPage + 1})"
+            ${_roastPage >= totalPages ? 'disabled' : ''}>下頁 →</button>`;
+}
+
+function setRoastPage(n) {
+  _roastPage = n;
+  applyRoastGrid();
+  document.getElementById('rq-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
 
 function clearRoastFilter() {
   _roastFilter.clear();
   _roastPairFilter = null;
+  _roastFiltered   = null;
+  _roastPage       = 1;
   document.querySelectorAll('.rq-filter-btn').forEach(btn => btn.classList.remove('active'));
   document.querySelectorAll('.rh-cell.rh-active').forEach(el => el.classList.remove('rh-active'));
   const clearBtn = document.getElementById('rq-clear-btn');
   if (clearBtn) clearBtn.classList.add('hidden');
-  const quotes = roastStats.quotes || roastStats.highlights || [];
-  const countEl = document.getElementById('rq-count');
-  if (countEl) countEl.textContent = quotes.length;
-  const grid = document.getElementById('rq-grid');
-  const chars = charStats.characters || [];
-  if (grid) grid.innerHTML = quotes.slice().sort((a, b) => b.session - a.session).map(q => renderRoastCard(q, chars)).join('');
+  applyRoastGrid();
 }
 
 function filterRoastQuotes(charName) {
@@ -803,7 +847,7 @@ function filterRoastQuotes(charName) {
   const clearBtn = document.getElementById('rq-clear-btn');
   if (clearBtn) clearBtn.classList.toggle('hidden', _roastFilter.size === 0);
 
-  // 篩選顯示卡片（交集：所有選取角色都須出現在 from 或 to）
+  // 篩選（交集：所有選取角色都須出現在 from 或 to）
   const quotes = roastStats.quotes || roastStats.highlights || [];
   const filtered = _roastFilter.size === 0
     ? quotes
@@ -812,12 +856,9 @@ function filterRoastQuotes(charName) {
         return [..._roastFilter].every(c => all.includes(c));
       });
 
-  const countEl = document.getElementById('rq-count');
-  if (countEl) countEl.textContent = filtered.length;
-
-  const grid = document.getElementById('rq-grid');
-  if (!grid) return;
-  grid.innerHTML = filtered.slice().sort((a, b) => b.session - a.session).map(q => renderRoastCard(q, chars)).join('');
+  _roastFiltered = _roastFilter.size === 0 ? null : filtered.slice().sort((a, b) => b.session - a.session);
+  _roastPage = 1;
+  applyRoastGrid();
 }
 
 function filterRoastByPair(from, to) {
@@ -846,17 +887,9 @@ function filterRoastByPair(from, to) {
   const filtered = quotes.filter(q =>
     asArr(q.from).includes(from) && asArr(q.to).includes(to)
   );
-
-  const countEl = document.getElementById('rq-count');
-  if (countEl) countEl.textContent = filtered.length;
-
-  const chars = charStats.characters || [];
-  const grid = document.getElementById('rq-grid');
-  if (!grid) return;
-  grid.innerHTML = filtered.length
-    ? filtered.slice().sort((a, b) => b.session - a.session).map(q => renderRoastCard(q, chars)).join('')
-    : `<div class="rq-empty">（${esc(from)} → ${esc(to)} 無靠北紀錄）</div>`;
-
+  _roastFiltered = filtered.slice().sort((a, b) => b.session - a.session);
+  _roastPage = 1;
+  applyRoastGrid();
   document.getElementById('rq-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -897,7 +930,18 @@ function renderRoastQuotes() {
       <span class="rq-fname">${esc(c.char)}</span>
     </button>`).join('');
 
-  const cards = quotes.slice().sort((a, b) => b.session - a.session).map(q => renderRoastCard(q, chars)).join('');
+  // 初始化分頁狀態，只渲染第一頁
+  _roastFiltered = null;
+  _roastPage     = 1;
+  const sorted     = quotes.slice().sort((a, b) => b.session - a.session);
+  const firstPage  = sorted.slice(0, ROAST_PAGE_SIZE).map(q => renderRoastCard(q, chars)).join('');
+  const totalPages = Math.ceil(quotes.length / ROAST_PAGE_SIZE);
+  const initPager  = totalPages > 1 ? `
+    <div class="rq-pager" id="rq-pager">
+      <button class="rq-pg-btn" disabled>← 上頁</button>
+      <span class="rq-pg-info">第 1 / ${totalPages} 頁</span>
+      <button class="rq-pg-btn" onclick="setRoastPage(2)">下頁 →</button>
+    </div>` : `<div id="rq-pager"></div>`;
 
   return `
     <div class="stats-section" id="rq-section">
@@ -908,7 +952,8 @@ function renderRoastQuotes() {
         <button id="rq-clear-btn" class="rq-clear-btn hidden" onclick="clearRoastFilter()">✕ 清空</button>
         <span class="rq-total">共 <strong id="rq-count">${quotes.length}</strong> 條</span>
       </div>
-      <div class="roast-quotes-grid" id="rq-grid">${cards}</div>
+      <div class="roast-quotes-grid" id="rq-grid">${firstPage}</div>
+      ${initPager}
     </div>`;
 }
 
