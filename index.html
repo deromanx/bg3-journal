@@ -151,12 +151,19 @@
       <div id="session-body"></div>
 
       <footer class="session-footer">
-        <button class="nav-btn" id="prev-btn" onclick="navigateSession(-1)">
-          <span class="nav-arrow">←</span> 上一集
+        <button class="sf-card sf-prev" id="prev-btn" onclick="navigateSession(-1)">
+          <span class="sf-dir">← 上一集</span>
+          <span class="sf-chapter" id="sf-prev-chapter"></span>
+          <span class="sf-title" id="sf-prev-title"></span>
         </button>
-        <div class="footer-progress" id="footer-progress">✦</div>
-        <button class="nav-btn" id="next-btn" onclick="navigateSession(1)">
-          下一集 <span class="nav-arrow">→</span>
+        <div class="sf-center">
+          <div class="sf-ornament">⚔</div>
+          <div class="sf-progress" id="footer-progress"></div>
+        </div>
+        <button class="sf-card sf-next" id="next-btn" onclick="navigateSession(1)">
+          <span class="sf-dir">下一集 →</span>
+          <span class="sf-chapter" id="sf-next-chapter"></span>
+          <span class="sf-title" id="sf-next-title"></span>
         </button>
       </footer>
     </article>

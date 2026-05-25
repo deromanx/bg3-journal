@@ -18,7 +18,7 @@ Promise.all([
   fetch('data/sessions.json').then(r => r.json()),
   fetch('data/milestones.json').then(r => r.json()).catch(() => []),
   fetch('data/awards.json').then(r => r.json()).catch(() => ({})),
-  fetch('data/character-stats.json', { cache: 'no-store' }).then(r => r.json()).catch(() => ({ characters: [] })),
+  fetch('data/character-stats.json').then(r => r.json()).catch(() => ({ characters: [] })),
   fetch('data/roast-stats.json').then(r => r.json()).catch(() => ({ matrix: [], highlights: [] })),
   fetch('data/story.json').then(r => r.json()).catch(() => ({ chapters: [] })),
 ])
@@ -173,8 +173,20 @@ function loadSession(id) {
   renderAwardCard(id);
 
   const idx = sessions.findIndex(s => s.id === id);
-  document.getElementById('prev-btn').disabled = idx <= 0;
-  document.getElementById('next-btn').disabled = idx >= sessions.length - 1;
+  const prevS = sessions[idx - 1] ?? null;
+  const nextS = sessions[idx + 1] ?? null;
+
+  const prevBtn = document.getElementById('prev-btn');
+  const nextBtn = document.getElementById('next-btn');
+  prevBtn.disabled = !prevS;
+  nextBtn.disabled = !nextS;
+
+  const setCard = (chapterEl, titleEl, s) => {
+    document.getElementById(chapterEl).textContent = s ? s.chapter : '';
+    document.getElementById(titleEl).textContent   = s ? s.title   : '';
+  };
+  setCard('sf-prev-chapter', 'sf-prev-title', prevS);
+  setCard('sf-next-chapter', 'sf-next-title', nextS);
 
   const prog = document.getElementById('footer-progress');
   if (prog) prog.innerHTML = `${idx + 1}<span class="fp-sep"> / </span>${sessions.length}`;
@@ -272,13 +284,19 @@ document.addEventListener('DOMContentLoaded', () => {
 function initBackToTop() {
   const btn = document.getElementById('back-to-top');
   if (!btn) return;
-  document.getElementById('content').addEventListener('scroll', function() {
+  const handler = function() {
     btn.classList.toggle('visible', this.scrollTop > 400);
-  });
+  };
+  document.getElementById('session-view')?.addEventListener('scroll', handler);
+  document.querySelectorAll('.content-scroll').forEach(el => el.addEventListener('scroll', handler));
 }
 
 function scrollToTop() {
-  document.getElementById('content').scrollTo({ top: 0, behavior: 'smooth' });
+  const sv = document.getElementById('session-view');
+  const active = (sv && !sv.classList.contains('hidden'))
+    ? sv
+    : document.querySelector('.content-scroll:not(.hidden)');
+  active?.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 // ── 鍵盤導航 ──────────────────────────────────────────────
@@ -381,7 +399,7 @@ function toggleSidebar() {
 // 統計儀表板
 // ══════════════════════════════════════════════════════════
 function computeBaseStats() {
-  const completed = sessions.filter(s => !s.placeholder && s.content.length > 0);
+  const completed = sessions.filter(s => !s.placeholder && s.content?.length > 0);
   if (!completed.length) return null;
   const first = completed[0];
   const last  = completed[completed.length - 1];
@@ -392,6 +410,10 @@ function computeBaseStats() {
 }
 
 function renderStats() {
+  // 重新渲染時清除篩選狀態，避免舊 filter 與新 DOM 脫鉤
+  _roastFilter.clear();
+  _roastPairFilter = null;
+
   const inner = document.getElementById('stats-inner');
   const base  = computeBaseStats();
   if (!base) { inner.innerHTML = '<p class="empty-note">尚無資料</p>'; return; }
@@ -423,7 +445,7 @@ function renderStats() {
   }).join('');
 
   // 決鬥排行（依勝率排序，不含平手場次計算勝率）
-  const withDuels = chars.filter(c => (c.duels.wins + c.duels.losses) > 0)
+  const withDuels = chars.filter(c => ((c.duels?.wins || 0) + (c.duels?.losses || 0)) > 0)
     .slice().sort((a, b) => {
       const ra = a.duels.wins / (a.duels.wins + a.duels.losses);
       const rb = b.duels.wins / (b.duels.wins + b.duels.losses);
@@ -435,8 +457,11 @@ function renderStats() {
     const decisive = c.duels.wins + c.duels.losses;
     const total  = decisive + draws;
     const pct    = decisive ? Math.round(c.duels.wins / decisive * 100) : 0;
+    const wPct   = total ? Math.round(c.duels.wins    / total * 100) : 0;
+    const lPct   = total ? Math.round(c.duels.losses  / total * 100) : 0;
+    const dPct   = total ? 100 - wPct - lPct : 0;
     const medal  = rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : '';
-    const baseTip = `${c.duels.wins}勝 ${c.duels.losses}敗${draws ? ` ${draws}平` : ''}，勝率 ${pct}%`;
+    const baseTip = `${c.duels.wins}勝 ${c.duels.losses}敗${draws ? ` ${draws}平` : ''}，勝率 ${pct}%（僅計決定局）`;
     const duelTip = c.duels.detail ? `${c.duels.detail}\n\n${baseTip}` : baseTip;
     return `
       <div class="duel-row" data-tip="${esc(duelTip)}">
@@ -455,7 +480,11 @@ function renderStats() {
           <span class="dr-total">${total}場</span>
         </div>
         <div class="dr-bar-wrap">
-          <div class="dr-bar" style="width:0" data-w="${pct}%"></div>
+          <div class="dr-stack">
+            <div class="dr-seg dr-seg-w" style="width:0" data-w="${wPct}%"></div>
+            ${dPct > 0 ? `<div class="dr-seg dr-seg-d" style="width:0" data-w="${dPct}%"></div>` : ''}
+            <div class="dr-seg dr-seg-l" style="width:0" data-w="${lPct}%"></div>
+          </div>
         </div>
         <div class="dr-pct">${pct}%</div>
       </div>`;
@@ -526,7 +555,7 @@ function renderStats() {
     const pct = Math.round(count / maxMvp * 100);
     // 找出這個角色哪幾集拿到 MVP
     const mvpSessions = Object.entries(awards)
-      .filter(([, a]) => a.mvp === c.char)
+      .filter(([, a]) => a.mvp && a.mvp.includes(c.char))
       .map(([sid, a]) => `S${sid}：${a.mvp_reason || ''}`)
       .join('\n');
     const tip = count === 0 ? '尚未獲選 MVP' : mvpSessions;
@@ -594,6 +623,12 @@ function renderStats() {
       <div class="stats-section">
         <div class="stats-section-title">決鬥戰績排行</div>
         <div class="duel-board">${duelRows}</div>
+        <div class="duel-bar-legend">
+          <span class="dbl-dot dbl-w"></span>勝
+          <span class="dbl-dot dbl-d"></span>平
+          <span class="dbl-dot dbl-l"></span>敗
+          <span class="dbl-note">（勝率僅計決定局，不含平局）</span>
+        </div>
       </div>
       ${matchupData.length ? `<div class="stats-section">${renderMatchupSplits(matchupData)}${matchupGrid}</div>` : ''}
     </div>` : ''}
@@ -731,10 +766,13 @@ function renderMatchupSplits(matchupData) {
 const asArr = v => Array.isArray(v) ? v : [v];
 
 let _roastFilter = new Set();
+let _roastPairFilter = null; // {from, to} or null
 
 function clearRoastFilter() {
   _roastFilter.clear();
+  _roastPairFilter = null;
   document.querySelectorAll('.rq-filter-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.rh-cell.rh-active').forEach(el => el.classList.remove('rh-active'));
   const clearBtn = document.getElementById('rq-clear-btn');
   if (clearBtn) clearBtn.classList.add('hidden');
   const quotes = roastStats.quotes || roastStats.highlights || [];
@@ -746,6 +784,10 @@ function clearRoastFilter() {
 }
 
 function filterRoastQuotes(charName) {
+  // 切換角色篩選時清除矩陣對篩選
+  _roastPairFilter = null;
+  document.querySelectorAll('.rh-cell.rh-active').forEach(el => el.classList.remove('rh-active'));
+
   if (_roastFilter.has(charName)) {
     _roastFilter.delete(charName);
   } else {
@@ -776,6 +818,46 @@ function filterRoastQuotes(charName) {
   const grid = document.getElementById('rq-grid');
   if (!grid) return;
   grid.innerHTML = filtered.slice().sort((a, b) => b.session - a.session).map(q => renderRoastCard(q, chars)).join('');
+}
+
+function filterRoastByPair(from, to) {
+  const sameFrom = _roastPairFilter?.from === from;
+  const sameTo   = _roastPairFilter?.to   === to;
+
+  // 點同一格 → 取消
+  if (sameFrom && sameTo) {
+    clearRoastFilter();
+    return;
+  }
+
+  _roastFilter.clear();
+  _roastPairFilter = { from, to };
+
+  // 更新按鈕與熱力格高亮
+  document.querySelectorAll('.rq-filter-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.rh-cell.rh-active').forEach(el => el.classList.remove('rh-active'));
+  const activeCell = document.querySelector(`.rh-cell[data-pair="${esc(from)}→${esc(to)}"]`);
+  if (activeCell) activeCell.classList.add('rh-active');
+
+  const clearBtn = document.getElementById('rq-clear-btn');
+  if (clearBtn) clearBtn.classList.remove('hidden');
+
+  const quotes = roastStats.quotes || roastStats.highlights || [];
+  const filtered = quotes.filter(q =>
+    asArr(q.from).includes(from) && asArr(q.to).includes(to)
+  );
+
+  const countEl = document.getElementById('rq-count');
+  if (countEl) countEl.textContent = filtered.length;
+
+  const chars = charStats.characters || [];
+  const grid = document.getElementById('rq-grid');
+  if (!grid) return;
+  grid.innerHTML = filtered.length
+    ? filtered.slice().sort((a, b) => b.session - a.session).map(q => renderRoastCard(q, chars)).join('')
+    : `<div class="rq-empty">（${esc(from)} → ${esc(to)} 無靠北紀錄）</div>`;
+
+  document.getElementById('rq-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function renderRoastCard(q, chars) {
@@ -818,7 +900,7 @@ function renderRoastQuotes() {
   const cards = quotes.slice().sort((a, b) => b.session - a.session).map(q => renderRoastCard(q, chars)).join('');
 
   return `
-    <div class="stats-section">
+    <div class="stats-section" id="rq-section">
       <div class="stats-section-title">📜 靠北語錄大全</div>
       <div class="rq-filter-row">
         <span class="rq-filter-label">篩選角色：</span>
@@ -1018,7 +1100,8 @@ function renderRoastSection() {
       const v = roastMap[rowN][colN];
       const intensity = Math.round(v / maxCell * 100);
       const tip = `${esc(rowN)} → ${esc(colN)}&#10;靠北 ${v} 次`;
-      return `<td class="rh-cell" style="--ri:${intensity}" data-tip="${tip}">${v}</td>`;
+      const clickable = v > 0 ? ` onclick="filterRoastByPair('${esc(rowN)}','${esc(colN)}')"` : '';
+      return `<td class="rh-cell${v > 0 ? ' rh-clickable' : ''}" style="--ri:${intensity}" data-tip="${tip}" data-pair="${esc(rowN)}→${esc(colN)}"${clickable}>${v}</td>`;
     }).join('');
     return `<tr>
       <th class="rh-row-hdr">
@@ -1323,7 +1406,7 @@ function renderCharacters(charName) {
 
   const portraitBtns = chars.map(c => `
     <button class="cp-portrait-btn${c.char === charName ? ' active' : ''}"
-            onclick="renderCharacters('${c.char}')"
+            onclick="renderCharacters('${esc(c.char)}')"
             data-tip="${esc(c.player)} · ${esc(c.class)}">
       <div class="cp-pav av-${esc(c.char)}">
         <img src="data/images/avatars/${esc(c.char)}.webp" alt="" onerror="this.style.display='none'">
@@ -1332,8 +1415,8 @@ function renderCharacters(charName) {
     </button>`).join('');
 
   const c = chars.find(x => x.char === charName) || chars[0];
-  const decisive = (c.duels.wins || 0) + (c.duels.losses || 0);
-  const pct = decisive ? Math.round(c.duels.wins / decisive * 100) : 0;
+  const decisive = (c.duels?.wins || 0) + (c.duels?.losses || 0);
+  const pct = decisive ? Math.round((c.duels?.wins || 0) / decisive * 100) : 0;
 
   const quotesHtml = (c.quotes || []).map(q => `
     <div class="cp-quote-card">
@@ -1370,7 +1453,7 @@ function renderCharacters(charName) {
           <div class="cp-quick-stats">
             <span class="cp-qs-item"><span class="cp-qs-icon">☠</span>${c.deaths} 次陣亡</span>
             <span class="cp-qs-sep">·</span>
-            <span class="cp-qs-item"><span class="cp-qs-icon">⚔</span>${c.duels.wins}勝${c.duels.losses}敗${c.duels.draws > 0 ? c.duels.draws + '平' : ''}</span>
+            <span class="cp-qs-item"><span class="cp-qs-icon">⚔</span>${c.duels?.wins || 0}勝${c.duels?.losses || 0}敗${(c.duels?.draws || 0) > 0 ? (c.duels.draws + '平') : ''}</span>
             <span class="cp-qs-sep">·</span>
             <span class="cp-qs-item ${pct >= 50 ? 'cp-qs-win' : 'cp-qs-lose'}">${pct}%</span>
             <span class="cp-qs-sep">·</span>
@@ -1561,7 +1644,10 @@ function renderStoryNav() {
 function storyScrollTo(sid) {
   const t = document.getElementById('story-ch-' + sid);
   const sv = document.getElementById('story-view');
-  if (t && sv) sv.scrollTo({ top: t.offsetTop - 24, behavior: 'smooth' });
+  if (t && sv) {
+    const top = t.getBoundingClientRect().top - sv.getBoundingClientRect().top + sv.scrollTop - 24;
+    sv.scrollTo({ top, behavior: 'smooth' });
+  }
   if (window.innerWidth < 768) toggleSidebar();
 }
 

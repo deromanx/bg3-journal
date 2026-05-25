@@ -772,40 +772,103 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
    頁尾導航
    ══════════════════════════════════════════════════════════ */
 .session-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: stretch;
+  gap: 12px;
   margin-top: 88px;
-  padding-top: 28px;
+  padding-top: 32px;
   border-top: 1px solid var(--parchment-dk);
   clear: both;
 }
 
-.footer-seal {
-  font-size: 20px;
-  color: var(--ink-light);
-  opacity: 0.28;
+/* ── 底部導覽卡片 ─────────────────────────────── */
+.sf-card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 16px 20px;
+  border: 1px solid rgba(139,90,40,0.25);
+  background: rgba(139,90,40,0.04);
+  text-align: left;
+  transition: background var(--ease), border-color var(--ease);
+  min-width: 0;
+}
+.sf-next { text-align: right; align-items: flex-end; }
+.sf-card:hover:not(:disabled) {
+  background: rgba(139,90,40,0.10);
+  border-color: rgba(201,168,76,0.45);
+}
+.sf-card:disabled {
+  opacity: 0.20;
+  pointer-events: none;
 }
 
-.nav-btn {
+.sf-dir {
   font-family: 'Cinzel', serif;
-  font-size: 11.5px;
+  font-size: 10px;
   letter-spacing: 2px;
+  color: var(--gold-dim);
+  text-transform: uppercase;
+}
+.sf-chapter {
+  font-size: 11px;
   color: var(--ink-light);
   opacity: 0.65;
-  padding: 10px 24px;
-  border: 1px solid rgba(139,90,40,0.32);
-  transition: all var(--ease);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.sf-title {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  color: var(--ink-mid);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  font-weight: 600;
+}
+.sf-card:hover:not(:disabled) .sf-title { color: var(--crimson); }
+
+/* ── 中央進度 ─────────────────────────────────── */
+.sf-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 16px;
+}
+.sf-ornament {
+  font-size: 16px;
+  opacity: 0.30;
+}
+.sf-progress {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--ink-light);
+  opacity: 0.55;
+  white-space: nowrap;
 }
 
-.nav-btn:hover {
-  opacity: 1;
-  background: rgba(139,90,40,0.08);
-  border-color: rgba(139,90,40,0.60);
-  color: var(--crimson);
+/* ── 手機版：改為上下排列 ──────────────────────── */
+@media (max-width: 520px) {
+  .session-footer {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+  }
+  .sf-center {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    padding: 0;
+    order: -1;
+  }
+  .sf-card { padding: 12px 14px; }
+  .sf-title { font-size: 11.5px; }
 }
-
-.nav-btn:disabled { opacity: 0.18; pointer-events: none; }
 .nav-arrow { font-family: sans-serif; }
 
 /* ══════════════════════════════════════════════════════════
@@ -1823,16 +1886,30 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .dr-bar-wrap {
-  height: 7px;
+  height: 8px;
   background: rgba(139,90,40,0.14);
   border: 1px solid rgba(139,90,40,0.18);
+  border-radius: 4px;
   overflow: hidden;
 }
+
+.dr-stack {
+  display: flex;
+  height: 100%;
+}
+
+.dr-seg {
+  height: 100%;
+  transition: width 0.7s ease;
+  flex-shrink: 0;
+}
+.dr-seg-w { background: #4caf72; animation-delay: 250ms !important; }
+.dr-seg-d { background: rgba(201,168,76,0.55); animation-delay: 380ms !important; }
+.dr-seg-l { background: #b94040; animation-delay: 380ms !important; }
 
 .dr-bar {
   height: 100%;
   background: linear-gradient(to right, var(--crimson), var(--gold));
-  transition: width 0.7s ease;
 }
 
 .dr-pct {
@@ -1850,6 +1927,26 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   margin-top: 12px;
   letter-spacing: 0.3px;
 }
+
+.duel-bar-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--ink-light);
+}
+.dbl-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.dbl-w { background: #4caf72; margin-left: 4px; }
+.dbl-d { background: rgba(201,168,76,0.55); margin-left: 8px; }
+.dbl-l { background: #b94040; margin-left: 8px; }
+.dbl-note { margin-left: 10px; opacity: 0.65; }
 
 /* ══════════════════════════════════════════════════════════
    對戰勝率一覽（matchup split bars）
@@ -1938,16 +2035,6 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 /* ── 場次進度（頁尾中央） ─────────────────────────────────── */
-.footer-progress {
-  font-family: 'Cinzel', serif;
-  font-size: 12px;
-  letter-spacing: 2px;
-  color: var(--ink-light);
-  opacity: 0.60;
-  text-align: center;
-  min-width: 64px;
-}
-
 .fp-sep {
   opacity: 0.45;
   margin: 0 2px;
@@ -2318,6 +2405,30 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   color: var(--ink-mid);
   cursor: default;
 }
+.rh-clickable {
+  cursor: pointer;
+  transition: outline 0.15s;
+}
+.rh-clickable:hover {
+  outline: 2px solid rgba(201,168,76,0.7);
+  outline-offset: -2px;
+  z-index: 1;
+  position: relative;
+}
+.rh-active {
+  outline: 2px solid var(--gold, #c9a84c);
+  outline-offset: -2px;
+  z-index: 2;
+  position: relative;
+}
+
+.rq-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  color: var(--ink-light);
+  padding: 32px;
+  font-size: 14px;
+}
 
 .rh-self {
   background: rgba(0,0,0,0.20);
@@ -2557,7 +2668,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   transition: background 0.1s;
 }
 
-.rh-cell:hover {
+.rh-cell:not(.rh-clickable):hover {
   outline: 1px solid rgba(217,176,122,0.35);
 }
 
