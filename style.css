@@ -2724,6 +2724,16 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   .char-quote { font-size: 14px; padding: 6px 10px; }
   .roast-columns { grid-template-columns: 1fr; }
   .ib-row { grid-template-columns: 36px 1fr 48px; }
+
+  /* 對戰勝率一覽：縮減固定欄寬，隱藏分數欄 */
+  .msp-board { padding: 12px 10px; gap: 10px; }
+  .msp-row   { gap: 6px; }
+  .msp-av-group { width: 68px; }
+  .msp-av   { width: 22px; height: 22px; }
+  .msp-name { font-size: 11.5px; }
+  .msp-pct  { width: 32px; font-size: 11px; }
+  .msp-bar-wrap { min-width: 0; }
+  .msp-score { display: none; }
 }
 
 /* ══════════════════════════════════════════════════════════
