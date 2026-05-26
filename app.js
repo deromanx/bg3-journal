@@ -1084,7 +1084,7 @@ function switchGrowthTab(key) {
 // 靠北關係圖（SVG 五邊形箭頭圖）
 // ══════════════════════════════════════════════════════════
 function renderRoastArrowGraph(charNames, roastMap, maxCell) {
-  const CX = 260, CY = 250, R = 132, NR = 29;
+  const CX = 260, CY = 252, R = 132, NR = 29;
   const n = charNames.length;
   const nodes = charNames.map((name, i) => {
     const angle = -Math.PI / 2 + i * 2 * Math.PI / n;
@@ -1097,12 +1097,14 @@ function renderRoastArrowGraph(charNames, roastMap, maxCell) {
 
   const defs = `<defs>
     <marker id="rg-ah" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
-      <polygon points="0 0, 7 2.5, 0 5" fill="rgba(201,168,76,0.75)"/>
+      <polygon points="0 0, 7 2.5, 0 5" fill="#c9a84c"/>
     </marker>
     ${clipPaths}
   </defs>`;
 
-  // Arrows (drawn before nodes so nodes appear on top)
+  // Arrows drawn before nodes so nodes render on top.
+  // Use opaque stroke + width-only magnitude encoding to avoid alpha-compositing
+  // accumulation artifacts where arrows cross.
   const arrows = [];
   nodes.forEach(from => {
     nodes.forEach(to => {
@@ -1112,21 +1114,18 @@ function renderRoastArrowGraph(charNames, roastMap, maxCell) {
       const dx = to.x - from.x, dy = to.y - from.y;
       const len = Math.hypot(dx, dy);
       const ndx = dx / len, ndy = dy / len;
-      // right-hand perpendicular of (from→to): (ndy, -ndx)
-      const px = ndy, py = -ndx;
+      const px = ndy, py = -ndx; // right-hand perpendicular of (from→to)
       const CURVE = 44;
       const mx = (from.x + to.x) / 2 + CURVE * px;
       const my = (from.y + to.y) / 2 + CURVE * py;
       const sx = from.x + NR * ndx, sy = from.y + NR * ndy;
-      // Pull end back 4px so arrowhead sits just outside circle edge
       const tx = to.x - (NR + 4) * ndx, ty = to.y - (NR + 4) * ndy;
       const t = v / maxCell;
-      const opacity = (0.28 + 0.72 * t).toFixed(2);
-      const sw = (1.2 + 3.8 * t).toFixed(1);
+      const sw = (0.7 + 4.3 * t).toFixed(1);
       const pair = `${from.name}→${to.name}`;
       arrows.push(`<path class="rg-arrow rg-clickable"
         d="M ${sx.toFixed(1)},${sy.toFixed(1)} Q ${mx.toFixed(1)},${my.toFixed(1)} ${tx.toFixed(1)},${ty.toFixed(1)}"
-        stroke="rgba(201,168,76,${opacity})" stroke-width="${sw}"
+        stroke="#c9a84c" stroke-width="${sw}"
         fill="none" marker-end="url(#rg-ah)"
         data-pair="${esc(pair)}"
         data-tip="${esc(from.name)} → ${esc(to.name)}：${v} 次（點擊篩選）"
@@ -1134,22 +1133,41 @@ function renderRoastArrowGraph(charNames, roastMap, maxCell) {
     });
   });
 
-  // Node circles + avatars + labels
+  // Node circles + avatars + labels.
+  // Label anchor and position are direction-aware to avoid overlapping the avatar circle.
+  const LM = 11; // gap between circle edge and label
   const nodeEls = nodes.map(nd => {
-    const labelR = R + NR + 16;
-    const lx = (CX + labelR * Math.cos(nd.angle)).toFixed(1);
-    const ly = (CY + labelR * Math.sin(nd.angle) + 5).toFixed(1);
+    const cosA = Math.cos(nd.angle), sinA = Math.sin(nd.angle);
+    let lx, ly, anchor;
+    if (Math.abs(cosA) <= 0.32) {
+      // Top or bottom: center horizontally, push radially outward
+      lx = nd.x;
+      ly = sinA < 0
+        ? nd.y - NR - LM         // above circle
+        : nd.y + NR + LM + 13;   // below circle (+ line height)
+      anchor = 'middle';
+    } else if (cosA > 0) {
+      // Right side: text starts just past the right edge of the circle
+      lx = nd.x + NR + LM;
+      ly = nd.y + 5;
+      anchor = 'start';
+    } else {
+      // Left side: text ends just before the left edge of the circle
+      lx = nd.x - NR - LM;
+      ly = nd.y + 5;
+      anchor = 'end';
+    }
     return `<g class="rg-node">
       <circle cx="${nd.x.toFixed(1)}" cy="${nd.y.toFixed(1)}" r="${NR + 2}" fill="rgba(18,12,6,0.88)" stroke="rgba(201,168,76,0.38)" stroke-width="1.5"/>
       <image href="data/images/avatars/${esc(nd.name)}.webp"
              x="${(nd.x - NR).toFixed(1)}" y="${(nd.y - NR).toFixed(1)}"
              width="${NR * 2}" height="${NR * 2}"
              clip-path="url(#rg-clip-${nd.name})" preserveAspectRatio="xMidYMid slice"/>
-      <text x="${lx}" y="${ly}" class="rg-label" text-anchor="middle">${esc(nd.name)}</text>
+      <text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" class="rg-label" text-anchor="${anchor}">${esc(nd.name)}</text>
     </g>`;
   });
 
-  return `<svg class="rg-svg" viewBox="0 0 520 500" xmlns="http://www.w3.org/2000/svg" aria-label="靠北關係圖">
+  return `<svg class="rg-svg" viewBox="0 0 520 510" xmlns="http://www.w3.org/2000/svg" aria-label="靠北關係圖">
     ${defs}
     <g class="rg-arrows">${arrows.join('\n')}</g>
     <g class="rg-nodes">${nodeEls.join('\n')}</g>

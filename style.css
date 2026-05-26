@@ -3118,17 +3118,18 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .rg-clickable {
   cursor: pointer;
+  transition: filter 0.15s;
 }
 
 .rg-clickable:hover {
-  stroke-opacity: 1 !important;
-  filter: drop-shadow(0 0 4px rgba(201,168,76,0.6));
+  filter: drop-shadow(0 0 5px rgba(201,168,76,0.9));
+  stroke: #f0d070 !important;
 }
 
 .rg-active {
-  stroke: rgba(255,220,80,0.95) !important;
-  stroke-width: 4 !important;
-  filter: drop-shadow(0 0 6px rgba(255,220,80,0.55));
+  stroke: #ffe040 !important;
+  stroke-width: 5 !important;
+  filter: drop-shadow(0 0 7px rgba(255,224,64,0.70));
 }
 
 .rg-label {
