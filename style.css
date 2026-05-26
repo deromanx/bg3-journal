@@ -209,10 +209,16 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   user-select: none;
 }
 
+.item-title, .item-chapter, .item-date {
+  transition: color var(--ease);
+}
+
 .session-item:hover {
   background: var(--gold-faint);
   border-left-color: var(--gold-dim);
 }
+
+.session-item:hover .item-title { color: var(--gold-bright); }
 
 .session-item.active {
   background: var(--bg-sidebar-active);
@@ -526,8 +532,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .cta-arrow { font-size: 16px; }
 
 @keyframes cta-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(201,168,76,0); }
-  50%       { box-shadow: 0 0 0 6px rgba(201,168,76,0.12); }
+  0%, 100% { box-shadow: 0 4px 20px rgba(0,0,0,0.40), 0 0 0 0 rgba(201,168,76,0); }
+  50%       { box-shadow: 0 4px 20px rgba(0,0,0,0.40), 0 0 0 8px rgba(201,168,76,0.20); }
 }
 
 .welcome-hint {
@@ -546,7 +552,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   min-height: 0;
   overflow-y: auto;
   padding: 48px 68px 96px;
-  max-width: 880px;
+  max-width: 760px;
   margin: 0 auto;
   position: relative;
   z-index: 1;
@@ -940,6 +946,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   #session-body h2.section-h1 + p::first-letter {
     font-size: 3.2em;
   }
+  /* 手機首屏：縮小封面圖避免佔太多視窗 */
+  .welcome-cover-img { height: 28vh; }
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -955,6 +963,14 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 #session-view:not(.hidden) #session-body {
   animation: fade-up 0.45s 0.06s ease both;
+}
+
+/* 分頁切換進場動畫 — 與 session-view 統一語言 */
+.content-scroll:not(.hidden) {
+  animation: sg-fade-up 0.35s ease both;
+}
+#welcome:not(.hidden) {
+  animation: sg-fade-up 0.38s ease both;
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -1090,6 +1106,12 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   text-align: center;
   position: relative;
   overflow: hidden;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(0,0,0,0.28), 0 0 0 1px rgba(217,176,122,0.25);
 }
 
 .stat-card::before {
@@ -1200,7 +1222,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   border: 1px solid var(--gold-border);
   padding: 18px 16px;
   cursor: pointer;
-  transition: border-color var(--ease), box-shadow var(--ease);
+  transition: border-color var(--ease), box-shadow var(--ease), transform var(--ease);
   position: relative;
   overflow: hidden;
 }
@@ -1215,7 +1237,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .hl-card:hover:not(.no-click) {
   border-color: var(--gold);
-  box-shadow: 0 0 20px rgba(217,176,122,0.10);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.24), 0 0 0 1px rgba(217,176,122,0.20);
+  transform: translateY(-2px);
 }
 
 .hl-card.no-click { cursor: default; }
@@ -2729,6 +2752,10 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .cp-portrait-btn:hover { opacity: 0.85; transform: translateY(-3px); }
 .cp-portrait-btn.active { opacity: 1; transform: translateY(-3px); }
+.cp-portrait-btn:focus-visible .cp-pav {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+}
 
 .cp-pav {
   width: 72px;
@@ -3107,29 +3134,38 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .rg-svg {
   width: 100%;
-  max-width: 520px;
+  max-width: 600px;
   height: auto;
   overflow: visible;
 }
 
 .rg-arrow {
-  transition: stroke-opacity 0.18s, stroke-width 0.18s;
+  transition: stroke-opacity 0.18s, stroke-width 0.18s, filter 0.15s;
 }
 
-.rg-clickable {
+/* 透明寬命中路徑：讓整個游標/觸控區更大，視覺不變 */
+.rg-hit {
+  pointer-events: stroke;
+}
+
+.rg-arrow-group {
   cursor: pointer;
-  transition: filter 0.15s;
 }
 
-.rg-clickable:hover {
+.rg-arrow-group:hover .rg-arrow {
   filter: drop-shadow(0 0 5px rgba(201,168,76,0.9));
   stroke: #f0d070 !important;
 }
 
-.rg-active {
+.rg-arrow-group.rg-active .rg-arrow {
   stroke: #ffe040 !important;
   stroke-width: 5 !important;
   filter: drop-shadow(0 0 7px rgba(255,224,64,0.70));
+}
+
+/* 向後相容：.rg-clickable 保留在 group 上，僅負責 cursor */
+.rg-clickable {
+  cursor: pointer;
 }
 
 .rg-label {

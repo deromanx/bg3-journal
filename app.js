@@ -847,7 +847,7 @@ function clearRoastFilter() {
   _roastFiltered   = null;
   _roastPage       = 1;
   document.querySelectorAll('.rq-filter-btn').forEach(btn => btn.classList.remove('active'));
-  document.querySelectorAll('.rg-arrow.rg-active').forEach(el => el.classList.remove('rg-active'));
+  document.querySelectorAll('.rg-arrow-group.rg-active').forEach(el => el.classList.remove('rg-active'));
   const clearBtn = document.getElementById('rq-clear-btn');
   if (clearBtn) clearBtn.classList.add('hidden');
   applyRoastGrid();
@@ -855,7 +855,7 @@ function clearRoastFilter() {
 
 function filterRoastQuotes(charName) {
   _roastPairFilter = null;
-  document.querySelectorAll('.rg-arrow.rg-active').forEach(el => el.classList.remove('rg-active'));
+  document.querySelectorAll('.rg-arrow-group.rg-active').forEach(el => el.classList.remove('rg-active'));
 
   if (_roastFilter.has(charName)) {
     _roastFilter.delete(charName);
@@ -896,8 +896,8 @@ function filterRoastByPair(from, to) {
   _roastPairFilter = { from, to };
 
   document.querySelectorAll('.rq-filter-btn').forEach(btn => btn.classList.remove('active'));
-  document.querySelectorAll('.rg-arrow.rg-active').forEach(el => el.classList.remove('rg-active'));
-  const activeArrow = document.querySelector(`.rg-arrow[data-pair="${esc(from)}→${esc(to)}"]`);
+  document.querySelectorAll('.rg-arrow-group.rg-active').forEach(el => el.classList.remove('rg-active'));
+  const activeArrow = document.querySelector(`.rg-arrow-group[data-pair="${esc(from)}→${esc(to)}"]`);
   if (activeArrow) activeArrow.classList.add('rg-active');
 
   const clearBtn = document.getElementById('rq-clear-btn');
@@ -1084,7 +1084,7 @@ function switchGrowthTab(key) {
 // 靠北關係圖（SVG 五邊形箭頭圖）
 // ══════════════════════════════════════════════════════════
 function renderRoastArrowGraph(charNames, roastMap, maxCell) {
-  const CX = 260, CY = 252, R = 132, NR = 29;
+  const CX = 300, CY = 290, R = 155, NR = 30;
   const n = charNames.length;
   const nodes = charNames.map((name, i) => {
     const angle = -Math.PI / 2 + i * 2 * Math.PI / n;
@@ -1103,8 +1103,9 @@ function renderRoastArrowGraph(charNames, roastMap, maxCell) {
   </defs>`;
 
   // Arrows drawn before nodes so nodes render on top.
-  // Use opaque stroke + width-only magnitude encoding to avoid alpha-compositing
-  // accumulation artifacts where arrows cross.
+  // Each arrow is a <g> containing a visual path + a wide transparent hit path for
+  // easy clicking/tapping (especially on mobile). The <g> carries data-pair, data-tip,
+  // and onclick so both paths share the same interaction surface.
   const arrows = [];
   nodes.forEach(from => {
     nodes.forEach(to => {
@@ -1123,13 +1124,20 @@ function renderRoastArrowGraph(charNames, roastMap, maxCell) {
       const t = v / maxCell;
       const sw = (0.7 + 4.3 * t).toFixed(1);
       const pair = `${from.name}→${to.name}`;
-      arrows.push(`<path class="rg-arrow rg-clickable"
-        d="M ${sx.toFixed(1)},${sy.toFixed(1)} Q ${mx.toFixed(1)},${my.toFixed(1)} ${tx.toFixed(1)},${ty.toFixed(1)}"
-        stroke="#c9a84c" stroke-width="${sw}"
-        fill="none" marker-end="url(#rg-ah)"
+      const d = `M ${sx.toFixed(1)},${sy.toFixed(1)} Q ${mx.toFixed(1)},${my.toFixed(1)} ${tx.toFixed(1)},${ty.toFixed(1)}`;
+      arrows.push(`<g class="rg-arrow-group rg-clickable"
         data-pair="${esc(pair)}"
         data-tip="${esc(from.name)} → ${esc(to.name)}：${v} 次（點擊篩選）"
-        onclick="filterRoastByPair('${esc(from.name)}','${esc(to.name)}')"/>`);
+        onclick="filterRoastByPair('${esc(from.name)}','${esc(to.name)}')">
+        <path class="rg-arrow"
+          d="${d}"
+          stroke="#c9a84c" stroke-width="${sw}"
+          fill="none" marker-end="url(#rg-ah)"/>
+        <path class="rg-hit"
+          d="${d}"
+          stroke="transparent" stroke-width="24"
+          fill="none"/>
+      </g>`);
     });
   });
 
@@ -1167,7 +1175,7 @@ function renderRoastArrowGraph(charNames, roastMap, maxCell) {
     </g>`;
   });
 
-  return `<svg class="rg-svg" viewBox="0 0 520 510" xmlns="http://www.w3.org/2000/svg" aria-label="靠北關係圖">
+  return `<svg class="rg-svg" viewBox="0 0 600 580" xmlns="http://www.w3.org/2000/svg" aria-label="靠北關係圖">
     ${defs}
     <g class="rg-arrows">${arrows.join('\n')}</g>
     <g class="rg-nodes">${nodeEls.join('\n')}</g>
@@ -1341,7 +1349,7 @@ let _selectedChar = null;
 // ── 雷達圖 ────────────────────────────────────────────────────
 const RADAR_DIMS = [
   { key: '嘴砲力', label: '嘴砲力', unit: '次', desc: '主動靠北次數' },
-  { key: '破壞力', label: '破壞力', unit: '次', desc: '關鍵戰鬥貢獻次數' },
+  { key: '貢獻度', label: '貢獻度', unit: '次', desc: '戰鬥貢獻＋MVP×2' },
   { key: '抗揍力', label: '抗揍力', unit: '',   desc: '陣亡×3＋倒地×1（越低越高）' },
   { key: '決鬥力', label: '決鬥力', unit: '%',  desc: '決鬥勝率' },
   { key: '搞事力', label: '搞事力', unit: '次', desc: '被靠北次數' },
@@ -1356,7 +1364,7 @@ function buildRadarScores(allChars) {
     const received  = matrix.filter(r => r.to   === c.char).reduce((s, r) => s + r.count, 0);
     raw[c.char] = {
       嘴砲力: initiated,
-      破壞力: c.combat_contrib || c.praised || 0,
+      貢獻度: (c.combat_contrib || c.praised || 0) + (c.mvp_count || 0) * 2,
       抗揍力: (c.deaths || 0) * 3 + (c.downed || 0),  // 加權懲罰分（越低越好）
       決鬥力: decisive ? Math.round((c.duels.wins || 0) / decisive * 100) : 0,
       搞事力: received,
@@ -1436,6 +1444,10 @@ function renderRadarSection(c, allChars) {
     let display;
     if (d.key === '抗揍力') {
       display = `陣亡${c.deaths || 0} 倒地${c.downed || 0}`;
+    } else if (d.key === '貢獻度') {
+      const combat = c.combat_contrib || c.praised || 0;
+      const mvp   = c.mvp_count || 0;
+      display = `戰鬥 ${combat} · MVP ${mvp}`;
     } else {
       display = `${rawVals[d.key]}${d.unit}`;
     }
