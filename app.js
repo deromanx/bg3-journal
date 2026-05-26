@@ -413,6 +413,7 @@ function renderStats() {
   // 重新渲染時清除篩選狀態，避免舊 filter 與新 DOM 脫鉤
   _roastFilter.clear();
   _roastPairFilter = null;
+  _roastSort = 'desc';
 
   const inner = document.getElementById('stats-inner');
   const base  = computeBaseStats();
@@ -768,16 +769,41 @@ const asArr = v => Array.isArray(v) ? v : [v];
 const ROAST_PAGE_SIZE = 24;
 let _roastFilter     = new Set();
 let _roastPairFilter = null;   // {from, to} or null
-let _roastFiltered   = null;   // null = 全部；array = 已篩選（排序後）
+let _roastFiltered   = null;   // null = 全部；array = 未排序篩選結果
 let _roastPage       = 1;
+let _roastSort       = 'desc'; // 'desc' | 'asc' | 'hot'
 
-function _roastAllSorted() {
-  return (roastStats.quotes || roastStats.highlights || [])
-    .slice().sort((a, b) => b.session - a.session);
+function _roastAll() {
+  return roastStats.quotes || roastStats.highlights || [];
+}
+
+function _sortedQuotes(quotes) {
+  const q = quotes.slice();
+  if (_roastSort === 'asc') return q.sort((a, b) => a.session - b.session);
+  if (_roastSort === 'hot') {
+    const all = _roastAll();
+    const pc = {};
+    all.forEach(r => {
+      const k = asArr(r.from).join(',') + '→' + asArr(r.to).join(',');
+      pc[k] = (pc[k] || 0) + 1;
+    });
+    const key = r => asArr(r.from).join(',') + '→' + asArr(r.to).join(',');
+    return q.sort((a, b) => (pc[key(b)] - pc[key(a)]) || (b.session - a.session));
+  }
+  return q.sort((a, b) => b.session - a.session);
+}
+
+function setRoastSort(mode) {
+  _roastSort = mode;
+  document.querySelectorAll('.rq-sort-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.sort === mode);
+  });
+  _roastPage = 1;
+  applyRoastGrid();
 }
 
 function applyRoastGrid() {
-  const quotes = _roastFiltered ?? _roastAllSorted();
+  const quotes = _sortedQuotes(_roastFiltered ?? _roastAll());
   const total  = quotes.length;
   const totalPages = Math.max(1, Math.ceil(total / ROAST_PAGE_SIZE));
   _roastPage = Math.min(Math.max(_roastPage, 1), totalPages);
@@ -821,25 +847,22 @@ function clearRoastFilter() {
   _roastFiltered   = null;
   _roastPage       = 1;
   document.querySelectorAll('.rq-filter-btn').forEach(btn => btn.classList.remove('active'));
-  document.querySelectorAll('.rh-cell.rh-active').forEach(el => el.classList.remove('rh-active'));
+  document.querySelectorAll('.rg-arrow.rg-active').forEach(el => el.classList.remove('rg-active'));
   const clearBtn = document.getElementById('rq-clear-btn');
   if (clearBtn) clearBtn.classList.add('hidden');
   applyRoastGrid();
 }
 
 function filterRoastQuotes(charName) {
-  // 切換角色篩選時清除矩陣對篩選
   _roastPairFilter = null;
-  document.querySelectorAll('.rh-cell.rh-active').forEach(el => el.classList.remove('rh-active'));
+  document.querySelectorAll('.rg-arrow.rg-active').forEach(el => el.classList.remove('rg-active'));
 
   if (_roastFilter.has(charName)) {
     _roastFilter.delete(charName);
   } else {
     _roastFilter.add(charName);
   }
-  const chars = charStats.characters || [];
 
-  // 更新篩選按鈕狀態
   document.querySelectorAll('.rq-filter-btn').forEach(btn => {
     btn.classList.toggle('active', _roastFilter.has(btn.dataset.char));
   });
@@ -847,8 +870,7 @@ function filterRoastQuotes(charName) {
   const clearBtn = document.getElementById('rq-clear-btn');
   if (clearBtn) clearBtn.classList.toggle('hidden', _roastFilter.size === 0);
 
-  // 篩選（交集：所有選取角色都須出現在 from 或 to）
-  const quotes = roastStats.quotes || roastStats.highlights || [];
+  const quotes = _roastAll();
   const filtered = _roastFilter.size === 0
     ? quotes
     : quotes.filter(q => {
@@ -856,7 +878,7 @@ function filterRoastQuotes(charName) {
         return [..._roastFilter].every(c => all.includes(c));
       });
 
-  _roastFiltered = _roastFilter.size === 0 ? null : filtered.slice().sort((a, b) => b.session - a.session);
+  _roastFiltered = _roastFilter.size === 0 ? null : filtered.slice();
   _roastPage = 1;
   applyRoastGrid();
 }
@@ -865,7 +887,6 @@ function filterRoastByPair(from, to) {
   const sameFrom = _roastPairFilter?.from === from;
   const sameTo   = _roastPairFilter?.to   === to;
 
-  // 點同一格 → 取消
   if (sameFrom && sameTo) {
     clearRoastFilter();
     return;
@@ -874,20 +895,18 @@ function filterRoastByPair(from, to) {
   _roastFilter.clear();
   _roastPairFilter = { from, to };
 
-  // 更新按鈕與熱力格高亮
   document.querySelectorAll('.rq-filter-btn').forEach(btn => btn.classList.remove('active'));
-  document.querySelectorAll('.rh-cell.rh-active').forEach(el => el.classList.remove('rh-active'));
-  const activeCell = document.querySelector(`.rh-cell[data-pair="${esc(from)}→${esc(to)}"]`);
-  if (activeCell) activeCell.classList.add('rh-active');
+  document.querySelectorAll('.rg-arrow.rg-active').forEach(el => el.classList.remove('rg-active'));
+  const activeArrow = document.querySelector(`.rg-arrow[data-pair="${esc(from)}→${esc(to)}"]`);
+  if (activeArrow) activeArrow.classList.add('rg-active');
 
   const clearBtn = document.getElementById('rq-clear-btn');
   if (clearBtn) clearBtn.classList.remove('hidden');
 
-  const quotes = roastStats.quotes || roastStats.highlights || [];
-  const filtered = quotes.filter(q =>
+  const filtered = _roastAll().filter(q =>
     asArr(q.from).includes(from) && asArr(q.to).includes(to)
   );
-  _roastFiltered = filtered.slice().sort((a, b) => b.session - a.session);
+  _roastFiltered = filtered.slice();
   _roastPage = 1;
   applyRoastGrid();
   document.getElementById('rq-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -916,7 +935,7 @@ function renderRoastCard(q, chars) {
 }
 
 function renderRoastQuotes() {
-  const quotes = roastStats.quotes || roastStats.highlights || [];
+  const quotes = _roastAll();
   if (!quotes.length) return '';
   const chars = charStats.characters || [];
 
@@ -930,11 +949,9 @@ function renderRoastQuotes() {
       <span class="rq-fname">${esc(c.char)}</span>
     </button>`).join('');
 
-  // 初始化分頁狀態，只渲染第一頁
   _roastFiltered = null;
   _roastPage     = 1;
-  const sorted     = quotes.slice().sort((a, b) => b.session - a.session);
-  const firstPage  = sorted.slice(0, ROAST_PAGE_SIZE).map(q => renderRoastCard(q, chars)).join('');
+  const firstPage  = _sortedQuotes(quotes).slice(0, ROAST_PAGE_SIZE).map(q => renderRoastCard(q, chars)).join('');
   const totalPages = Math.ceil(quotes.length / ROAST_PAGE_SIZE);
   const initPager  = totalPages > 1 ? `
     <div class="rq-pager" id="rq-pager">
@@ -951,6 +968,12 @@ function renderRoastQuotes() {
         ${filterBtns}
         <button id="rq-clear-btn" class="rq-clear-btn hidden" onclick="clearRoastFilter()">✕ 清空</button>
         <span class="rq-total">共 <strong id="rq-count">${quotes.length}</strong> 條</span>
+      </div>
+      <div class="rq-sort-row">
+        <span class="rq-sort-label">排序：</span>
+        <button class="rq-sort-btn active" data-sort="desc" onclick="setRoastSort('desc')">最新</button>
+        <button class="rq-sort-btn" data-sort="asc" onclick="setRoastSort('asc')">最舊</button>
+        <button class="rq-sort-btn" data-sort="hot" onclick="setRoastSort('hot')">熱門</button>
       </div>
       <div class="roast-quotes-grid" id="rq-grid">${firstPage}</div>
       ${initPager}
@@ -1058,6 +1081,82 @@ function switchGrowthTab(key) {
 }
 
 // ══════════════════════════════════════════════════════════
+// 靠北關係圖（SVG 五邊形箭頭圖）
+// ══════════════════════════════════════════════════════════
+function renderRoastArrowGraph(charNames, roastMap, maxCell) {
+  const CX = 260, CY = 250, R = 132, NR = 29;
+  const n = charNames.length;
+  const nodes = charNames.map((name, i) => {
+    const angle = -Math.PI / 2 + i * 2 * Math.PI / n;
+    return { name, x: CX + R * Math.cos(angle), y: CY + R * Math.sin(angle), angle };
+  });
+
+  const clipPaths = nodes.map(nd =>
+    `<clipPath id="rg-clip-${nd.name}"><circle cx="${nd.x.toFixed(1)}" cy="${nd.y.toFixed(1)}" r="${NR}"/></clipPath>`
+  ).join('');
+
+  const defs = `<defs>
+    <marker id="rg-ah" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+      <polygon points="0 0, 7 2.5, 0 5" fill="rgba(201,168,76,0.75)"/>
+    </marker>
+    ${clipPaths}
+  </defs>`;
+
+  // Arrows (drawn before nodes so nodes appear on top)
+  const arrows = [];
+  nodes.forEach(from => {
+    nodes.forEach(to => {
+      if (from === to) return;
+      const v = roastMap[from.name]?.[to.name] || 0;
+      if (v === 0) return;
+      const dx = to.x - from.x, dy = to.y - from.y;
+      const len = Math.hypot(dx, dy);
+      const ndx = dx / len, ndy = dy / len;
+      // right-hand perpendicular of (from→to): (ndy, -ndx)
+      const px = ndy, py = -ndx;
+      const CURVE = 44;
+      const mx = (from.x + to.x) / 2 + CURVE * px;
+      const my = (from.y + to.y) / 2 + CURVE * py;
+      const sx = from.x + NR * ndx, sy = from.y + NR * ndy;
+      // Pull end back 4px so arrowhead sits just outside circle edge
+      const tx = to.x - (NR + 4) * ndx, ty = to.y - (NR + 4) * ndy;
+      const t = v / maxCell;
+      const opacity = (0.28 + 0.72 * t).toFixed(2);
+      const sw = (1.2 + 3.8 * t).toFixed(1);
+      const pair = `${from.name}→${to.name}`;
+      arrows.push(`<path class="rg-arrow rg-clickable"
+        d="M ${sx.toFixed(1)},${sy.toFixed(1)} Q ${mx.toFixed(1)},${my.toFixed(1)} ${tx.toFixed(1)},${ty.toFixed(1)}"
+        stroke="rgba(201,168,76,${opacity})" stroke-width="${sw}"
+        fill="none" marker-end="url(#rg-ah)"
+        data-pair="${esc(pair)}"
+        data-tip="${esc(from.name)} → ${esc(to.name)}：${v} 次（點擊篩選）"
+        onclick="filterRoastByPair('${esc(from.name)}','${esc(to.name)}')"/>`);
+    });
+  });
+
+  // Node circles + avatars + labels
+  const nodeEls = nodes.map(nd => {
+    const labelR = R + NR + 16;
+    const lx = (CX + labelR * Math.cos(nd.angle)).toFixed(1);
+    const ly = (CY + labelR * Math.sin(nd.angle) + 5).toFixed(1);
+    return `<g class="rg-node">
+      <circle cx="${nd.x.toFixed(1)}" cy="${nd.y.toFixed(1)}" r="${NR + 2}" fill="rgba(18,12,6,0.88)" stroke="rgba(201,168,76,0.38)" stroke-width="1.5"/>
+      <image href="data/images/avatars/${esc(nd.name)}.webp"
+             x="${(nd.x - NR).toFixed(1)}" y="${(nd.y - NR).toFixed(1)}"
+             width="${NR * 2}" height="${NR * 2}"
+             clip-path="url(#rg-clip-${nd.name})" preserveAspectRatio="xMidYMid slice"/>
+      <text x="${lx}" y="${ly}" class="rg-label" text-anchor="middle">${esc(nd.name)}</text>
+    </g>`;
+  });
+
+  return `<svg class="rg-svg" viewBox="0 0 520 500" xmlns="http://www.w3.org/2000/svg" aria-label="靠北關係圖">
+    ${defs}
+    <g class="rg-arrows">${arrows.join('\n')}</g>
+    <g class="rg-nodes">${nodeEls.join('\n')}</g>
+  </svg>`;
+}
+
+// ══════════════════════════════════════════════════════════
 // 靠北統計區塊
 // ══════════════════════════════════════════════════════════
 function renderRoastSection() {
@@ -1126,37 +1225,11 @@ function renderRoastSection() {
       </div>`;
   }).join('');
 
-  // 靠北熱力矩陣（5×5）
+  // 靠北關係圖（SVG 箭頭）
   const roastMap = {};
   charNames.forEach(a => { roastMap[a] = {}; charNames.forEach(b => { roastMap[a][b] = 0; }); });
   roastStats.matrix.forEach(r => { if (roastMap[r.from]?.[r.to] !== undefined) roastMap[r.from][r.to] = r.count; });
   const maxCell = Math.max(...roastStats.matrix.map(r => r.count), 1);
-
-  const heatHeaders = charNames.map(n => `
-    <th class="rh-hdr">
-      <div class="rh-hav av-${esc(n)}">
-        <img src="data/images/avatars/${esc(n)}.webp" alt="" onerror="this.style.display='none'">
-      </div>
-      <span class="rh-hname">${esc(n)}</span>
-    </th>`).join('');
-  const heatRows = charNames.map(rowN => {
-    const cells = charNames.map(colN => {
-      if (rowN === colN) return `<td class="rh-self"></td>`;
-      const v = roastMap[rowN][colN];
-      const intensity = Math.round(v / maxCell * 100);
-      const tip = `${esc(rowN)} → ${esc(colN)}&#10;靠北 ${v} 次`;
-      const clickable = v > 0 ? ` onclick="filterRoastByPair('${esc(rowN)}','${esc(colN)}')"` : '';
-      return `<td class="rh-cell${v > 0 ? ' rh-clickable' : ''}" style="--ri:${intensity}" data-tip="${tip}" data-pair="${esc(rowN)}→${esc(colN)}"${clickable}>${v}</td>`;
-    }).join('');
-    return `<tr>
-      <th class="rh-row-hdr">
-        <div class="rh-hav av-${esc(rowN)}">
-          <img src="data/images/avatars/${esc(rowN)}.webp" alt="" onerror="this.style.display='none'">
-        </div>
-        <span class="rh-hname">${esc(rowN)}</span>
-      </th>${cells}</tr>`;
-  }).join('');
-
 
   return `
     <div class="stats-section">
@@ -1174,17 +1247,9 @@ function renderRoastSection() {
         </div>
       </div>
 
-      <div class="roast-col-title" style="margin-top:24px">🔥 靠北熱力圖（列 = 靠北者，欄 = 受害者）</div>
-      <div class="heat-wrap">
-        <table class="roast-heat">
-          <thead><tr><th class="rh-corner"></th>${heatHeaders}</tr></thead>
-          <tbody>${heatRows}</tbody>
-        </table>
-        <div class="heat-legend">
-          <span class="hl-lo">少</span>
-          <div class="hl-grad"></div>
-          <span class="hl-hi">多</span>
-        </div>
+      <div class="roast-col-title" style="margin-top:24px">🔥 靠北關係圖（點擊箭頭篩選語錄）</div>
+      <div class="rg-wrap">
+        ${renderRoastArrowGraph(charNames, roastMap, maxCell)}
       </div>
     </div>
 
