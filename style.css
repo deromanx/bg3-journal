@@ -349,13 +349,15 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 #progress-bar {
   position: absolute;
   top: 0; left: 0;
-  height: 4px;
+  height: 6px;
   width: 0%;
   background: linear-gradient(to right, var(--crimson), var(--gold-bright));
   z-index: 10;
   transition: width 0.1s linear;
   pointer-events: none;
-  box-shadow: 0 0 8px var(--crimson-glow);
+  box-shadow:
+    0 0 12px rgba(122, 21, 21, 0.35),
+    0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 /* ── 裝飾框線（外框 + 內框 + L 型角落） */
@@ -631,12 +633,11 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   text-justify: inter-ideograph;
 }
 
-/* ── Drop Cap — 戲劇性首字 */
+/* ── Drop Cap — 戲劇性首字（文章首段 4.4em，各 section 首段 2.8em） */
 #session-body > p:first-of-type::first-letter,
 #session-body h2.section-h1 + p::first-letter {
   float: left;
   font-family: 'Cinzel', serif;
-  font-size: 4.4em;
   font-weight: 700;
   line-height: 0.78;
   padding-right: 8px;
@@ -644,6 +645,14 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   color: var(--crimson);
   opacity: 0.85;
   text-shadow: 1px 2px 8px rgba(122,21,21,0.25);
+}
+#session-body > p:first-of-type::first-letter {
+  font-size: 4.4em;
+}
+#session-body h2.section-h1 + p::first-letter {
+  font-size: 2.8em;
+  line-height: 0.85;
+  padding-top: 4px;
 }
 
 /* ── 奇幻飾條（大節之間） */
@@ -944,10 +953,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   .header-title { font-size: 24px; }
   #session-body { font-size: 16px; }
   .content-frame { display: none; }
-  #session-body > p:first-of-type::first-letter,
-  #session-body h2.section-h1 + p::first-letter {
-    font-size: 3.2em;
-  }
+  #session-body > p:first-of-type::first-letter { font-size: 3.2em; }
+  #session-body h2.section-h1 + p::first-letter { font-size: 2.2em; }
   /* 手機首屏：縮小封面圖避免佔太多視窗 */
   .welcome-cover-img { height: 28vh; }
 }
@@ -1401,21 +1408,21 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   font-family: 'Cinzel', serif;
   border-radius: 1px;
 }
-.ms-badge-start       { background: rgba(139,26,26,0.15); color: #c05050; border: 1px solid rgba(139,26,26,0.25); }
-.ms-badge-boss        { background: rgba(90,13,13,0.18);  color: #d04040; border: 1px solid rgba(90,13,13,0.30); }
-.ms-badge-location    { background: rgba(26,60,96,0.15);  color: #6090c0; border: 1px solid rgba(26,60,96,0.25); }
-.ms-badge-achievement { background: rgba(62,92,32,0.15);  color: #70a040; border: 1px solid rgba(62,92,32,0.25); }
-.ms-badge-death       { background: rgba(30,20,10,0.18);  color: #906050; border: 1px solid rgba(50,30,10,0.30); }
-.ms-badge-item        { background: rgba(92,58,16,0.15);  color: #c09040; border: 1px solid rgba(92,58,16,0.25); }
-.ms-badge-custom      { background: rgba(62,31,92,0.15);  color: #a060d0; border: 1px solid rgba(62,31,92,0.25); }
+.ms-badge-start       { background: rgba(122,21,21,0.10);  color: #a83030; border: 1px solid rgba(122,21,21,0.28); }
+.ms-badge-boss        { background: rgba(90,13,13,0.13);   color: #a04040; border: 1px solid rgba(90,13,13,0.32); }
+.ms-badge-location    { background: rgba(38,72,108,0.10);  color: #5078a8; border: 1px solid rgba(38,72,108,0.28); }
+.ms-badge-achievement { background: rgba(80,108,40,0.10);  color: #6a8a40; border: 1px solid rgba(80,108,40,0.28); }
+.ms-badge-death       { background: rgba(40,28,18,0.13);   color: #7a5040; border: 1px solid rgba(60,40,20,0.32); }
+.ms-badge-item        { background: rgba(120,80,28,0.10);  color: #a87838; border: 1px solid rgba(120,80,28,0.30); }
+.ms-badge-custom      { background: rgba(80,50,120,0.10);  color: #8060a8; border: 1px solid rgba(80,50,120,0.28); }
 
-.ms-dot-start       { border-color: rgba(139,26,26,0.45);  color: #c05050; }
-.ms-dot-boss        { border-color: rgba(90,13,13,0.50);   color: #d04040; }
-.ms-dot-location    { border-color: rgba(26,60,96,0.45);   color: #6090c0; }
-.ms-dot-achievement { border-color: rgba(62,92,32,0.45);   color: #70a040; }
-.ms-dot-death       { border-color: rgba(30,20,10,0.45);   color: #906050; }
-.ms-dot-item        { border-color: rgba(92,58,16,0.45);   color: #c09040; }
-.ms-dot-custom      { border-color: rgba(62,31,92,0.45);   color: #a060d0; }
+.ms-dot-start       { border-color: rgba(122,21,21,0.45);  color: #a83030; }
+.ms-dot-boss        { border-color: rgba(90,13,13,0.50);   color: #a04040; }
+.ms-dot-location    { border-color: rgba(38,72,108,0.45);  color: #5078a8; }
+.ms-dot-achievement { border-color: rgba(80,108,40,0.45);  color: #6a8a40; }
+.ms-dot-death       { border-color: rgba(60,40,20,0.50);   color: #7a5040; }
+.ms-dot-item        { border-color: rgba(120,80,28,0.45);  color: #a87838; }
+.ms-dot-custom      { border-color: rgba(80,50,120,0.45);  color: #8060a8; }
 
 /* ══════════════════════════════════════════════════════════
    本集戰報卡
@@ -2206,12 +2213,15 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   font-size: 15px;
   line-height: 1.75;
   color: var(--ink-mid);
-  background: var(--parchment);
-  border-left: 3px solid rgba(139,90,40,0.30);
-  padding: 8px 14px;
+  background: rgba(255, 248, 230, 0.85);
+  border-left: 3px solid rgba(139,90,40,0.40);
+  padding: 9px 14px;
   font-style: normal;
   quotes: none;
   border-radius: 0 4px 4px 0;
+  box-shadow:
+    0 1px 2px rgba(122, 80, 40, 0.06),
+    inset 0 0 0 1px rgba(139, 90, 40, 0.10);
 }
 
 .dq-attr {
@@ -3027,6 +3037,36 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   display: flex;
   align-items: baseline;
   gap: 5px;
+}
+
+/* 桌機：左右分欄，圖左 / 統計右垂直堆疊 */
+@media (min-width: 720px) {
+  .radar-wrap {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 36px;
+  }
+  .radar-stats {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+    justify-content: center;
+    width: auto;
+    min-width: 200px;
+    gap: 12px;
+  }
+  .radar-stat {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding: 6px 10px;
+    border-left: 2px solid rgba(139,90,40,0.22);
+    background: rgba(139,90,40,0.04);
+  }
+  .radar-stat-val {
+    font-size: 15.5px;
+  }
 }
 .radar-stat-label {
   font-family: var(--font-title);
