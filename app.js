@@ -119,10 +119,25 @@ function showView(view) {
 }
 
 // ── 側欄（最新集在最上方）──────────────────────────────────
+// ── 已讀章節（localStorage 持久化） ──────────────────────
+const READ_KEY = 'bg3:read-sessions';
+function getReadSet() {
+  try { return new Set(JSON.parse(localStorage.getItem(READ_KEY) || '[]')); }
+  catch { return new Set(); }
+}
+function markSessionRead(id) {
+  const set = getReadSet();
+  if (set.has(id)) return;
+  set.add(id);
+  try { localStorage.setItem(READ_KEY, JSON.stringify([...set])); } catch {}
+  document.querySelector(`.session-item[data-id="${id}"]`)?.classList.add('read');
+}
+
 function renderSidebar() {
   const list = document.getElementById('session-list');
+  const readSet = getReadSet();
   list.innerHTML = sessions.slice().reverse().map(s => `
-    <li class="session-item${s.placeholder ? ' placeholder' : ''}"
+    <li class="session-item${s.placeholder ? ' placeholder' : ''}${readSet.has(s.id) ? ' read' : ''}"
         data-id="${s.id}"
         onclick="loadSession(${s.id})"
         title="${esc(s.title)}">
@@ -139,6 +154,7 @@ function loadSession(id) {
   if (!session) return;
   currentId = id;
   _setHash('#s' + id);
+  if (!session.placeholder) markSessionRead(id);
 
   // 切回日誌視圖
   currentView = 'journal';
@@ -212,7 +228,7 @@ function extractChar(str) {
 
 function awAvatar(char) {
   if (!char) return '';
-  return `<span class="aw-av av-${esc(char)}"><img src="data/images/avatars/${esc(char)}.webp" alt="${esc(char)}" onerror="this.style.display='none'"></span>`;
+  return `<span class="aw-av av-${esc(char)}"><img src="data/images/avatars/${esc(char)}.webp" alt="${esc(char)}" loading="lazy" decoding="async" onerror="this.style.display='none'"></span>`;
 }
 
 function renderAwardCard(sessionId) {
@@ -431,7 +447,7 @@ function renderStats() {
     return `
       <div class="death-card${intensity}" data-tip="${esc(deathTip)}">
         <div class="dc-avatar av-${esc(c.char)}">
-          <img src="data/images/avatars/${esc(c.char)}.webp" alt="" onerror="this.style.display='none'">
+          <img src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
         </div>
         <div class="dc-name-wrap">
           <span class="dc-char">${esc(c.char)}</span>
@@ -467,7 +483,7 @@ function renderStats() {
     return `
       <div class="duel-row" data-tip="${esc(duelTip)}">
         <div class="dr-av av-${esc(c.char)}">
-          <img src="data/images/avatars/${esc(c.char)}.webp" alt="" onerror="this.style.display='none'">
+          <img src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
         </div>
         <div class="dr-rank">${medal || (rank + 1)}</div>
         <div class="dr-name">
@@ -506,7 +522,7 @@ function renderStats() {
   const mmHeaders = chars.map(c => `
     <th class="mm-hdr">
       <div class="mm-hav av-${esc(c.char)}">
-        <img src="data/images/avatars/${esc(c.char)}.webp" alt="" onerror="this.style.display='none'">
+        <img src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
       </div>
       <span class="mm-hchar">${esc(c.char)}</span>
     </th>`).join('');
@@ -527,7 +543,7 @@ function renderStats() {
     return `<tr>
       <th class="mm-row-hdr">
         <div class="mm-rav av-${esc(rowC.char)}">
-          <img src="data/images/avatars/${esc(rowC.char)}.webp" alt="" onerror="this.style.display='none'">
+          <img src="data/images/avatars/${esc(rowC.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
         </div>
         <div class="mm-rnames">
           <span class="mm-rchar">${esc(rowC.char)}</span>
@@ -563,7 +579,7 @@ function renderStats() {
     return `
       <div class="duel-row" data-tip="${esc(tip)}">
         <div class="dr-av av-${esc(c.char)}">
-          <img src="data/images/avatars/${esc(c.char)}.webp" alt="" onerror="this.style.display='none'">
+          <img src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
         </div>
         <div class="dr-rank">${medal || (rank + 1)}</div>
         <div class="dr-name">
@@ -703,7 +719,7 @@ function renderFriendlyFire() {
       <div class="ff-actors">
         <div class="ff-actor">
           <div class="ff-av av-${esc(inc.perp)}">
-            <img src="data/images/avatars/${esc(inc.perp)}.webp" alt="" onerror="this.style.display='none'">
+            <img src="data/images/avatars/${esc(inc.perp)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
           </div>
           <span class="ff-name ff-perp">${esc(inc.perp)}</span>
           <span class="ff-role">兇手</span>
@@ -711,7 +727,7 @@ function renderFriendlyFire() {
         <div class="ff-arrow">→</div>
         <div class="ff-actor">
           <div class="ff-av av-${esc(inc.victim)}">
-            <img src="data/images/avatars/${esc(inc.victim)}.webp" alt="" onerror="this.style.display='none'">
+            <img src="data/images/avatars/${esc(inc.victim)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
           </div>
           <span class="ff-name ff-victim">${esc(inc.victim)}</span>
           <span class="ff-role">受害者</span>
@@ -742,8 +758,8 @@ function renderMatchupSplits(matchupData) {
     const d = m.draws || 0;
     const decisive = wa + wb;
     const pctA = decisive ? (wa / decisive * 100).toFixed(1) : 50;
-    const avA = `<div class="msp-av av-${esc(ca)}"><img src="data/images/avatars/${esc(ca)}.webp" alt="" onerror="this.style.display='none'"></div>`;
-    const avB = `<div class="msp-av av-${esc(cb)}"><img src="data/images/avatars/${esc(cb)}.webp" alt="" onerror="this.style.display='none'"></div>`;
+    const avA = `<div class="msp-av av-${esc(ca)}"><img src="data/images/avatars/${esc(ca)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'"></div>`;
+    const avB = `<div class="msp-av av-${esc(cb)}"><img src="data/images/avatars/${esc(cb)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'"></div>`;
     const pctB = (100 - pctA).toFixed(1);
     return `
       <div class="msp-row">
@@ -915,7 +931,7 @@ function filterRoastByPair(from, to) {
 function renderRoastCard(q, chars) {
   const src = char => `data/images/avatars/${esc(char)}.webp`;
   const avatar = char => `<div class="rq-av av-${esc(char)}" data-tip="${esc(char)}">
-          <img src="${src(char)}" alt="" onerror="this.style.display='none'">
+          <img src="${src(char)}" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
         </div>`;
   const froms = asArr(q.from);
   const tos   = asArr(q.to);
@@ -944,7 +960,7 @@ function renderRoastQuotes() {
             onclick="filterRoastQuotes('${esc(c.char)}')"
             data-tip="${esc(c.char)}">
       <div class="rq-fav av-${esc(c.char)}">
-        <img src="data/images/avatars/${esc(c.char)}.webp" alt="" onerror="this.style.display='none'">
+        <img src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
       </div>
       <span class="rq-fname">${esc(c.char)}</span>
     </button>`).join('');
@@ -1036,7 +1052,7 @@ function renderGrowthGrid(chars) {
         <div class="gc-row">
           <div class="gc-char-label">
             <span class="gc-av av-${esc(char)}">
-              <img src="data/images/avatars/${esc(char)}.webp" alt="" onerror="this.style.display='none'">
+              <img src="data/images/avatars/${esc(char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
             </span>
             <span class="gc-char-name">${esc(char)}</span>
           </div>
@@ -1216,7 +1232,7 @@ function renderRoastSection() {
     return `
       <div class="rb-row${crown}" data-tip="${esc(rbTip)}">
         <div class="rb-avatar av-${name}">
-          <img src="data/images/avatars/${esc(name)}.webp" alt="" onerror="this.style.display='none'">
+          <img src="data/images/avatars/${esc(name)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
         </div>
         <div class="rb-info">
           <div class="rb-name">${esc(name)}<span class="rb-player">${esc(c?.player || '')}</span></div>
@@ -1241,7 +1257,7 @@ function renderRoastSection() {
     return `
       <div class="ib-row${crown}" data-tip="${esc(ibTip)}">
         <div class="ib-avatar av-${name}">
-          <img src="data/images/avatars/${esc(name)}.webp" alt="" onerror="this.style.display='none'">
+          <img src="data/images/avatars/${esc(name)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
         </div>
         <div class="ib-info">
           <div class="ib-name">${esc(name)}<span class="ib-player">${esc(c?.player || '')}</span></div>
@@ -1549,7 +1565,7 @@ function renderCharacters(charName) {
             onclick="renderCharacters('${esc(c.char)}')"
             data-tip="${esc(c.player)} · ${esc(c.class)}">
       <div class="cp-pav av-${esc(c.char)}">
-        <img src="data/images/avatars/${esc(c.char)}.webp" alt="" onerror="this.style.display='none'">
+        <img src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
       </div>
       <span class="cp-pname">${esc(c.char)}</span>
     </button>`).join('');
@@ -1584,7 +1600,7 @@ function renderCharacters(charName) {
     <div class="cp-detail">
       <div class="cp-hero">
         <div class="cp-hero-av av-${esc(c.char)}">
-          <img src="data/images/avatars/${esc(c.char)}.webp" alt="" onerror="this.style.display='none'">
+          <img src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
         </div>
         <div class="cp-hero-info">
           <div class="cp-char-name">${esc(c.char)}</div>
