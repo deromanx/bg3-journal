@@ -47,7 +47,12 @@ META_PATTERNS = [
     r"^不是啊，為什麼日期",
 ]
 
-_NAME_FIXES = {"卡菈克": "卡拉克"}
+_NAME_FIXES = {
+    "卡菈克": "卡拉克",
+    "阿斯戴倫": "阿斯代倫",
+    "阿斯代輪": "阿斯代倫",
+    "曹誠": "曹祐誠",
+}
 
 def clean(text: str) -> str:
     t = text.translate(_BAD_CHARS).strip()
