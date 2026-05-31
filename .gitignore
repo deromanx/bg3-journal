@@ -5,3 +5,10 @@ __pycache__/
 *.pyc
 *.log
 data/.stats_processed.json
+
+# 開發截圖與測試裁切（雜物，不納版控）
+audit-*.png
+check-*.png
+stats-*.png
+ff-check.png
+data/images/avatars/test_crops/
