@@ -263,22 +263,27 @@ def gemini_story(session, prev_chapters):
 請以純 JSON 格式回傳（不加說明文字或 markdown）：
 {{"title": "本章標題（10字內，文學風格）", "text": "小說正文（純文字，段落以空行分隔）"}}"""
 
-    result = subprocess.run(
-        ["gemini", "-p", prompt],
-        capture_output=True, text=True, timeout=300
-    )
-    if result.returncode != 0:
-        print(f"  ⚠ Gemini 錯誤：{result.stderr[:200]}")
-        return None
-
-    output = result.stdout.strip()
-    json_match = re.search(r'\{[\s\S]*\}', output)
-    if json_match:
+    # 長逐字稿生成 1500 字小說偶爾很慢；拉長 timeout 並重試，超時不讓整個 script crash
+    for attempt in range(1, 3):
         try:
-            return json.loads(json_match.group())
-        except json.JSONDecodeError:
-            pass
-    print(f"  ⚠ 故事 JSON 解析失敗，原始回應：{output[:300]}")
+            result = subprocess.run(
+                ["gemini", "-p", prompt],
+                capture_output=True, text=True, timeout=600
+            )
+        except subprocess.TimeoutExpired:
+            print(f"  ⚠ 故事生成超時（第 {attempt}/2 次）")
+            continue
+        if result.returncode != 0:
+            print(f"  ⚠ Gemini 錯誤：{result.stderr[:200]}")
+            return None
+        output = result.stdout.strip()
+        json_match = re.search(r'\{[\s\S]*\}', output)
+        if json_match:
+            try:
+                return json.loads(json_match.group())
+            except json.JSONDecodeError:
+                pass
+        print(f"  ⚠ 故事 JSON 解析失敗（第 {attempt}/2 次），原始回應：{output[:200]}")
     return None
 
 
@@ -335,8 +340,9 @@ def main():
         return
 
     print(f"發現 {len(to_process)} 集待處理...\n")
-    changed = False
+    stat_done = []  # 統計成功的集數，稍後生成故事
 
+    # ── 階段一：統計分析（穩定，先處理並落盤）──
     for session in to_process:
         sid = session["id"]
         print(f"📖 {session['chapter']} 《{session['title']}》")
@@ -358,23 +364,40 @@ def main():
         milestones  = update_milestones(milestones, result, sid, session)
         roast_stats = update_roast_stats(roast_stats, result, sid)
 
-        print(f"  ✍ 生成故事章節...")
-        story = update_story(story, session)
-
         if not args.reprocess:
             mark_processed(sid)
-        changed = True
-        print(f"  ✓ 完成\n")
+        stat_done.append(session)
+        print(f"  ✓ 統計完成\n")
 
-    if changed:
-        save_json(DATA / "character-stats.json", char_stats)
-        save_json(DATA / "awards.json",           awards)
-        save_json(DATA / "milestones.json",       milestones)
-        save_json(DATA / "roast-stats.json",      roast_stats)
-        save_json(DATA / "story.json",            story)
-        print("✓ 所有 JSON 已儲存")
-    else:
+    if not stat_done:
         print("✓ 無變更")
+        return
+
+    # 統計先落盤：即使後面故事生成出意外，這部分也不會回滾、不需重算
+    save_json(DATA / "character-stats.json", char_stats)
+    save_json(DATA / "awards.json",           awards)
+    save_json(DATA / "milestones.json",       milestones)
+    save_json(DATA / "roast-stats.json",      roast_stats)
+    print("✓ 統計 JSON 已儲存\n")
+
+    # ── 階段二：故事生成（慢且偶爾失敗，獨立處理；每集生成後立即存檔）──
+    failed = []
+    for session in stat_done:
+        print(f"✍ 生成第 {session['id']} 集故事章節...")
+        before = len(story.get("chapters", []))
+        story = update_story(story, session)
+        if len(story.get("chapters", [])) > before:
+            save_json(DATA / "story.json", story)
+            print("  ✓ 已存")
+        else:
+            failed.append(session["id"])
+            print("  ⚠ 故事生成失敗")
+
+    if failed:
+        print(f"\n⚠ 第 {failed} 集故事缺失——統計已存妥，稍後執行 "
+              f"`python3 gen_story.py` 即可補齊（不影響其他資料）")
+    else:
+        print("\n✓ 所有故事章節已儲存")
 
 if __name__ == "__main__":
     main()

@@ -11,6 +11,7 @@ import os, re, json, io
 from pathlib import Path
 from docx import Document
 from docx.oxml.ns import qn
+from name_fixes import NAME_FIXES
 
 try:
     from PIL import Image as PILImage
@@ -47,16 +48,9 @@ META_PATTERNS = [
     r"^不是啊，為什麼日期",
 ]
 
-_NAME_FIXES = {
-    "卡菈克": "卡拉克",
-    "阿斯戴倫": "阿斯代倫",
-    "阿斯代輪": "阿斯代倫",
-    "曹誠": "曹祐誠",
-}
-
 def clean(text: str) -> str:
     t = text.translate(_BAD_CHARS).strip()
-    for wrong, right in _NAME_FIXES.items():
+    for wrong, right in NAME_FIXES.items():
         t = t.replace(wrong, right)
     return t
 
@@ -88,6 +82,10 @@ def classify(text: str, bold: bool = False) -> str:
 IMG_MAX_W = 900   # 最大寬度（px），超過則縮小
 
 def save_image(blob: bytes, out_path: Path, ext: str) -> bool:
+    # 已存在則跳過解碼/縮放（只改文字重跑時不必重存全部圖片）。
+    # 若某集圖片有更動，先刪掉 data/images/<id>/ 再重跑 extract.py。
+    if out_path.with_suffix(".jpg").exists():
+        return True
     out_path.parent.mkdir(parents=True, exist_ok=True)
     try:
         if PILLOW:
