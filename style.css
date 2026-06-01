@@ -3509,24 +3509,33 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .gc-cells {
+  flex: 1;
   display: flex;
   gap: 4px;
+  min-width: 0;
 }
 
-.gc-cell, .gc-leg-dot {
-  width: 26px;
+.gc-cell {
+  flex: 1;
+  min-width: 0;
   height: 26px;
   border-radius: 4px;
+}
+
+.gc-leg-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
   flex-shrink: 0;
 }
 
 .gc-sid-label {
-  width: 26px;
+  flex: 1;
+  min-width: 0;
   font-size: 10px;
   color: var(--ink-light);
   opacity: 0.55;
   text-align: center;
-  flex-shrink: 0;
 }
 
 /* 無資料 */
@@ -3557,11 +3566,11 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .gc-4.gc-gold { background: rgba(200,160,20,0.75); }
 
 @media (max-width: 720px) {
-
   .gc-char-label { min-width: 80px; width: 80px; }
   .gc-char-name { font-size: 10.5px; }
-  .gc-cell, .gc-leg-dot { width: 16px; height: 16px; }
-  .gc-sid-label { width: 16px; font-size: 8px; }
+  .gc-cell { height: 18px; }
+  .gc-leg-dot { width: 14px; height: 14px; }
+  .gc-sid-label { font-size: 8px; }
 }
 
 @media (max-width: 480px) {
