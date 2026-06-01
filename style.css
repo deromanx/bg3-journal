@@ -3201,7 +3201,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .rg-arrow {
-  transition: stroke-opacity 0.18s, stroke-width 0.18s, filter 0.15s, stroke-dashoffset 0.8s cubic-bezier(0.22,1,0.36,1);
+  transition: stroke-opacity 0.18s, stroke-width 0.18s, filter 0.15s, stroke-dashoffset 1.1s cubic-bezier(0.22,1,0.36,1);
 }
 
 /* 透明寬命中路徑：讓整個游標/觸控區更大，視覺不變 */

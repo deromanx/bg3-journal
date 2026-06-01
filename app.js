@@ -734,9 +734,12 @@ function initStatsAnimations(container) {
     const rgObs = new IntersectionObserver((entries, rgO) => {
       entries.forEach(entry => {
         if (!entry.isIntersecting) return;
-        entry.target.querySelectorAll('.rg-arrow').forEach((path, i) => {
-          setTimeout(() => { path.style.strokeDashoffset = '0'; }, i * 70);
-        });
+        // Double rAF: ensure initial dashoffset state is painted before transition starts
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          entry.target.querySelectorAll('.rg-arrow').forEach((path, i) => {
+            setTimeout(() => { path.style.strokeDashoffset = '0'; }, i * 90);
+          });
+        }));
         rgO.unobserve(entry.target);
       });
     }, { root: scrollRoot, threshold: 0.1 });
