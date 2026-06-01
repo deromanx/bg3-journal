@@ -173,31 +173,20 @@ def generate_forge(q: dict, prompt: str, out_path: Path) -> bool:
     style_bytes = load_style_ref()
 
     neg = (
-        "text, speech bubble, watermark, low quality, blurry, "
-        "realistic photo, 3d render, nsfw"
+        "text, speech bubble, watermark, signature, low quality, blurry, "
+        "realistic photo, 3d render, nsfw, ugly, deformed, extra limbs"
     )
-    base_payload = {
-        "prompt": prompt,
+    payload = {
+        "prompt": "(masterpiece, best quality, detailed illustration) " + prompt,
         "negative_prompt": neg,
-        "steps": 28,
-        "cfg_scale": 7.5,
+        "steps": 30,
+        "cfg_scale": 7,
         "width": 768,
         "height": 512,
         "sampler_name": "DPM++ 2M Karras",
         "restore_faces": False,
     }
-
-    if style_bytes:
-        b64 = base64.b64encode(style_bytes).decode()
-        payload = {
-            **base_payload,
-            "init_images": [f"data:image/jpeg;base64,{b64}"],
-            "denoising_strength": 0.88,
-        }
-        endpoint = f"{FORGE_URL}/sdapi/v1/img2img"
-    else:
-        payload = base_payload
-        endpoint = f"{FORGE_URL}/sdapi/v1/txt2img"
+    endpoint = f"{FORGE_URL}/sdapi/v1/txt2img"
 
     try:
         data = json.dumps(payload).encode()
