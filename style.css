@@ -3956,6 +3956,51 @@ a:focus-visible {
   line-height: 1.80;
 }
 
+/* modal 關閉動畫 */
+.rm-overlay.rm-closing {
+  opacity: 0;
+  pointer-events: none;
+}
+.rm-overlay.rm-closing .rm-dialog {
+  transform: translateY(8px);
+}
+
+/* 首頁最新集標題 */
+.welcome-latest {
+  font-size: 12px;
+  color: var(--gold);
+  opacity: 0.55;
+  letter-spacing: 1px;
+  margin-top: 10px;
+  margin-bottom: 0;
+  min-height: 1em;
+}
+
+/* 統計頁快速跳轉列 */
+.stats-jumpnav {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-bottom: 36px;
+}
+.sjn-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  color: var(--gold);
+  opacity: 0.60;
+  padding: 5px 14px;
+  border: 1px solid var(--gold-border);
+  background: transparent;
+  text-decoration: none;
+  transition: opacity 0.15s, background 0.15s;
+}
+.sjn-btn:hover {
+  opacity: 1;
+  background: rgba(201,168,76,0.08);
+}
+
 /* 卡片可點擊樣式 */
 .roast-quote-card {
   cursor: pointer;

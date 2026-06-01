@@ -30,6 +30,10 @@ Promise.all([
   roastStats = roastData;
   storyData  = storyJson;
   renderSidebar();
+  // 填入首頁最新集標題
+  const _latest = sessions.slice().reverse().find(s => !s.placeholder);
+  const _latestEl = document.getElementById('welcome-latest');
+  if (_latestEl && _latest) _latestEl.textContent = `最新・第 ${_latest.id} 集《${_latest.title}》`;
   restoreFromHash();
 })
 .catch(() => {
@@ -603,6 +607,13 @@ function renderStats() {
       <div class="sub-rule"><span class="rule-line"></span><span class="sub-title">冒 險 統 計</span><span class="rule-line"></span></div>
     </div>
 
+    <nav class="stats-jumpnav">
+      <a class="sjn-btn" href="#stat-death">☠ 死亡</a>
+      <a class="sjn-btn" href="#stat-mvp">🏆 MVP</a>
+      ${duelRows ? `<a class="sjn-btn" href="#stat-duel">⚔ 決鬥</a>` : ''}
+      <a class="sjn-btn" href="#stat-roast">💬 靠北</a>
+    </nav>
+
     <div class="hero-stats-row">
       <div class="hero-stat">
         <div class="hero-icon">⚔</div>
@@ -617,7 +628,7 @@ function renderStats() {
       </div>
     </div>
 
-    <div class="stat-group">
+    <div class="stat-group" id="stat-death">
       <div class="stat-group-title">☠ 死亡紀錄</div>
       <div class="stats-section">
         <div class="stats-section-title">各角色死亡次數</div>
@@ -626,7 +637,7 @@ function renderStats() {
       ${ffSection}
     </div>
 
-    <div class="stat-group">
+    <div class="stat-group" id="stat-mvp">
       <div class="stat-group-title">🏆 MVP 排行</div>
       <div class="stats-section">
         <div class="stats-section-title">各集 MVP 獲選次數</div>
@@ -635,7 +646,7 @@ function renderStats() {
     </div>
 
     ${duelRows ? `
-    <div class="stat-group">
+    <div class="stat-group" id="stat-duel">
       <div class="stat-group-title">⚔ 決鬥統計</div>
       <div class="stats-section">
         <div class="stats-section-title">決鬥戰績排行</div>
@@ -650,7 +661,7 @@ function renderStats() {
       ${matchupData.length ? `<div class="stats-section">${renderMatchupSplits(matchupData)}${matchupGrid}</div>` : ''}
     </div>` : ''}
 
-    <div class="stat-group">
+    <div class="stat-group" id="stat-roast">
       <div class="stat-group-title">💬 靠北統計</div>
       ${renderRoastSection()}
     </div>
@@ -985,8 +996,13 @@ function openRoastModal(q) {
 }
 
 function closeRoastModal() {
-  document.getElementById('rm-overlay')?.classList.remove('rm-open');
+  const overlay = document.getElementById('rm-overlay');
+  if (!overlay) return;
   document.removeEventListener('keydown', _rmEsc);
+  overlay.classList.add('rm-closing');
+  overlay.addEventListener('transitionend', () => {
+    overlay.classList.remove('rm-open', 'rm-closing');
+  }, { once: true });
 }
 
 function _rmEsc(e) { if (e.key === 'Escape') closeRoastModal(); }
