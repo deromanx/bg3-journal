@@ -928,6 +928,75 @@ function filterRoastByPair(from, to) {
   document.getElementById('rq-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+// ── 靠北 Modal ────────────────────────────────────────────
+function _rmInit() {
+  if (document.getElementById('rm-overlay')) return;
+  const el = document.createElement('div');
+  el.id = 'rm-overlay';
+  el.className = 'rm-overlay';
+  el.innerHTML = `
+    <div class="rm-dialog" id="rm-dialog">
+      <button class="rm-close" onclick="closeRoastModal()" title="關閉 (Esc)">✕</button>
+      <div class="rm-illustration-wrap rm-no-img" id="rm-illus-wrap">
+        <img class="rm-illustration" id="rm-illus" src="" alt="">
+      </div>
+      <div class="rm-actors" id="rm-actors"></div>
+      <div class="rm-ep-title" id="rm-ep-title"></div>
+      <div class="rm-quote" id="rm-quote"></div>
+      <div class="rm-desc" id="rm-desc"></div>
+    </div>`;
+  el.addEventListener('click', e => { if (e.target === el) closeRoastModal(); });
+  document.body.appendChild(el);
+}
+
+function openRoastModal(q) {
+  _rmInit();
+  const overlay = document.getElementById('rm-overlay');
+  const froms   = asArr(q.from);
+  const tos     = asArr(q.to);
+  const sRef    = sessions.find(s => s.id === q.session);
+
+  const avatar = (char, size) => `
+    <div class="${size} av-${esc(char)}" title="${esc(char)}">
+      <img src="data/images/avatars/${esc(char)}.webp" alt="${esc(char)}"
+           loading="lazy" decoding="async" onerror="this.style.display='none'">
+    </div>`;
+
+  document.getElementById('rm-actors').innerHTML = `
+    <div class="rm-av-group">${froms.map(c => avatar(c, 'rm-av')).join('')}</div>
+    <span class="rm-arrow">→</span>
+    <div class="rm-av-group">${tos.map(c => avatar(c, 'rm-av')).join('')}</div>
+    <span class="rm-ep-badge">S${q.session}</span>`;
+
+  const epTitle = sRef ? `第 ${q.session} 集・${sRef.title}` : `第 ${q.session} 集`;
+  document.getElementById('rm-ep-title').textContent = epTitle;
+  document.getElementById('rm-quote').textContent = q.quote ? `「${q.quote}」` : '';
+  document.getElementById('rm-desc').textContent   = q.desc || '';
+
+  // 插圖（若 gen_roast_images.py 已生成）
+  const illustWrap = document.getElementById('rm-illus-wrap');
+  const illustImg  = document.getElementById('rm-illus');
+  const imgSrc = q.img_id ? `data/images/roast/${esc(q.img_id)}.jpg` : '';
+  if (imgSrc) {
+    illustImg.src = imgSrc;
+    illustWrap.classList.remove('rm-no-img');
+    illustImg.onerror = () => illustWrap.classList.add('rm-no-img');
+  } else {
+    illustWrap.classList.add('rm-no-img');
+  }
+
+  overlay.classList.add('rm-open');
+  document.addEventListener('keydown', _rmEsc);
+}
+
+function closeRoastModal() {
+  document.getElementById('rm-overlay')?.classList.remove('rm-open');
+  document.removeEventListener('keydown', _rmEsc);
+}
+
+function _rmEsc(e) { if (e.key === 'Escape') closeRoastModal(); }
+
+// ── 靠北卡片渲染 ──────────────────────────────────────────
 function renderRoastCard(q, chars) {
   const src = char => `data/images/avatars/${esc(char)}.webp`;
   const avatar = char => `<div class="rq-av av-${esc(char)}" data-tip="${esc(char)}">
@@ -937,8 +1006,10 @@ function renderRoastCard(q, chars) {
   const tos   = asArr(q.to);
   const sRef  = sessions.find(s => s.id === q.session);
   const cardTip = sRef ? `第 ${q.session} 集《${sRef.title}》` : `S${q.session}`;
+  const qIdx = (_roastAll()).indexOf(q);
   return `
-    <div class="roast-quote-card" data-tip="${esc(cardTip)}">
+    <div class="roast-quote-card" data-tip="${esc(cardTip)}"
+         onclick="openRoastModal(_roastAll()[${qIdx}])">
       <div class="rq-actors">
         <div class="rq-av-group">${froms.map(avatar).join('')}</div>
         <span class="rq-arrow">→</span>
