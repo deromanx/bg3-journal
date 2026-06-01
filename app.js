@@ -1578,7 +1578,11 @@ function renderRadarSvg(scores) {
       font-size="10.5" fill="rgba(60,35,10,0.75)" font-family="Noto Sans TC, sans-serif" font-weight="500">${d.label}</text>`;
   }).join('');
 
-  return `<svg viewBox="0 0 296 296" width="280" height="280" style="overflow:visible">${grid}${axes}${poly}${dots}${labels}</svg>`;
+  return `<svg viewBox="0 0 296 296" width="280" height="280" style="overflow:visible">
+    <g class="rr-grid">${grid}${axes}</g>
+    <g class="rr-data" style="transform-origin:148px 148px">${poly}${dots}</g>
+    <g class="rr-labels">${labels}</g>
+  </svg>`;
 }
 
 function renderRadarSection(c, allChars) {

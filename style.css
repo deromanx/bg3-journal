@@ -3025,6 +3025,25 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 /* 角色滑動容器 */
 #characters-view { overflow-x: hidden; }
 
+/* ── 雷達圖進場動畫 ─────────────────────────────────── */
+@keyframes rr-expand {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
+@keyframes rr-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.rr-data {
+  animation: rr-expand 0.60s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.rr-grid {
+  animation: rr-fade 0.25s ease both;
+}
+.rr-labels {
+  animation: rr-fade 0.25s 0.45s ease both;
+}
+
 /* 雷達圖 */
 .radar-wrap {
   display: flex;
