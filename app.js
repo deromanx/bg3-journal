@@ -1277,7 +1277,7 @@ function renderRoastArrowGraph(charNames, roastMap, maxCell) {
     </g>`;
   });
 
-  return `<svg class="rg-svg" viewBox="0 0 600 580" xmlns="http://www.w3.org/2000/svg" aria-label="靠北關係圖">
+  return `<svg class="rg-svg" viewBox="40 70 520 420" xmlns="http://www.w3.org/2000/svg" aria-label="靠北關係圖">
     ${defs}
     <g class="rg-arrows">${arrows.join('\n')}</g>
     <g class="rg-nodes">${nodeEls.join('\n')}</g>
