@@ -937,9 +937,6 @@ function _rmInit() {
   el.innerHTML = `
     <div class="rm-dialog" id="rm-dialog">
       <button class="rm-close" onclick="closeRoastModal()" title="關閉 (Esc)">✕</button>
-      <div class="rm-illustration-wrap rm-no-img" id="rm-illus-wrap">
-        <img class="rm-illustration" id="rm-illus" src="" alt="">
-      </div>
       <div class="rm-actors" id="rm-actors"></div>
       <div class="rm-ep-title" id="rm-ep-title"></div>
       <div class="rm-quote" id="rm-quote"></div>
@@ -972,18 +969,6 @@ function openRoastModal(q) {
   document.getElementById('rm-ep-title').textContent = epTitle;
   document.getElementById('rm-quote').textContent = q.quote ? `「${q.quote}」` : '';
   document.getElementById('rm-desc').textContent   = q.desc || '';
-
-  // 插圖（若 gen_roast_images.py 已生成）
-  const illustWrap = document.getElementById('rm-illus-wrap');
-  const illustImg  = document.getElementById('rm-illus');
-  const imgSrc = q.img_id ? `data/images/roast/${esc(q.img_id)}.jpg` : '';
-  if (imgSrc) {
-    illustImg.src = imgSrc;
-    illustWrap.classList.remove('rm-no-img');
-    illustImg.onerror = () => illustWrap.classList.add('rm-no-img');
-  } else {
-    illustWrap.classList.add('rm-no-img');
-  }
 
   overlay.classList.add('rm-open');
   document.addEventListener('keydown', _rmEsc);
