@@ -162,6 +162,60 @@ def save_image(img_bytes: bytes, path: Path) -> None:
     img.save(path, "JPEG", quality=88, optimize=True)
 
 
+FORGE_URL = os.environ.get("FORGE_URL", "http://127.0.0.1:7860")
+
+
+def generate_forge(q: dict, prompt: str, out_path: Path) -> bool:
+    """透過本機 Forge/A1111 API 生成圖片，用風格參考圖做 img2img。"""
+    import base64, json
+    import urllib.request
+
+    style_bytes = load_style_ref()
+
+    neg = (
+        "text, speech bubble, watermark, low quality, blurry, "
+        "realistic photo, 3d render, nsfw"
+    )
+    base_payload = {
+        "prompt": prompt,
+        "negative_prompt": neg,
+        "steps": 28,
+        "cfg_scale": 7.5,
+        "width": 768,
+        "height": 512,
+        "sampler_name": "DPM++ 2M Karras",
+        "restore_faces": False,
+    }
+
+    if style_bytes:
+        b64 = base64.b64encode(style_bytes).decode()
+        payload = {
+            **base_payload,
+            "init_images": [f"data:image/jpeg;base64,{b64}"],
+            "denoising_strength": 0.88,
+        }
+        endpoint = f"{FORGE_URL}/sdapi/v1/img2img"
+    else:
+        payload = base_payload
+        endpoint = f"{FORGE_URL}/sdapi/v1/txt2img"
+
+    try:
+        data = json.dumps(payload).encode()
+        req = urllib.request.Request(
+            endpoint, data=data,
+            headers={"Content-Type": "application/json"}
+        )
+        with urllib.request.urlopen(req, timeout=180) as resp:
+            result = json.loads(resp.read())
+        img_bytes = base64.b64decode(result["images"][0])
+        save_image(img_bytes, out_path)
+        print(f"  ✓ {out_path.name}  {len(img_bytes)//1024}KB")
+        return True
+    except Exception as e:
+        print(f"  ❌ {e}")
+        return False
+
+
 def generate_pollinations(prompt: str, out_path: Path, seed: int = 42) -> bool:
     """透過 Pollinations.ai（免費，Flux 模型）生成圖片。"""
     import urllib.request
@@ -222,15 +276,25 @@ def generate_gemini(q: dict, prompt: str, out_path: Path,
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--provider", choices=["pollinations", "gemini"],
-                        default="pollinations",
-                        help="圖片生成來源（預設 pollinations，免費）")
+    parser.add_argument("--provider", choices=["forge", "pollinations", "gemini"],
+                        default="forge",
+                        help="圖片生成來源（預設 forge：本機 SD Forge，須先啟動）")
     parser.add_argument("--test",    action="store_true", help="只跑前 5 張測試")
     parser.add_argument("--from",    type=int, dest="from_session", metavar="N",
                         help="從第 N 集開始處理")
     parser.add_argument("--rewrite", type=int, metavar="N",
                         help="強制重跑第 N 集")
     args = parser.parse_args()
+
+    # Forge 檢查
+    if args.provider == "forge":
+        import urllib.request
+        try:
+            urllib.request.urlopen(f"{FORGE_URL}/sdapi/v1/sd-models", timeout=5)
+            print(f"✓ 使用本機 Forge（{FORGE_URL}）")
+        except Exception:
+            print(f"❌ 無法連線 Forge（{FORGE_URL}），請先啟動 webui.sh --api")
+            sys.exit(1)
 
     # Gemini 才需要 API key
     client = style_part = gtypes = None
@@ -250,7 +314,7 @@ def main():
         style_bytes = load_style_ref()
         style_part  = gtypes.Part.from_bytes(data=style_bytes, mime_type="image/jpeg") if style_bytes else None
         print(f"✓ 使用 Gemini Image Generation" + (f"（含風格參考圖 {len(style_bytes)//1024}KB）" if style_bytes else ""))
-    else:
+    elif args.provider == "pollinations":
         print("✓ 使用 Pollinations.ai（Flux，免費）")
 
     # 載入語錄
@@ -292,7 +356,9 @@ def main():
         print(f"[{i}/{len(targets)}] {label}")
 
         try:
-            if args.provider == "pollinations":
+            if args.provider == "forge":
+                ok = generate_forge(q, prompt, out_path)
+            elif args.provider == "pollinations":
                 ok = generate_pollinations(prompt, out_path, seed=i * 7)
             else:
                 ok = generate_gemini(q, prompt, out_path, client, style_part, gtypes)
@@ -305,10 +371,7 @@ def main():
             fail += 1
 
         if i < len(targets):
-            time.sleep(3 if args.provider == "pollinations" else 2)
-
-        if i < len(targets):
-            time.sleep(2.0)  # free tier: ~30 req/min for Flash
+            time.sleep(1 if args.provider == "forge" else (3 if args.provider == "pollinations" else 2))
 
     print(f"\n完成：✓{success} 張  ❌{fail} 失敗")
     if success:
