@@ -418,6 +418,10 @@ function toggleSidebar() {
 // ══════════════════════════════════════════════════════════
 // 統計儀表板
 // ══════════════════════════════════════════════════════════
+function scrollToStat(id) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
 function computeBaseStats() {
   const completed = sessions.filter(s => !s.placeholder && s.content?.length > 0);
   if (!completed.length) return null;
@@ -608,10 +612,10 @@ function renderStats() {
     </div>
 
     <nav class="stats-jumpnav">
-      <a class="sjn-btn" href="#stat-death">☠ 死亡</a>
-      <a class="sjn-btn" href="#stat-mvp">🏆 MVP</a>
-      ${duelRows ? `<a class="sjn-btn" href="#stat-duel">⚔ 決鬥</a>` : ''}
-      <a class="sjn-btn" href="#stat-roast">💬 靠北</a>
+      <button class="sjn-btn" onclick="scrollToStat('stat-death')">☠ 死亡</button>
+      <button class="sjn-btn" onclick="scrollToStat('stat-mvp')">🏆 MVP</button>
+      ${duelRows ? `<button class="sjn-btn" onclick="scrollToStat('stat-duel')">⚔ 決鬥</button>` : ''}
+      <button class="sjn-btn" onclick="scrollToStat('stat-roast')">💬 靠北</button>
     </nav>
 
     <div class="hero-stats-row">
