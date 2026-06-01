@@ -29,6 +29,7 @@ BASE      = Path(__file__).parent
 DATA      = BASE / "data"
 ROAST_F   = DATA / "roast-stats.json"
 OUT_DIR   = DATA / "images" / "roast"
+CHARS_DIR = DATA / "images" / "characters"
 IMG_MODEL = "gemini-2.0-flash-preview-image-generation"
 
 # 風格參考圖：優先選有全體角色的漫畫 cel-shading 封面圖
@@ -38,23 +39,54 @@ STYLE_REF_CANDIDATES = [
     DATA / "images" / "1"  / "img_001.jpg",  # 早期插畫備用
 ]
 
-# 角色視覺描述（依現有插圖實際外貌校正）
+# 角色視覺描述（依角色創建截圖與現有插圖校正）
+# 影心/阿斯代倫/卡拉克 為 BG3 原版角色，直接引用遊戲外型
 CHAR_VISUAL = {
-    "影心":    "a storm cleric with dark skin and white braided hair, wearing dark armor, surrounded by storm lightning",
-    "阿斯代倫": "a tall pale elf with white/silver hair, calm cold expression, elegant dark robes",
-    "曹":     "a human archer with short dark hair, drawing a longbow with intense focus",
-    "卡拉克":  "a tiefling barbarian woman with red skin, small curved horns, a red tail, holding a massive greataxe, fierce grin",
-    "貓咕咕":  "a small gnome sorcerer with pink-purple horns, wearing green robes, wide innocent eyes",
+    "影心":    (
+        "Shadowheart from Baldur's Gate 3, customized as a storm cleric: "
+        "dark-skinned woman with white braided hair, dark armor, surrounded by storm lightning"
+    ),
+    "阿斯代倫": (
+        "Astarion from Baldur's Gate 3: pale vampire elf with swept-back white/silver hair, "
+        "red eyes, aristocratic expression — but wearing monk robes instead of rogue leathers"
+    ),
+    "卡拉克":  (
+        "Karlach from Baldur's Gate 3: tiefling barbarian woman with red skin, "
+        "small curved horns, red tail, glowing mechanical heart engine on chest, "
+        "heavy armor, wielding a greataxe, fierce grin"
+    ),
+    "曹":     (
+        "a High Elf Fighter archer: olive-green skin, medium-length dark hair, "
+        "dark facial markings around the eyes, silver ornate plate armor, longbow on back, "
+        "serious expression"
+    ),
+    "貓咕咕":  (
+        "an Asmodeus Tiefling Sorcerer woman: fair skin, large curved dark-grey horns, "
+        "short pink/lavender hair, blue-grey eyes, elegant robes, "
+        "arcane energy swirling around hands"
+    ),
+}
+
+# 角色參考圖（自訂角色用，BG3 原版角色 Gemini 已知故不需要）
+CHAR_REF_IMAGES = {
+    "曹":    CHARS_DIR / "曹.jpg",
+    "貓咕咕": CHARS_DIR / "貓咕咕.png",
 }
 
 STYLE_PROMPT = (
-    "Draw in the exact same comic book illustration style as the reference image: "
+    "Draw in the exact same comic book illustration style as the style reference image: "
     "bold cel-shaded outlines, vibrant saturated colors, dramatic dark fantasy backgrounds "
     "(Gothic castle, dungeon, firelight), expressive exaggerated facial reactions, "
     "dynamic poses, strong contrast between light and shadow. "
     "No text, no speech bubbles, no UI elements. "
     "Horizontal composition, wide panel format. "
 )
+
+
+def asArr(v) -> list:
+    if isinstance(v, list):
+        return v
+    return [v] if v else []
 
 
 def stable_id(q: dict) -> str:
@@ -70,6 +102,17 @@ def load_style_ref() -> bytes | None:
         if p.exists():
             return p.read_bytes()
     return None
+
+
+def load_char_refs(involved: list[str]) -> list[tuple[str, bytes, str]]:
+    """回傳需要傳入的角色參考圖：(char_name, bytes, mime_type)"""
+    refs = []
+    for char in involved:
+        p = CHAR_REF_IMAGES.get(char)
+        if p and p.exists():
+            mime = "image/png" if p.suffix.lower() == ".png" else "image/jpeg"
+            refs.append((char, p.read_bytes(), mime))
+    return refs
 
 
 def build_prompt(q: dict) -> str:
@@ -191,15 +234,22 @@ def main():
         label    = f"S{q.get('session',0)}  {str(q.get('quote','') or q.get('desc',''))[:30]}"
         print(f"[{i}/{len(targets)}] {label}")
 
-        # 組合 contents：風格參考圖（若有）+ 文字 prompt
-        if style_part:
-            contents = [
-                style_part,
-                gtypes.Part.from_text(
-                    "Use the above image as the style reference. Now generate a new illustration:\n\n"
-                    + prompt
-                ),
-            ]
+        # 組合 contents：風格參考圖 → 角色參考圖（自訂角色）→ 文字 prompt
+        involved = list(dict.fromkeys(
+            (asArr(q.get("from", [])) + asArr(q.get("to", "")))
+        ))
+        char_refs = load_char_refs(involved)
+
+        if style_part or char_refs:
+            parts = []
+            if style_part:
+                parts.append(style_part)
+                parts.append(gtypes.Part.from_text("↑ Style reference image (match this art style exactly)."))
+            for char_name, ref_bytes, mime in char_refs:
+                parts.append(gtypes.Part.from_bytes(data=ref_bytes, mime_type=mime))
+                parts.append(gtypes.Part.from_text(f"↑ Character reference for {char_name} (match this character's appearance)."))
+            parts.append(gtypes.Part.from_text("Now generate a new illustration:\n\n" + prompt))
+            contents = parts
         else:
             contents = prompt
 
