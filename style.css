@@ -3893,7 +3893,8 @@ a:focus-visible {
   font-size: 10px;
   font-family: 'Cinzel', serif;
   letter-spacing: 1.5px;
-  color: var(--crimson-lt);
+  color: var(--gold);
+  opacity: 0.65;
   text-transform: uppercase;
 }
 .rm-av {
@@ -3935,7 +3936,7 @@ a:focus-visible {
 .rm-quote {
   font-size: 18px;
   font-weight: 700;
-  color: var(--crimson);
+  color: #e05858;
   line-height: 1.55;
   margin-bottom: 14px;
 }
