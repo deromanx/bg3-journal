@@ -3979,26 +3979,27 @@ a:focus-visible {
 /* 統計頁快速跳轉列 */
 .stats-jumpnav {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   justify-content: center;
   flex-wrap: wrap;
-  margin-bottom: 36px;
+  margin-bottom: 40px;
 }
 .sjn-btn {
   font-family: 'Cinzel', serif;
-  font-size: 11px;
+  font-size: 12px;
+  font-weight: 600;
   letter-spacing: 1.5px;
-  color: var(--gold);
-  opacity: 0.60;
-  padding: 5px 14px;
-  border: 1px solid var(--gold-border);
-  background: transparent;
-  text-decoration: none;
-  transition: opacity 0.15s, background 0.15s;
+  color: var(--gold-bright);
+  padding: 8px 18px;
+  border: 1px solid rgba(201,168,76,0.45);
+  background: rgba(201,168,76,0.07);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
 }
 .sjn-btn:hover {
-  opacity: 1;
-  background: rgba(201,168,76,0.08);
+  background: rgba(201,168,76,0.18);
+  border-color: var(--gold-bright);
+  box-shadow: 0 2px 12px rgba(201,168,76,0.15);
 }
 
 /* 卡片可點擊樣式 */
