@@ -68,7 +68,9 @@ function goHome() {
   _setHash('#home');
   document.querySelectorAll('.stab').forEach(b => b.classList.toggle('active', b.dataset.view === 'journal'));
   hideAllViews();
-  document.getElementById('welcome').classList.remove('hidden');
+  const _wEl = document.getElementById('welcome');
+  _wEl.classList.remove('hidden');
+  _wEl.style.animation = 'none'; void _wEl.offsetHeight; _wEl.style.animation = '';
   document.querySelectorAll('.session-item').forEach(el => el.classList.remove('active'));
   const journalNav = document.getElementById('journal-nav');
   if (journalNav) journalNav.classList.remove('hidden-nav');
@@ -120,6 +122,17 @@ function showView(view) {
   if (view === 'milestones') { _setHash('#milestones'); renderMilestones(); }
   if (view === 'story')      { _setHash('#story');      renderStory(); renderStoryNav(); }
   if (view === 'journal')    { _setHash(currentId ? '#s' + currentId : '#home'); }
+
+  // Force fade-in animation restart on each view switch
+  const _targetId = view === 'journal'
+    ? (showWelcome ? 'welcome' : 'session-view')
+    : (view + '-view');
+  const _targetEl = document.getElementById(_targetId);
+  if (_targetEl && !_targetEl.classList.contains('hidden')) {
+    _targetEl.style.animation = 'none';
+    void _targetEl.offsetHeight;
+    _targetEl.style.animation = '';
+  }
 }
 
 // ── 側欄（最新集在最上方）──────────────────────────────────
@@ -709,6 +722,26 @@ function initStatsAnimations(container) {
   container.querySelectorAll('.stat-group, .stats-section').forEach(g => {
     observer.observe(g);
   });
+
+  // Arrow draw animation: set initial hidden state, then animate on scroll-into-view
+  container.querySelectorAll('.rg-arrow').forEach(path => {
+    const len = path.getTotalLength();
+    path.style.strokeDasharray = `${len}`;
+    path.style.strokeDashoffset = `${len}`;
+  });
+  const rgWrap = container.querySelector('.rg-wrap');
+  if (rgWrap) {
+    const rgObs = new IntersectionObserver((entries, rgO) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        entry.target.querySelectorAll('.rg-arrow').forEach((path, i) => {
+          setTimeout(() => { path.style.strokeDashoffset = '0'; }, i * 70);
+        });
+        rgO.unobserve(entry.target);
+      });
+    }, { root: scrollRoot, threshold: 0.1 });
+    rgObs.observe(rgWrap);
+  }
 }
 
 function countUp(el, target, duration) {
@@ -1441,6 +1474,14 @@ function renderMilestones() {
         : '<p class="empty-note">尚無里程碑。請在 data/milestones.json 新增記錄。</p>'
       }
     </div>`;
+
+  // Stagger entrance animation
+  requestAnimationFrame(() => {
+    inner.querySelectorAll('.ms-item').forEach((el, i) => {
+      el.style.animationDelay = `${i * 75}ms`;
+      el.classList.add('ms-enter');
+    });
+  });
 }
 
 // ══════════════════════════════════════════════════════════
