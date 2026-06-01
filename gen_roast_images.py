@@ -21,7 +21,7 @@ img_id 同時寫回 roast-stats.json 的 quotes[].img_id，
 供前端 modal 載入。
 """
 
-import json, hashlib, os, sys, time, argparse
+import json, hashlib, os, sys, time, argparse, urllib.parse
 from pathlib import Path
 import io
 
@@ -162,38 +162,96 @@ def save_image(img_bytes: bytes, path: Path) -> None:
     img.save(path, "JPEG", quality=88, optimize=True)
 
 
+def generate_pollinations(prompt: str, out_path: Path, seed: int = 42) -> bool:
+    """透過 Pollinations.ai（免費，Flux 模型）生成圖片。"""
+    import urllib.request
+    encoded = urllib.parse.quote(prompt, safe="")
+    url = (
+        f"https://image.pollinations.ai/prompt/{encoded}"
+        f"?width=960&height=640&model=flux&nologo=true&seed={seed}"
+    )
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "bg3-journal/1.0"})
+        with urllib.request.urlopen(req, timeout=90) as resp:
+            img_bytes = resp.read()
+        save_image(img_bytes, out_path)
+        print(f"  ✓ {out_path.name}  {len(img_bytes)//1024}KB")
+        return True
+    except Exception as e:
+        print(f"  ❌ {e}")
+        return False
+
+
+def generate_gemini(q: dict, prompt: str, out_path: Path,
+                    client, style_part, gtypes) -> bool:
+    """透過 Gemini Image Generation API 生成圖片（需 GEMINI_API_KEY）。"""
+    involved  = list(dict.fromkeys(asArr(q.get("from", [])) + asArr(q.get("to", ""))))
+    char_refs = load_char_refs(involved)
+
+    if style_part or char_refs:
+        parts = []
+        if style_part:
+            parts.append(style_part)
+            parts.append(gtypes.Part.from_text("↑ Style reference image (match this art style exactly)."))
+        for char_name, ref_bytes, mime in char_refs:
+            parts.append(gtypes.Part.from_bytes(data=ref_bytes, mime_type=mime))
+            parts.append(gtypes.Part.from_text(f"↑ Character reference for {char_name} (match this character's appearance)."))
+        parts.append(gtypes.Part.from_text("Now generate a new illustration:\n\n" + prompt))
+        contents = parts
+    else:
+        contents = prompt
+
+    resp = client.models.generate_content(
+        model=IMG_MODEL,
+        contents=contents,
+        config=gtypes.GenerateContentConfig(response_modalities=["IMAGE", "TEXT"]),
+    )
+    img_bytes = None
+    for part in (resp.candidates[0].content.parts if resp.candidates else []):
+        if hasattr(part, "inline_data") and part.inline_data:
+            img_bytes = part.inline_data.data
+            break
+
+    if img_bytes:
+        save_image(img_bytes, out_path)
+        print(f"  ✓ {out_path.name}  {len(img_bytes)//1024}KB")
+        return True
+    print(f"  ⚠ 無圖片回應")
+    return False
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--test",    action="store_true", help="只跑第一張測試")
+    parser.add_argument("--provider", choices=["pollinations", "gemini"],
+                        default="pollinations",
+                        help="圖片生成來源（預設 pollinations，免費）")
+    parser.add_argument("--test",    action="store_true", help="只跑前 5 張測試")
     parser.add_argument("--from",    type=int, dest="from_session", metavar="N",
                         help="從第 N 集開始處理")
     parser.add_argument("--rewrite", type=int, metavar="N",
-                        help="強制重跑第 N 集（刪除舊圖並重生成）")
+                        help="強制重跑第 N 集")
     args = parser.parse_args()
 
-    api_key = os.environ.get("GEMINI_API_KEY")
-    if not api_key:
-        print("❌ 請先設定環境變數：export GEMINI_API_KEY='your_key'")
-        print("   免費 key：https://aistudio.google.com/app/apikey")
-        sys.exit(1)
-
-    try:
-        import google.genai as genai
-        from google.genai import types as gtypes
-    except ImportError:
-        print("❌ 請安裝：pip3 install google-genai pillow")
-        sys.exit(1)
-
-    client = genai.Client(api_key=api_key)
-
-    # 載入風格參考圖
-    style_bytes = load_style_ref()
-    if style_bytes:
-        print(f"✓ 已載入風格參考圖（{len(style_bytes)//1024}KB）")
-        style_part = gtypes.Part.from_bytes(data=style_bytes, mime_type="image/jpeg")
+    # Gemini 才需要 API key
+    client = style_part = gtypes = None
+    if args.provider == "gemini":
+        api_key = os.environ.get("GEMINI_API_KEY")
+        if not api_key:
+            print("❌ Gemini 需設定 GEMINI_API_KEY")
+            sys.exit(1)
+        try:
+            import google.genai as genai
+            from google.genai import types as _gtypes
+            gtypes = _gtypes
+        except ImportError:
+            print("❌ 請安裝：pip3 install google-genai pillow")
+            sys.exit(1)
+        client     = genai.Client(api_key=api_key)
+        style_bytes = load_style_ref()
+        style_part  = gtypes.Part.from_bytes(data=style_bytes, mime_type="image/jpeg") if style_bytes else None
+        print(f"✓ 使用 Gemini Image Generation" + (f"（含風格參考圖 {len(style_bytes)//1024}KB）" if style_bytes else ""))
     else:
-        print("⚠ 找不到風格參考圖，將只用文字描述風格")
-        style_part = None
+        print("✓ 使用 Pollinations.ai（Flux，免費）")
 
     # 載入語錄
     roast  = json.loads(ROAST_F.read_text("utf-8"))
@@ -208,7 +266,7 @@ def main():
     if changed:
         roast["quotes"] = quotes
         ROAST_F.write_text(json.dumps(roast, ensure_ascii=False, indent=2), "utf-8")
-        print(f"✓ 寫入 {sum(1 for q in quotes if q.get('img_id'))} 筆 img_id\n")
+        print(f"✓ 寫入 img_id")
 
     # 決定目標
     if args.rewrite:
@@ -216,13 +274,13 @@ def main():
     elif args.from_session:
         targets = [q for q in quotes if q.get("session", 0) >= args.from_session]
     elif args.test:
-        targets = quotes[:1]
+        targets = quotes[:5]
     else:
         targets = [q for q in quotes if not (OUT_DIR / f"{q['img_id']}.jpg").exists()]
 
-    print(f"共 {len(quotes)} 筆語錄，待生成插圖 {len(targets)} 張\n")
+    print(f"\n共 {len(quotes)} 筆語錄，待生成 {len(targets)} 張\n")
     if not targets:
-        print("✓ 全部已生成，無需處理")
+        print("✓ 全部已生成")
         return
 
     success = fail = 0
@@ -230,53 +288,24 @@ def main():
         img_id   = q["img_id"]
         out_path = OUT_DIR / f"{img_id}.jpg"
         prompt   = build_prompt(q)
-        label    = f"S{q.get('session',0)}  {str(q.get('quote','') or q.get('desc',''))[:30]}"
+        label    = f"S{q.get('session',0)}  {str(q.get('quote','') or q.get('desc',''))[:35]}"
         print(f"[{i}/{len(targets)}] {label}")
 
-        # 組合 contents：風格參考圖 → 角色參考圖（自訂角色）→ 文字 prompt
-        involved = list(dict.fromkeys(
-            (asArr(q.get("from", [])) + asArr(q.get("to", "")))
-        ))
-        char_refs = load_char_refs(involved)
-
-        if style_part or char_refs:
-            parts = []
-            if style_part:
-                parts.append(style_part)
-                parts.append(gtypes.Part.from_text("↑ Style reference image (match this art style exactly)."))
-            for char_name, ref_bytes, mime in char_refs:
-                parts.append(gtypes.Part.from_bytes(data=ref_bytes, mime_type=mime))
-                parts.append(gtypes.Part.from_text(f"↑ Character reference for {char_name} (match this character's appearance)."))
-            parts.append(gtypes.Part.from_text("Now generate a new illustration:\n\n" + prompt))
-            contents = parts
-        else:
-            contents = prompt
-
         try:
-            resp = client.models.generate_content(
-                model=IMG_MODEL,
-                contents=contents,
-                config=gtypes.GenerateContentConfig(
-                    response_modalities=["IMAGE", "TEXT"]
-                ),
-            )
-            img_bytes = None
-            for part in (resp.candidates[0].content.parts if resp.candidates else []):
-                if hasattr(part, "inline_data") and part.inline_data:
-                    img_bytes = part.inline_data.data
-                    break
-
-            if img_bytes:
-                save_image(img_bytes, out_path)
-                print(f"  ✓ {out_path.name}  {len(img_bytes)//1024}KB")
+            if args.provider == "pollinations":
+                ok = generate_pollinations(prompt, out_path, seed=i * 7)
+            else:
+                ok = generate_gemini(q, prompt, out_path, client, style_part, gtypes)
+            if ok:
                 success += 1
             else:
-                print(f"  ⚠ 無圖片回應")
                 fail += 1
-
         except Exception as e:
             print(f"  ❌ {e}")
             fail += 1
+
+        if i < len(targets):
+            time.sleep(3 if args.provider == "pollinations" else 2)
 
         if i < len(targets):
             time.sleep(2.0)  # free tier: ~30 req/min for Flash
