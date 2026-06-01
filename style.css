@@ -3874,70 +3874,86 @@ a:focus-visible {
 }
 .rm-close:hover { opacity: 1; color: var(--gold); }
 
-/* 插圖 */
-
-
-/* 角色行 */
-.rm-actors {
+/* modal 角色區塊 */
+.rm-header { margin-bottom: 18px; }
+.rm-actors-row {
   display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.rm-char-block {
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: 6px;
+  min-width: 0;
+}
+.rm-char-label {
+  font-size: 10px;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 1px;
+  color: var(--crimson);
+  opacity: 0.60;
+  text-transform: uppercase;
 }
 .rm-av {
-  width: 44px;
-  height: 44px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   overflow: hidden;
   border: 2px solid rgba(139,90,40,0.35);
   flex-shrink: 0;
-  transition: border-color 0.15s;
 }
 .rm-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .rm-av-group { display: flex; align-items: center; }
-.rm-av-group .rm-av + .rm-av { margin-left: -12px; border-color: rgba(139,90,40,0.55); }
-.rm-arrow {
-  font-size: 16px;
-  color: rgba(122,21,21,0.60);
-  flex-shrink: 0;
+.rm-av-group .rm-av + .rm-av { margin-left: -14px; border-color: rgba(139,90,40,0.55); }
+.rm-char-names {
+  font-size: 11.5px;
+  color: var(--gold);
+  opacity: 0.75;
+  text-align: center;
+  line-height: 1.4;
 }
-.rm-ep-badge {
-  margin-left: auto;
-  font-family: 'Cinzel', serif;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.5px;
-  color: var(--crimson);
-  opacity: 0.65;
+.rm-arrow {
+  font-size: 18px;
+  color: rgba(122,21,21,0.50);
   flex-shrink: 0;
+  margin-top: 30px;
 }
 
-/* 集數標題小字 */
+/* 集數標題 */
 .rm-ep-title {
   font-size: 11px;
   color: var(--ink-light);
-  opacity: 0.50;
+  opacity: 0.45;
   letter-spacing: 0.5px;
-  margin-bottom: 12px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(122,21,21,0.10);
 }
 
-/* 原話大字 */
+/* 靠北語錄大字 */
 .rm-quote {
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--crimson);
   line-height: 1.55;
   margin-bottom: 14px;
-  padding-bottom: 14px;
-  border-bottom: 1px solid rgba(122,21,21,0.16);
+}
+
+/* 分隔線 */
+.rm-divider {
+  height: 1px;
+  background: rgba(122,21,21,0.18);
+  margin-bottom: 14px;
 }
 
 /* 情境描述 */
 .rm-desc {
   font-size: 13.5px;
-  color: var(--gold);
-  opacity: 0.82;
-  line-height: 1.75;
+  color: var(--ink-light);
+  opacity: 0.88;
+  line-height: 1.80;
 }
 
 /* 卡片可點擊樣式 */

@@ -937,9 +937,9 @@ function _rmInit() {
   el.innerHTML = `
     <div class="rm-dialog" id="rm-dialog">
       <button class="rm-close" onclick="closeRoastModal()" title="關閉 (Esc)">✕</button>
-      <div class="rm-actors" id="rm-actors"></div>
-      <div class="rm-ep-title" id="rm-ep-title"></div>
+      <div class="rm-header" id="rm-header"></div>
       <div class="rm-quote" id="rm-quote"></div>
+      <div class="rm-divider"></div>
       <div class="rm-desc" id="rm-desc"></div>
     </div>`;
   el.addEventListener('click', e => { if (e.target === el) closeRoastModal(); });
@@ -953,20 +953,30 @@ function openRoastModal(q) {
   const tos     = asArr(q.to);
   const sRef    = sessions.find(s => s.id === q.session);
 
-  const avatar = (char, size) => `
-    <div class="${size} av-${esc(char)}" title="${esc(char)}">
-      <img src="data/images/avatars/${esc(char)}.webp" alt="${esc(char)}"
-           loading="lazy" decoding="async" onerror="this.style.display='none'">
-    </div>`;
-
-  document.getElementById('rm-actors').innerHTML = `
-    <div class="rm-av-group">${froms.map(c => avatar(c, 'rm-av')).join('')}</div>
-    <span class="rm-arrow">→</span>
-    <div class="rm-av-group">${tos.map(c => avatar(c, 'rm-av')).join('')}</div>
-    <span class="rm-ep-badge">S${q.session}</span>`;
+  const charBlock = (chars, label) => {
+    const avatars = chars.map(c => `
+      <div class="rm-av av-${esc(c)}">
+        <img src="data/images/avatars/${esc(c)}.webp" alt="${esc(c)}"
+             loading="lazy" decoding="async" onerror="this.style.display='none'">
+      </div>`).join('');
+    const names = chars.map(c => `<span>${esc(c)}</span>`).join('、');
+    return `
+      <div class="rm-char-block">
+        <div class="rm-char-label">${label}</div>
+        <div class="rm-av-group">${avatars}</div>
+        <div class="rm-char-names">${names}</div>
+      </div>`;
+  };
 
   const epTitle = sRef ? `第 ${q.session} 集・${sRef.title}` : `第 ${q.session} 集`;
-  document.getElementById('rm-ep-title').textContent = epTitle;
+  document.getElementById('rm-header').innerHTML = `
+    <div class="rm-actors-row">
+      ${charBlock(froms, '靠北方')}
+      <span class="rm-arrow">→</span>
+      ${charBlock(tos, '被靠對象')}
+    </div>
+    <div class="rm-ep-title">${esc(epTitle)}</div>`;
+
   document.getElementById('rm-quote').textContent = q.quote ? `「${q.quote}」` : '';
   document.getElementById('rm-desc').textContent   = q.desc || '';
 
