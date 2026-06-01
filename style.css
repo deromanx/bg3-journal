@@ -683,8 +683,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 #session-body h2.section-h1 {
   font-family: 'Cinzel', serif;
   font-weight: 700;
-  font-size: 14.5px;
-  color: var(--crimson);
+  font-size: 16px;
+  color: var(--crimson-lt);
   margin: 60px 0 28px;
   letter-spacing: 4.5px;
   text-transform: uppercase;
@@ -700,7 +700,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   content: '';
   flex: 1;
   height: 1px;
-  background: linear-gradient(to right, transparent, rgba(122,21,21,0.45), transparent);
+  background: linear-gradient(to right, transparent, rgba(122,21,21,0.65), transparent);
 }
 
 /* ── 小節標題（左金線） */
@@ -710,7 +710,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   color: var(--ink-mid);
   margin: 40px 0 16px;
   padding-left: 16px;
-  border-left: 4px solid rgba(217,176,122,0.60);
+  border-left: 4px solid var(--gold);
   line-height: 1.4;
   letter-spacing: 0.5px;
   clear: both;
