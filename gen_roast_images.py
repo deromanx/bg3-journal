@@ -56,9 +56,8 @@ CHAR_VISUAL = {
         "heavy armor, wielding a greataxe, fierce grin"
     ),
     "曹":     (
-        "a High Elf Fighter archer: olive-green skin, medium-length dark hair, "
-        "dark facial markings around the eyes, silver ornate plate armor, longbow on back, "
-        "serious expression"
+        "a High Elf Fighter archer: fair/pale skin, bright flame-orange upward mohawk hair, "
+        "silver and gold ornate plate armor, longbow on back, confident expression"
     ),
     "貓咕咕":  (
         "an Asmodeus Tiefling Sorcerer woman: fair skin, large curved dark-grey horns, "
