@@ -1196,7 +1196,7 @@ function renderGrowthGrid(chars) {
   ).join('');
 
   const tabs = METRICS.map((m, i) =>
-    `<button class="gc-tab${i === 0 ? ' active' : ''}" data-metric="${m.key}" onclick="switchGrowthTab('${m.key}')">${m.label}</button>`
+    `<button class="gc-tab${i === 0 ? ' active' : ''}" data-metric="${m.key}" data-palette="${m.palette}" onclick="switchGrowthTab('${m.key}')">${m.label}</button>`
   ).join('');
 
   return `
@@ -1215,6 +1215,14 @@ function renderGrowthGrid(chars) {
 function switchGrowthTab(key) {
   document.querySelectorAll('.gc-tab').forEach(b => b.classList.toggle('active', b.dataset.metric === key));
   document.querySelectorAll('.gc-panel').forEach(p => p.classList.toggle('gc-hidden', p.dataset.metric !== key));
+  const palette = document.querySelector(`.gc-tab[data-metric="${key}"]`)?.dataset.palette;
+  if (palette) {
+    document.querySelectorAll('#gc-legend-bar .gc-leg-dot').forEach(dot => {
+      if (dot.classList.contains('gc-0')) return;
+      ['gc-orange', 'gc-red', 'gc-blue', 'gc-gold'].forEach(p => dot.classList.remove(p));
+      dot.classList.add('gc-' + palette);
+    });
+  }
 }
 
 // ══════════════════════════════════════════════════════════

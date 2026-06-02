@@ -27,9 +27,14 @@
   --parchment-dk:  #d9c490;
 
   /* ── 墨水 */
+  --ink-dark:  #0f0c09;
   --ink:       #180e04;
   --ink-mid:   #432c18;
   --ink-light: #6e5030;
+
+  /* ── 字型 */
+  --font-title: 'Cinzel', serif;
+  --font-body:  'Noto Sans TC', sans-serif;
 
   /* ── 主題色（加深加飽和） */
   --crimson:    #7a1515;
