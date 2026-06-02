@@ -1040,7 +1040,8 @@ function closeRoastModal() {
   if (!overlay) return;
   document.removeEventListener('keydown', _rmEsc);
   overlay.classList.add('rm-closing');
-  overlay.addEventListener('transitionend', () => {
+  overlay.addEventListener('transitionend', (e) => {
+    if (e.target !== overlay) return;
     overlay.classList.remove('rm-open', 'rm-closing');
   }, { once: true });
 }
@@ -1195,7 +1196,7 @@ function renderGrowthGrid(chars) {
   ).join('');
 
   const tabs = METRICS.map((m, i) =>
-    `<button class="gc-tab${i === 0 ? ' active' : ''}" onclick="switchGrowthTab('${m.key}')">${m.label}</button>`
+    `<button class="gc-tab${i === 0 ? ' active' : ''}" data-metric="${m.key}" onclick="switchGrowthTab('${m.key}')">${m.label}</button>`
   ).join('');
 
   return `
@@ -1212,9 +1213,7 @@ function renderGrowthGrid(chars) {
 }
 
 function switchGrowthTab(key) {
-  document.querySelectorAll('.gc-tab').forEach(b => b.classList.toggle('active', b.textContent.includes(
-    { out:'靠北輸出', in:'靠北被轟', combat:'戰功貢獻', mvp:'MVP' }[key]
-  )));
+  document.querySelectorAll('.gc-tab').forEach(b => b.classList.toggle('active', b.dataset.metric === key));
   document.querySelectorAll('.gc-panel').forEach(p => p.classList.toggle('gc-hidden', p.dataset.metric !== key));
 }
 
@@ -1881,7 +1880,8 @@ function esc(s) {
   return (s ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;');
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1938,7 +1938,7 @@ function storyScrollTo(sid) {
     const top = t.getBoundingClientRect().top - sv.getBoundingClientRect().top + sv.scrollTop - 24;
     sv.scrollTo({ top, behavior: 'smooth' });
   }
-  if (window.innerWidth < 768) toggleSidebar();
+  if (window.innerWidth <= 720) toggleSidebar();
 }
 
 function renderStory() {

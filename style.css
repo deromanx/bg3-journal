@@ -3495,12 +3495,6 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   opacity: 0.65;
 }
 
-.gc-leg-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 2px;
-}
-
 .gc-hidden { display: none; }
 
 .gc-grid { overflow-x: auto; }
