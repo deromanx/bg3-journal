@@ -474,7 +474,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   font-size: 30px;
   font-weight: 700;
   color: var(--ink-mid);
-  opacity: 0.75;
+  opacity: 0.90;
   letter-spacing: 4px;
   margin-bottom: 8px;
 }
@@ -483,7 +483,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   font-family: 'Cinzel', serif;
   font-size: 12.5px;
   color: var(--ink-light);
-  opacity: 0.55;
+  opacity: 0.75;
   letter-spacing: 5px;
   margin-bottom: 40px;
 }
@@ -493,7 +493,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .cast-divider {
   font-size: 11px;
   color: var(--ink-light);
-  opacity: 0.45;
+  opacity: 0.55;
   letter-spacing: 3px;
   margin-bottom: 12px;
 }
@@ -502,7 +502,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   font-size: 14px;
   font-weight: 600;
   color: var(--ink-mid);
-  opacity: 0.65;
+  opacity: 0.85;
   letter-spacing: 1.5px;
   margin-bottom: 5px;
 }
@@ -510,7 +510,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .cast-roles {
   font-size: 13px;
   color: var(--ink-light);
-  opacity: 0.55;
+  opacity: 0.75;
   letter-spacing: 0.5px;
 }
 
@@ -3847,18 +3847,24 @@ a:focus-visible {
 }
 
 /* 5. 章節已讀標記（localStorage 控制） */
-.session-item.read .item-title::before {
-  content: '✓ ';
-  color: rgba(217,176,122,0.55);
-  font-size: 0.85em;
-  margin-right: 2px;
+.session-item.read .item-title::after {
+  content: ' ✓';
+  color: rgba(217,176,122,0.85);
+  font-size: 0.80em;
+  font-weight: 700;
+  margin-left: 4px;
 }
 .session-item.read:not(.active) {
-  opacity: 0.72;
+  opacity: 0.58;
+}
+.session-item.read:not(.active) .item-chapter,
+.session-item.read:not(.active) .item-date {
+  opacity: 0.7;
 }
 .session-item.read:not(.active) .item-title {
-  color: rgba(217,176,122,0.70);
-  font-weight: 500;
+  color: rgba(217,176,122,0.60);
+  font-weight: 400;
+  font-style: italic;
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -4008,13 +4014,17 @@ a:focus-visible {
 
 /* 首頁最新集標題 */
 .welcome-latest {
-  font-size: 12px;
-  color: var(--gold);
-  opacity: 0.55;
+  display: inline-block;
+  font-size: 12.5px;
+  color: var(--ink-mid);
   letter-spacing: 1px;
-  margin-top: 10px;
+  margin-top: 16px;
   margin-bottom: 0;
   min-height: 1em;
+  padding: 6px 16px;
+  border: 1px solid rgba(139,90,40,0.35);
+  background: rgba(139,90,40,0.07);
+  border-radius: 2px;
 }
 
 /* 統計頁快速跳轉列 */
