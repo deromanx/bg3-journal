@@ -3,6 +3,25 @@
    功能：日誌閱讀 / 統計儀表板 / 里程碑時間軸 / 本集戰報
    ============================================================ */
 
+// ── 角色名稱對照（單一來源）────────────────────────────────
+const CHAR_ROSTER = {
+  '影心': '影心', '游尚傑': '影心',
+  '阿斯代倫': '阿斯代倫', '林昱宇': '阿斯代倫',
+  '曹': '曹', '曹祐誠': '曹',
+  '卡拉克': '卡拉克', '丁丁': '卡拉克',
+  '貓咕咕': '貓咕咕', '昱如': '貓咕咕',
+};
+const CHAR_ORDER = [...new Set(Object.values(CHAR_ROSTER))];
+const CHARS_SET  = new Set(CHAR_ORDER);
+
+// ── 羅馬數字（故事章節）────────────────────────────────────
+const ROMAN = ['I','II','III','IV','V','VI','VII','VIII','IX','X',
+  'XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX'];
+
+// ── 視圖 ID 清單（新增視圖時在此加入即可）────────────────────
+const VIEW_IDS = ['welcome', 'session-view', 'hero-band',
+  'characters-view', 'stats-view', 'milestones-view', 'story-view'];
+
 let sessions      = [];
 let milestones    = [];
 let awards        = {};
@@ -12,10 +31,12 @@ let storyData     = { chapters: [] };
 let currentId     = null;
 let currentView   = 'journal';
 let _ignoreHash   = false;
+let _statsRendered = false;
+const _contentCache = {};
 
 // ── 載入 ──────────────────────────────────────────────────
 Promise.all([
-  fetch('data/sessions.json').then(r => r.json()),
+  fetch('data/sessions-meta.json').then(r => r.json()),
   fetch('data/milestones.json').then(r => r.json()).catch(() => []),
   fetch('data/awards.json').then(r => r.json()).catch(() => ({})),
   fetch('data/character-stats.json').then(r => r.json()).catch(() => ({ characters: [] })),
@@ -29,6 +50,8 @@ Promise.all([
   charStats  = charStatsData;
   roastStats = roastData;
   storyData  = storyJson;
+  // 為每條語錄附加穩定 index，供 onclick 引用
+  (roastStats.quotes || roastStats.highlights || []).forEach((q, i) => { q._idx = i; });
   renderSidebar();
   // 填入首頁最新集標題
   const _latest = sessions.slice().reverse().find(s => !s.placeholder);
@@ -53,13 +76,7 @@ function _setHash(h) {
 const ALL_VIEWS = ['journal', 'characters', 'stats', 'milestones', 'story'];
 
 function hideAllViews() {
-  document.getElementById('welcome').classList.add('hidden');
-  document.getElementById('session-view').classList.add('hidden');
-  document.getElementById('characters-view').classList.add('hidden');
-  document.getElementById('stats-view').classList.add('hidden');
-  document.getElementById('milestones-view').classList.add('hidden');
-  document.getElementById('story-view').classList.add('hidden');
-  document.getElementById('hero-band').classList.add('hidden');
+  VIEW_IDS.forEach(id => document.getElementById(id)?.classList.add('hidden'));
 }
 
 function goHome() {
@@ -198,12 +215,22 @@ function loadSession(id) {
   document.getElementById('header-title').textContent   = session.title;
   document.getElementById('header-date').textContent    = session.dateDisplay ?? '';
 
-  const body = document.getElementById('session-body');
-  body.innerHTML = session.placeholder
-    ? '<p style="text-align:center;color:var(--ink-light);opacity:.4;margin-top:80px;font-style:italic">✦ 本集日誌尚待記錄… ✦</p>'
-    : renderContent(session.content);
-
   renderAwardCard(id);
+
+  const body = document.getElementById('session-body');
+  if (session.placeholder) {
+    body.innerHTML = '<p style="text-align:center;color:var(--ink-light);opacity:.4;margin-top:80px;font-style:italic">✦ 本集日誌尚待記錄… ✦</p>';
+  } else if (_contentCache[id]) {
+    body.innerHTML = renderContent(_contentCache[id]);
+  } else {
+    body.innerHTML = '<p style="text-align:center;color:var(--ink-light);opacity:.4;margin-top:80px;font-style:italic">✦ 載入中… ✦</p>';
+    fetch(`data/sessions/${id}.json`)
+      .then(r => r.json())
+      .then(content => {
+        _contentCache[id] = content;
+        if (currentId === id) body.innerHTML = renderContent(content);
+      });
+  }
 
   const idx = sessions.findIndex(s => s.id === id);
   const prevS = sessions[idx - 1] ?? null;
@@ -232,7 +259,6 @@ function loadSession(id) {
 }
 
 // ── 本集戰報 ──────────────────────────────────────────────
-const CHARS_SET = new Set(['影心', '阿斯代倫', '曹', '卡拉克', '貓咕咕']);
 
 function extractChar(str) {
   if (!str) return null;
@@ -436,7 +462,7 @@ function scrollToStat(id) {
 }
 
 function computeBaseStats() {
-  const completed = sessions.filter(s => !s.placeholder && s.content?.length > 0);
+  const completed = sessions.filter(s => !s.placeholder);
   if (!completed.length) return null;
   const first = completed[0];
   const last  = completed[completed.length - 1];
@@ -447,10 +473,20 @@ function computeBaseStats() {
 }
 
 function renderStats() {
-  // 重新渲染時清除篩選狀態，避免舊 filter 與新 DOM 脫鉤
   _roastFilter.clear();
   _roastPairFilter = null;
   _roastSort = 'desc';
+
+  if (_statsRendered) {
+    const inner = document.getElementById('stats-inner');
+    inner.querySelectorAll('.rq-sort-btn').forEach(btn =>
+      btn.classList.toggle('active', btn.dataset.sort === 'desc'));
+    inner.querySelectorAll('.rq-filter-btn').forEach(b => b.classList.remove('active'));
+    inner.querySelector('#rq-clear-btn')?.classList.add('hidden');
+    inner.querySelectorAll('.rg-arrow-group.rg-active').forEach(el => el.classList.remove('rg-active'));
+    applyRoastGrid();
+    return;
+  }
 
   const inner = document.getElementById('stats-inner');
   const base  = computeBaseStats();
@@ -688,6 +724,7 @@ function renderStats() {
       ${renderGrowthGrid(chars)}
     </div>`;
 
+  _statsRendered = true;
   requestAnimationFrame(() => initStatsAnimations(inner));
 }
 
@@ -1058,10 +1095,9 @@ function renderRoastCard(q, chars) {
   const tos   = asArr(q.to);
   const sRef  = sessions.find(s => s.id === q.session);
   const cardTip = sRef ? `第 ${q.session} 集《${sRef.title}》` : `S${q.session}`;
-  const qIdx = (_roastAll()).indexOf(q);
   return `
     <div class="roast-quote-card" data-tip="${esc(cardTip)}"
-         onclick="openRoastModal(_roastAll()[${qIdx}])">
+         onclick="openRoastModal(_roastAll()[${q._idx}])">
       <div class="rq-actors">
         <div class="rq-av-group">${froms.map(avatar).join('')}</div>
         <span class="rq-arrow">→</span>
@@ -1123,7 +1159,6 @@ function renderRoastQuotes() {
 // 角色活躍度熱力圖
 // ══════════════════════════════════════════════════════════
 function renderGrowthGrid(chars) {
-  const CHAR_ORDER = ['影心', '阿斯代倫', '曹', '卡拉克', '貓咕咕'];
   const activeSessions = sessions.filter(s => !s.placeholder);
   const sids = activeSessions.map(s => s.id);
 
@@ -1405,7 +1440,7 @@ function renderRoastSection() {
   return `
     <div class="stats-section">
       <div class="stats-section-title">互相靠北排行</div>
-      <div class="roast-meta">全 ${sessions.filter(s => !s.placeholder && s.content && s.content.length > 0).length} 集共計 <strong>${roastStats.total || 0}</strong> 次記錄在案的靠北事件</div>
+      <div class="roast-meta">全 ${sessions.filter(s => !s.placeholder).length} 集共計 <strong>${roastStats.total || 0}</strong> 次記錄在案的靠北事件</div>
 
       <div class="roast-columns">
         <div class="roast-col">
@@ -1797,18 +1832,9 @@ function renderCharacters(charName) {
     </div>`;
 }
 
-// ── 角色別名映射 ─────────────────────────────────────────
-const CHAR_MAP = {
-  '影心': '影心', '游尚傑': '影心',
-  '阿斯代倫': '阿斯代倫', '林昱宇': '阿斯代倫',
-  '曹': '曹', '曹祐誠': '曹',
-  '卡拉克': '卡拉克', '丁丁': '卡拉克',
-  '貓咕咕': '貓咕咕', '昱如': '貓咕咕',
-};
-
 function resolveChar(name) {
-  for (const key of Object.keys(CHAR_MAP)) {
-    if (name.includes(key)) return CHAR_MAP[key];
+  for (const key of Object.keys(CHAR_ROSTER)) {
+    if (name.includes(key)) return CHAR_ROSTER[key];
   }
   return null;
 }
@@ -1901,11 +1927,9 @@ function renderStoryNav() {
   const list = document.getElementById('story-chapter-list');
   if (!list) return;
   const chapters = (storyData.chapters || []).slice().sort((a, b) => a.session_id - b.session_id);
-  const romanNumerals = ['I','II','III','IV','V','VI','VII','VIII','IX','X',
-    'XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX'];
 
   list.innerHTML = chapters.map((ch, i) => {
-    const num = romanNumerals[i] || (i + 1);
+    const num = ROMAN[i] || (i + 1);
     return `<li class="session-item" id="story-nav-${ch.session_id}"
         onclick="storyScrollTo(${ch.session_id})">
       <div class="item-chapter">第 ${num} 章</div>
@@ -1966,16 +1990,13 @@ function renderStory() {
     return;
   }
 
-  const romanNumerals = ['I','II','III','IV','V','VI','VII','VIII','IX','X',
-    'XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX'];
-
   inner.innerHTML = `
     <div class="sub-header">
       <div class="sub-rule"><span class="rule-line"></span><span class="sub-title">瓦羅的故事集</span><span class="rule-line"></span></div>
     </div>
     <div class="story-chapters">
       ${chapters.map((ch, i) => {
-        const num = romanNumerals[i] || (i + 1);
+        const num = ROMAN[i] || (i + 1);
         const paragraphs = (ch.text || '').split(/\n+/).filter(p => p.trim())
           .map(p => `<p class="story-para">${esc(p.trim())}</p>`).join('');
         return `

@@ -245,10 +245,24 @@ def main():
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(json.dumps(sessions, ensure_ascii=False, indent=2), "utf-8")
 
+    # ── Lazy-load 拆分：metadata + 各集內容 ───────────────────────────
+    meta_only = [{k: v for k, v in s.items() if k != "content"} for s in sessions]
+    meta_path = OUTPUT.parent / "sessions-meta.json"
+    meta_path.write_text(json.dumps(meta_only, ensure_ascii=False, indent=2), "utf-8")
+
+    session_dir = OUTPUT.parent / "sessions"
+    session_dir.mkdir(exist_ok=True)
+    for s in sessions:
+        (session_dir / f"{s['id']}.json").write_text(
+            json.dumps(s["content"], ensure_ascii=False, indent=2), "utf-8"
+        )
+
     total_imgs = sum(
         len([x for x in s["content"] if x["t"] == "img"]) for s in sessions
     )
     print(f"\n✓ 已產生 {OUTPUT}")
+    print(f"  已產生 {meta_path.name}（{len(meta_only)} 集 metadata）")
+    print(f"  已產生 data/sessions/<id>.json（各集內容，lazy load 用）")
     print(f"  共 {len(sessions)} 集，{sum(1 for s in sessions if not s['placeholder'])} 集有內容，{total_imgs} 張插圖")
 
 if __name__ == "__main__":

@@ -29,10 +29,16 @@ run python3 update_stats.py
 run python3 count_praised.py
 run python3 count_combat_contrib.py
 
-# 4. 獎項、金句說話者、本集亮點
-run python3 gen_awards.py
-run python3 gen_quote_by.py
-run python3 gen_highlights.py
+# 4. 獎項、金句說話者、本集亮點（三者互相獨立，並行執行）
+echo
+echo "▶ gen_awards.py + gen_quote_by.py + gen_highlights.py（並行）"
+python3 gen_awards.py    > /tmp/bg3_awards.log    2>&1 & PID_AWARDS=$!
+python3 gen_quote_by.py  > /tmp/bg3_quoteby.log   2>&1 & PID_QUOTE=$!
+python3 gen_highlights.py > /tmp/bg3_highlights.log 2>&1 & PID_HL=$!
+wait $PID_AWARDS   || { cat /tmp/bg3_awards.log    >&2; echo "❌ gen_awards.py 失敗"    >&2; exit 1; }
+wait $PID_QUOTE    || { cat /tmp/bg3_quoteby.log   >&2; echo "❌ gen_quote_by.py 失敗"  >&2; exit 1; }
+wait $PID_HL       || { cat /tmp/bg3_highlights.log >&2; echo "❌ gen_highlights.py 失敗" >&2; exit 1; }
+echo "  ✓ 三支腳本均完成"
 
 # 5. 補齊 update_stats 階段二可能漏掉的故事章節
 run python3 gen_story.py
