@@ -50,7 +50,14 @@ else
     run python3 regen_roast_quotes.py --from "$LATEST"
 fi
 
-# 7. 統一修正下游 JSON 的角色名錯字（收尾）
+# 7. 稱讚統計
+if [[ "${1:-}" == "--praise-all" || "${1:-}" == "--roast-all" ]]; then
+    run python3 gen_praise_stats.py
+else
+    run python3 gen_praise_stats.py --from "$LATEST"
+fi
+
+# 8. 統一修正下游 JSON 的角色名錯字（收尾）
 run python3 normalize_names.py
 
 echo

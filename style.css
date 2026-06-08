@@ -2353,6 +2353,11 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .rb-unit { font-size: 11px; margin-left: 2px; color: var(--ink-light); font-family: inherit; }
 
+/* ── 稱讚 bar 覆蓋色（綠金） */
+.rb-bar-fill.praise-bar { background: linear-gradient(to right, #1a5c2a, #4aaa5a); }
+.rb-count.praise-count  { color: #5aaa6a; }
+.ib-count.praise-count  { color: #5aaa6a; }
+
 /* ── 主動靠北 rows ──────────────────────────────────────── */
 .ib-board { display: flex; flex-direction: column; gap: 10px; }
 

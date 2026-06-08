@@ -27,6 +27,7 @@ let milestones    = [];
 let awards        = {};
 let charStats     = { characters: [] };
 let roastStats    = { matrix: [], highlights: [] };
+let praiseStats   = { matrix: [], highlights: [] };
 let storyData     = { chapters: [] };
 let currentId     = null;
 let currentView   = 'journal';
@@ -42,14 +43,16 @@ Promise.all([
   fetch('data/character-stats.json').then(r => r.json()).catch(() => ({ characters: [] })),
   fetch('data/roast-stats.json').then(r => r.json()).catch(() => ({ matrix: [], highlights: [] })),
   fetch('data/story.json').then(r => r.json()).catch(() => ({ chapters: [] })),
+  fetch('data/praise-stats.json').then(r => r.json()).catch(() => ({ matrix: [], highlights: [] })),
 ])
-.then(([sessionsData, milestonesData, awardsData, charStatsData, roastData, storyJson]) => {
-  sessions   = sessionsData;
-  milestones = milestonesData;
-  awards     = awardsData;
-  charStats  = charStatsData;
-  roastStats = roastData;
-  storyData  = storyJson;
+.then(([sessionsData, milestonesData, awardsData, charStatsData, roastData, storyJson, praiseData]) => {
+  sessions     = sessionsData;
+  milestones   = milestonesData;
+  awards       = awardsData;
+  charStats    = charStatsData;
+  roastStats   = roastData;
+  storyData    = storyJson;
+  praiseStats  = praiseData;
   // 為每條語錄附加穩定 index，供 onclick 引用
   (roastStats.quotes || roastStats.highlights || []).forEach((q, i) => { q._idx = i; });
   renderSidebar();
@@ -665,6 +668,7 @@ function renderStats() {
       <button class="sjn-btn" onclick="scrollToStat('stat-mvp')">🏆 MVP</button>
       ${duelRows ? `<button class="sjn-btn" onclick="scrollToStat('stat-duel')">⚔ 決鬥</button>` : ''}
       <button class="sjn-btn" onclick="scrollToStat('stat-roast')">💬 靠北</button>
+      <button class="sjn-btn" onclick="scrollToStat('stat-praise')">🌟 稱讚</button>
     </nav>
 
     <div class="hero-stats-row">
@@ -717,6 +721,11 @@ function renderStats() {
     <div class="stat-group" id="stat-roast">
       <div class="stat-group-title">💬 靠北統計</div>
       ${renderRoastSection()}
+    </div>
+
+    <div class="stat-group" id="stat-praise">
+      <div class="stat-group-title">🌟 稱讚統計</div>
+      ${renderPraiseSection()}
     </div>
 
     <div class="stat-group">
@@ -1377,6 +1386,86 @@ function renderRoastArrowGraph(charNames, roastMap, maxCell) {
 // ══════════════════════════════════════════════════════════
 // 靠北統計區塊
 // ══════════════════════════════════════════════════════════
+function renderPraiseSection() {
+  if (!praiseStats.matrix?.length) return '<p class="empty-note">尚無稱讚資料</p>';
+  const chars = charStats.characters || [];
+  const charNames = chars.map(c => c.char);
+
+  const received  = {};
+  const initiated = {};
+  charNames.forEach(n => { received[n] = 0; initiated[n] = 0; });
+  praiseStats.matrix.forEach(r => {
+    if (initiated[r.from] !== undefined) initiated[r.from] += r.count;
+    if (received[r.to]   !== undefined) received[r.to]   += r.count;
+  });
+
+  const total = praiseStats.total || 0;
+  const byReceived = charNames.slice().sort((a, b) => received[b] - received[a]);
+  const maxReceived = Math.max(...byReceived.map(n => received[n]), 1);
+  const byInit = charNames.slice().sort((a, b) => initiated[b] - initiated[a]);
+  const maxInit = Math.max(...byInit.map(n => initiated[n]), 1);
+
+  const receivedRows = byReceived.map((name, i) => {
+    const c = chars.find(x => x.char === name);
+    const pct = Math.round(received[name] / maxReceived * 100);
+    const crown = i === 0 ? ' rb-crown' : '';
+    const topSenders = praiseStats.matrix
+      .filter(r => r.to === name).sort((a, b) => b.count - a.count).slice(0, 3)
+      .map(r => `${r.from} ${r.count} 次`).join('　');
+    const tip = topSenders ? `稱讚來源：${topSenders}` : `被稱讚 ${received[name]} 次`;
+    return `
+      <div class="rb-row${crown}" data-tip="${esc(tip)}">
+        <div class="rb-avatar av-${name}">
+          <img src="data/images/avatars/${esc(name)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+        </div>
+        <div class="rb-info">
+          <div class="rb-name">${esc(name)}<span class="rb-player">${esc(c?.player || '')}</span></div>
+          <div class="rb-bar-track">
+            <div class="rb-bar-fill praise-bar" style="width:0" data-w="${pct}%"></div>
+          </div>
+        </div>
+        <div class="rb-count praise-count">${received[name]}<span class="rb-unit">次</span></div>
+      </div>`;
+  }).join('');
+
+  const initiatedRows = byInit.map((name, i) => {
+    const c = chars.find(x => x.char === name);
+    const pct = Math.round(initiated[name] / maxInit * 100);
+    const crown = i === 0 ? ' rb-crown' : '';
+    const topTargets = praiseStats.matrix
+      .filter(r => r.from === name).sort((a, b) => b.count - a.count).slice(0, 3)
+      .map(r => `${r.to} ${r.count} 次`).join('　');
+    const tip = topTargets ? `主要稱讚對象：${topTargets}` : `稱讚別人 ${initiated[name]} 次`;
+    return `
+      <div class="ib-row${crown}" data-tip="${esc(tip)}">
+        <div class="ib-avatar av-${name}">
+          <img src="data/images/avatars/${esc(name)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+        </div>
+        <div class="ib-info">
+          <div class="ib-name">${esc(name)}<span class="ib-player">${esc(c?.player || '')}</span></div>
+          <div class="ib-bar-track"><div class="ib-bar-fill praise-bar" style="width:0" data-w="${pct}%"></div></div>
+        </div>
+        <div class="ib-count praise-count">${initiated[name]}<span class="ib-unit">次</span></div>
+      </div>`;
+  }).join('');
+
+  return `
+    <div class="stats-section">
+      <div class="stats-section-title">互相稱讚排行</div>
+      <div class="roast-meta">全 ${sessions.filter(s => !s.placeholder).length} 集共計 <strong>${total}</strong> 次記錄在案的稱讚事件</div>
+      <div class="roast-columns">
+        <div class="roast-col">
+          <div class="roast-col-title">🌟 被稱讚次數</div>
+          <div class="rb-board">${receivedRows}</div>
+        </div>
+        <div class="roast-col">
+          <div class="roast-col-title">💬 稱讚別人次數</div>
+          <div class="rb-board">${initiatedRows}</div>
+        </div>
+      </div>
+    </div>`;
+}
+
 function renderRoastSection() {
   if (!roastStats.matrix?.length) return '';
   const chars = charStats.characters || [];
