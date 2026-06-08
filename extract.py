@@ -65,7 +65,9 @@ def classify(text: str, bold: bool = False) -> str:
     """回傳段落類型：h1 / h2 / ai / p"""
     if re.match(r"^\(AI\s*(點評|Comment)", text, re.I):
         return "ai"
-    no_punct = not re.search(r"[，。！？…」]", text)
+    # 標題允許結尾帶！？（如「吃蟲啊！」），只有句中標點才排除
+    text_for_punct = re.sub(r'[！？]+$', '', text)
+    no_punct = not re.search(r"[，。！？…」]", text_for_punct)
     # 純對戰子標題（A vs B）→ h2 副標題
     if bold and _VS_DUEL.match(text):
         return "h2"

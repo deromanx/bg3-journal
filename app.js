@@ -1882,6 +1882,7 @@ function tryQuoteWrap(text) {
 function renderContent(items) {
   if (!items?.length) return '<p style="text-align:center;opacity:.4">尚無內容</p>';
 
+  let firstParaDone = false;
   return items.map((item, i) => {
     switch (item.t) {
       case 'img':
@@ -1909,8 +1910,17 @@ function renderContent(items) {
         return tryQuoteWrap(item.v) ?? `<div class="session-li2">${renderInline(item.v)}</div>`;
 
       case 'p':
-      default:
-        return tryQuoteWrap(item.v) ?? `<p>${renderInline(item.v)}</p>`;
+      default: {
+        const q = tryQuoteWrap(item.v);
+        if (q) return q;
+        // 只有夠長的段落（≥40字）才套首字下沉，避免短句被誤觸
+        if (!firstParaDone && item.v.length >= 40) {
+          firstParaDone = true;
+          return `<p class="first-para">${renderInline(item.v)}</p>`;
+        }
+        firstParaDone = true;
+        return `<p>${renderInline(item.v)}</p>`;
+      }
     }
   }).join('\n');
 }
