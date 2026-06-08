@@ -57,7 +57,14 @@ else
     run python3 gen_praise_stats.py --from "$LATEST"
 fi
 
-# 8. 統一修正下游 JSON 的角色名錯字（收尾）
+# 8. 友軍傷害統計
+if [[ "${1:-}" == "--ff-all" || "${1:-}" == "--roast-all" ]]; then
+    run python3 gen_ff_stats.py
+else
+    run python3 gen_ff_stats.py --from "$LATEST"
+fi
+
+# 9. 統一修正下游 JSON 的角色名錯字（收尾）
 run python3 normalize_names.py
 
 echo

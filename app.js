@@ -28,6 +28,7 @@ let awards        = {};
 let charStats     = { characters: [] };
 let roastStats    = { matrix: [], highlights: [] };
 let praiseStats   = { matrix: [], highlights: [] };
+let ffStats       = { incidents: [], total: 0 };
 let storyData     = { chapters: [] };
 let currentId     = null;
 let currentView   = 'journal';
@@ -44,8 +45,9 @@ Promise.all([
   fetch('data/roast-stats.json').then(r => r.json()).catch(() => ({ matrix: [], highlights: [] })),
   fetch('data/story.json').then(r => r.json()).catch(() => ({ chapters: [] })),
   fetch('data/praise-stats.json').then(r => r.json()).catch(() => ({ matrix: [], highlights: [] })),
+  fetch('data/ff-stats.json').then(r => r.json()).catch(() => ({ incidents: [], total: 0 })),
 ])
-.then(([sessionsData, milestonesData, awardsData, charStatsData, roastData, storyJson, praiseData]) => {
+.then(([sessionsData, milestonesData, awardsData, charStatsData, roastData, storyJson, praiseData, ffData]) => {
   sessions     = sessionsData;
   milestones   = milestonesData;
   awards       = awardsData;
@@ -53,6 +55,7 @@ Promise.all([
   roastStats   = roastData;
   storyData    = storyJson;
   praiseStats  = praiseData;
+  ffStats      = ffData;
   // 為每條語錄附加穩定 index，供 onclick 引用
   (roastStats.quotes || roastStats.highlights || []).forEach((q, i) => { q._idx = i; });
   (praiseStats.quotes || []).forEach((q, i) => { q._pidx = i; });
@@ -822,9 +825,11 @@ function countUp(el, target, duration) {
 // 友軍傷害榜
 // ══════════════════════════════════════════════════════════
 function renderFriendlyFire() {
-  const ff = charStats.friendly_fire;
-  if (!ff?.incidents?.length) return '';
-  const incidents = ff.incidents.map(inc => `
+  if (!ffStats?.incidents?.length) return '';
+  const incidents = ffStats.incidents.map(inc => {
+    const sRef = sessions.find(s => s.id === inc.session);
+    const epLabel = sRef ? `第 ${inc.session} 集・${sRef.title}` : `第 ${inc.session} 集`;
+    return `
     <div class="ff-card">
       <div class="ff-actors">
         <div class="ff-actor">
@@ -844,15 +849,15 @@ function renderFriendlyFire() {
         </div>
       </div>
       <div class="ff-meta">
-        <span class="ff-chapter">${esc(inc.chapter)}</span>
+        <span class="ff-chapter">${esc(epLabel)}</span>
         <span class="ff-method">${esc(inc.method)}</span>
       </div>
       <p class="ff-desc">${esc(inc.desc)}</p>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   return `
     <div class="stats-section">
-      <div class="stats-section-title">友軍傷害榜</div>
-      <p class="ff-summary">${esc(ff.summary)}</p>
+      <div class="stats-section-title">⚔️ 友軍傷害榜</div>
       <div class="ff-list">${incidents}</div>
     </div>`;
 }
