@@ -774,7 +774,16 @@ function initStatsAnimations(container) {
         // Double rAF: ensure initial dashoffset state is painted before transition starts
         requestAnimationFrame(() => requestAnimationFrame(() => {
           entry.target.querySelectorAll('.rg-arrow').forEach((path, i) => {
-            setTimeout(() => { path.style.strokeDashoffset = '0'; }, i * 90);
+            setTimeout(() => {
+              path.style.strokeDashoffset = '0';
+              const onEnd = e => {
+                if (e.propertyName === 'stroke-dashoffset') {
+                  path.setAttribute('marker-end', 'url(#rg-ah)');
+                  path.removeEventListener('transitionend', onEnd);
+                }
+              };
+              path.addEventListener('transitionend', onEnd);
+            }, i * 90);
           });
         }));
         rgO.unobserve(entry.target);
@@ -1279,6 +1288,9 @@ function renderRoastArrowGraph(charNames, roastMap, maxCell) {
     <marker id="rg-ah" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
       <polygon points="0 0, 7 2.5, 0 5" fill="#c9a84c"/>
     </marker>
+    <marker id="rg-ah-hidden" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto">
+      <polygon points="0 0, 7 2.5, 0 5" fill="none"/>
+    </marker>
     ${clipPaths}
   </defs>`;
 
@@ -1312,7 +1324,7 @@ function renderRoastArrowGraph(charNames, roastMap, maxCell) {
         <path class="rg-arrow"
           d="${d}"
           stroke="#c9a84c" stroke-width="${sw}"
-          fill="none" marker-end="url(#rg-ah)"/>
+          fill="none" marker-end="url(#rg-ah-hidden)"/>
         <path class="rg-hit"
           d="${d}"
           stroke="transparent" stroke-width="24"
