@@ -1189,18 +1189,16 @@ function renderRoastQuotes() {
 }
 
 // ══════════════════════════════════════════════════════════
-// 角色活躍度熱力圖
+// 角色活躍度熱力圖（角色卡片模式）
 // ══════════════════════════════════════════════════════════
 function renderGrowthGrid(chars) {
   const activeSessions = sessions.filter(s => !s.placeholder);
   const sids = activeSessions.map(s => s.id);
 
-  // 預計算各維度
   const roastOut = {}, roastIn = {}, combat = {}, mvpMap = {}, praiseIn = {};
   CHAR_ORDER.forEach(c => { roastOut[c] = {}; roastIn[c] = {}; combat[c] = {}; mvpMap[c] = {}; praiseIn[c] = {}; });
 
-  const quotes = roastStats.quotes || [];
-  quotes.forEach(q => {
+  (roastStats.quotes || []).forEach(q => {
     const sid = q.session;
     const froms = Array.isArray(q.from) ? q.from : [q.from];
     const tos   = Array.isArray(q.to)   ? q.to   : [q.to];
@@ -1226,79 +1224,68 @@ function renderGrowthGrid(chars) {
   });
 
   const METRICS = [
-    { key: 'out',    label: '靠北輸出', data: roastOut,  palette: 'orange' },
-    { key: 'in',     label: '靠北被轟', data: roastIn,   palette: 'red'    },
-    { key: 'praise', label: '被稱讚',   data: praiseIn,  palette: 'green'  },
-    { key: 'combat', label: '戰功貢獻', data: combat,    palette: 'blue'   },
-    { key: 'mvp',    label: 'MVP 獲選', data: mvpMap,    palette: 'gold'   },
+    { label: '靠↑', data: roastOut, palette: 'orange' },
+    { label: '靠↓', data: roastIn,  palette: 'red'    },
+    { label: '稱讚', data: praiseIn, palette: 'green'  },
+    { label: '戰功', data: combat,   palette: 'blue'   },
+    { label: 'MVP',  data: mvpMap,   palette: 'gold'   },
   ];
 
   function cellClass(val, palette) {
-    if (!val) return `gc-cell gc-0`;
-    if (val >= 4) return `gc-cell gc-3 gc-${palette}`;
-    if (val >= 2) return `gc-cell gc-2 gc-${palette}`;
-    return `gc-cell gc-1 gc-${palette}`;
+    if (!val) return 'gcc gcc-0';
+    if (val >= 4) return `gcc gcc-3 gc-${palette}`;
+    if (val >= 2) return `gcc gcc-2 gc-${palette}`;
+    return `gcc gcc-1 gc-${palette}`;
   }
 
-  function buildGrid(metric) {
-    const rows = CHAR_ORDER.map(char => {
+  const sidHeader = sids.map(sid =>
+    `<div class="gcc-sid">${sid}</div>`
+  ).join('');
+
+  const cards = CHAR_ORDER.map(char => {
+    const metricRows = METRICS.map(m => {
       const cells = sids.map(sid => {
-        const val = metric.data[char]?.[sid] || 0;
-        return `<div class="${cellClass(val, metric.palette)}" title="S${sid} ${char}：${val}"></div>`;
+        const val = m.data[char]?.[sid] || 0;
+        const tip = val ? `S${sid}・${char}・${m.label}：${val} 次` : '';
+        return `<div class="${cellClass(val, m.palette)}"${tip ? ` title="${tip}"` : ''}></div>`;
       }).join('');
       return `
-        <div class="gc-row">
-          <div class="gc-char-label">
-            <span class="gc-av av-${esc(char)}">
-              <img src="data/images/avatars/${esc(char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
-            </span>
-            <span class="gc-char-name">${esc(char)}</span>
-          </div>
-          <div class="gc-cells">${cells}</div>
+        <div class="gcc-metric-row">
+          <span class="gcc-label gc-ml-${m.palette}">${esc(m.label)}</span>
+          <div class="gcc-cells">${cells}</div>
         </div>`;
     }).join('');
 
-    const sessionLabels = sids.map(sid => `<div class="gc-sid-label">S${sid}</div>`).join('');
     return `
-      <div class="gc-grid">
-        <div class="gc-sid-row"><div class="gc-char-label"></div><div class="gc-cells">${sessionLabels}</div></div>
-        ${rows}
+      <div class="gc-card">
+        <div class="gc-card-hd">
+          <div class="gc-card-av av-${esc(char)}">
+            <img src="data/images/avatars/${esc(char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+          </div>
+          <span class="gc-card-name">${esc(char)}</span>
+        </div>
+        <div class="gcc-metric-row gcc-sid-row">
+          <span class="gcc-label"></span>
+          <div class="gcc-cells gcc-sid-cells">${sidHeader}</div>
+        </div>
+        ${metricRows}
       </div>`;
-  }
+  }).join('');
 
-  const grids = METRICS.map((m, i) =>
-    `<div class="gc-panel${i === 0 ? '' : ' gc-hidden'}" data-metric="${m.key}">${buildGrid(m)}</div>`
-  ).join('');
-
-  const tabs = METRICS.map((m, i) =>
-    `<button class="gc-tab${i === 0 ? ' active' : ''}" data-metric="${m.key}" data-palette="${m.palette}" onclick="switchGrowthTab('${m.key}')">${m.label}</button>`
+  const legend = METRICS.map(m =>
+    `<span class="gc-leg-item">
+       <span class="gc-leg-dot gcc-1 gc-${m.palette}"></span>${esc(m.label)}
+     </span>`
   ).join('');
 
   return `
     <div class="stats-section">
-      <div class="gc-tabs">${tabs}</div>
-      <div class="gc-legend" id="gc-legend-bar">
-        <span class="gc-leg-item"><span class="gc-leg-dot gc-0"></span>無</span>
-        <span class="gc-leg-item"><span class="gc-leg-dot gc-1 gc-orange"></span>1次</span>
-        <span class="gc-leg-item"><span class="gc-leg-dot gc-2 gc-orange"></span>2–3次</span>
-        <span class="gc-leg-item"><span class="gc-leg-dot gc-3 gc-orange"></span>4+次</span>
-      </div>
-      ${grids}
+      <div class="gc-legend">${legend}</div>
+      <div class="gc-cards">${cards}</div>
     </div>`;
 }
 
-function switchGrowthTab(key) {
-  document.querySelectorAll('.gc-tab').forEach(b => b.classList.toggle('active', b.dataset.metric === key));
-  document.querySelectorAll('.gc-panel').forEach(p => p.classList.toggle('gc-hidden', p.dataset.metric !== key));
-  const palette = document.querySelector(`.gc-tab[data-metric="${key}"]`)?.dataset.palette;
-  if (palette) {
-    document.querySelectorAll('#gc-legend-bar .gc-leg-dot').forEach(dot => {
-      if (dot.classList.contains('gc-0')) return;
-      ['gc-orange', 'gc-red', 'gc-green', 'gc-blue', 'gc-gold'].forEach(p => dot.classList.remove(p));
-      dot.classList.add('gc-' + palette);
-    });
-  }
-}
+function switchGrowthTab() {}
 
 // ══════════════════════════════════════════════════════════
 // 靠北關係圖（SVG 五邊形箭頭圖）
