@@ -3365,17 +3365,29 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   box-shadow: 0 6px 20px rgba(0,0,0,0.18), 0 0 0 1px rgba(122,21,21,0.12);
 }
 
-/* 稱讚卡片：綠色邊框 */
+/* 稱讚卡片：羊皮紙暖色 + 金色上邊框（與靠北左紅邊框完全不同） */
 .praise-quote-card {
-  background: rgba(26,92,42,0.04);
-  border: 1px solid rgba(26,92,42,0.14);
-  border-left: 3px solid rgba(26,92,42,0.30);
+  background: linear-gradient(160deg, rgba(201,168,76,0.07) 0%, rgba(245,236,216,0.10) 100%);
+  border: 1px solid rgba(201,168,76,0.22);
+  border-top: 3px solid rgba(201,168,76,0.52);
+  border-left: none;
 }
 .praise-quote-card:hover {
-  background: rgba(26,92,42,0.09);
-  border-left-color: rgba(74,170,90,0.65);
-  box-shadow: 0 6px 20px rgba(0,0,0,0.18), 0 0 0 1px rgba(26,92,42,0.12);
+  background: linear-gradient(160deg, rgba(201,168,76,0.13) 0%, rgba(245,236,216,0.16) 100%);
+  border-color: rgba(201,168,76,0.45);
+  border-top-color: rgba(247,212,142,0.80);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.16), 0 0 12px rgba(201,168,76,0.12);
 }
+/* 稱讚卡片內元素覆蓋 */
+.praise-quote-card .rq-arrow { color: rgba(201,168,76,0.70); font-size: 14px; }
+.praise-quote-card .rq-ep   { color: #8b6a14; opacity: 0.75; }
+.praise-quote-card .rq-quote {
+  color: #7a5610;
+  font-size: 14px;
+  font-style: italic;
+  letter-spacing: 0.3px;
+}
+.praise-quote-card .rq-text { color: var(--ink-mid); }
 
 /* 角色大頭貼行 */
 .rq-actors {
@@ -4028,6 +4040,140 @@ a:focus-visible {
 }
 .rm-overlay.rm-closing .rm-dialog {
   transform: translateY(8px);
+}
+
+/* ── 稱讚 Modal（羊皮紙暖色，與靠北深色完全不同）──────────────── */
+.pm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  background: rgba(8,4,0,0.70);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+  backdrop-filter: blur(3px);
+}
+.pm-overlay.pm-open {
+  opacity: 1;
+  pointer-events: all;
+}
+.pm-dialog {
+  position: relative;
+  background: #fffbf2;
+  border: 1px solid rgba(201,168,76,0.35);
+  border-top: 3px solid #c9a84c;
+  max-width: 560px;
+  width: 100%;
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+  padding: 28px 28px 24px;
+  box-shadow: 0 20px 60px rgba(80,40,0,0.20), 0 0 0 1px rgba(201,168,76,0.20);
+  transform: scale(0.96);
+  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1);
+}
+.pm-overlay.pm-open .pm-dialog {
+  transform: scale(1);
+}
+.pm-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: none;
+  border: none;
+  color: #7a5610;
+  font-size: 18px;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px 8px;
+  opacity: 0.50;
+  transition: opacity 0.15s, color 0.15s;
+}
+.pm-close:hover { opacity: 1; color: #c9a84c; }
+
+.pm-header { margin-bottom: 18px; }
+.pm-actors-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.pm-char-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.pm-char-label {
+  font-size: 10px;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 1.5px;
+  color: #8b6914;
+  opacity: 0.80;
+  text-transform: uppercase;
+}
+.pm-av {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid rgba(201,168,76,0.45);
+  flex-shrink: 0;
+}
+.pm-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pm-av-group { display: flex; align-items: center; }
+.pm-av-group .pm-av + .pm-av { margin-left: -14px; border-color: rgba(201,168,76,0.65); }
+.pm-char-names {
+  font-size: 12px;
+  font-weight: 600;
+  color: #5a3e0a;
+  text-align: center;
+  line-height: 1.4;
+}
+.pm-arrow {
+  font-size: 16px;
+  color: #c9a84c;
+  flex-shrink: 0;
+  margin-top: 30px;
+  opacity: 0.80;
+}
+.pm-ep-title {
+  font-size: 11px;
+  color: #8b6914;
+  opacity: 0.75;
+  letter-spacing: 0.5px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(201,168,76,0.22);
+}
+.pm-quote {
+  font-size: 18px;
+  font-weight: 700;
+  font-style: italic;
+  color: #1a4d2e;
+  line-height: 1.55;
+  margin-bottom: 14px;
+}
+.pm-divider {
+  height: 1px;
+  background: rgba(201,168,76,0.28);
+  margin-bottom: 14px;
+}
+.pm-desc {
+  font-size: 13.5px;
+  color: #3d2a08;
+  opacity: 0.90;
+  line-height: 1.80;
+}
+.pm-overlay.pm-closing {
+  opacity: 0;
+  pointer-events: none;
+}
+.pm-overlay.pm-closing .pm-dialog {
+  transform: scale(0.96);
 }
 
 /* 首頁最新集標題 */

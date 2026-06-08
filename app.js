@@ -1580,43 +1580,73 @@ function filterPraiseQuotes(charName) {
   applyPraiseGrid();
 }
 
+function _pmInit() {
+  if (document.getElementById('pm-overlay')) return;
+  const el = document.createElement('div');
+  el.id = 'pm-overlay';
+  el.className = 'pm-overlay';
+  el.innerHTML = `
+    <div class="pm-dialog" id="pm-dialog">
+      <button class="pm-close" onclick="closePraiseModal()" title="關閉 (Esc)">✕</button>
+      <div class="pm-header" id="pm-header"></div>
+      <div class="pm-quote" id="pm-quote"></div>
+      <div class="pm-divider"></div>
+      <div class="pm-desc" id="pm-desc"></div>
+    </div>`;
+  el.addEventListener('click', e => { if (e.target === el) closePraiseModal(); });
+  document.body.appendChild(el);
+}
+
 function openPraiseModal(q) {
-  _rmInit();
-  const overlay = document.getElementById('rm-overlay');
+  _pmInit();
+  const overlay = document.getElementById('pm-overlay');
   const froms   = asArr(q.from);
   const tos     = asArr(q.to);
   const sRef    = sessions.find(s => s.id === q.session);
 
   const charBlock = (chars, label) => {
     const avatars = chars.map(c => `
-      <div class="rm-av av-${esc(c)}">
+      <div class="pm-av av-${esc(c)}">
         <img src="data/images/avatars/${esc(c)}.webp" alt="${esc(c)}"
              loading="lazy" decoding="async" onerror="this.style.display='none'">
       </div>`).join('');
     const names = chars.map(c => `<span>${esc(c)}</span>`).join('、');
     return `
-      <div class="rm-char-block">
-        <div class="rm-char-label">${label}</div>
-        <div class="rm-av-group">${avatars}</div>
-        <div class="rm-char-names">${names}</div>
+      <div class="pm-char-block">
+        <div class="pm-char-label">${label}</div>
+        <div class="pm-av-group">${avatars}</div>
+        <div class="pm-char-names">${names}</div>
       </div>`;
   };
 
   const epTitle = sRef ? `第 ${q.session} 集・${sRef.title}` : `第 ${q.session} 集`;
-  document.getElementById('rm-header').innerHTML = `
-    <div class="rm-actors-row">
+  document.getElementById('pm-header').innerHTML = `
+    <div class="pm-actors-row">
       ${charBlock(froms, '稱讚方')}
-      <span class="rm-arrow">→</span>
+      <span class="pm-arrow">✦</span>
       ${charBlock(tos, '被稱讚對象')}
     </div>
-    <div class="rm-ep-title">${esc(epTitle)}</div>`;
+    <div class="pm-ep-title">${esc(epTitle)}</div>`;
 
-  document.getElementById('rm-quote').textContent = q.quote ? `「${q.quote}」` : '';
-  document.getElementById('rm-desc').textContent   = q.desc || '';
+  document.getElementById('pm-quote').textContent = q.quote ? `「${q.quote}」` : '';
+  document.getElementById('pm-desc').textContent   = q.desc || '';
 
-  overlay.classList.add('rm-open');
-  document.addEventListener('keydown', _rmEsc);
+  overlay.classList.add('pm-open');
+  document.addEventListener('keydown', _pmEsc);
 }
+
+function closePraiseModal() {
+  const overlay = document.getElementById('pm-overlay');
+  if (!overlay) return;
+  document.removeEventListener('keydown', _pmEsc);
+  overlay.classList.add('pm-closing');
+  overlay.addEventListener('transitionend', (e) => {
+    if (e.target !== overlay) return;
+    overlay.classList.remove('pm-open', 'pm-closing');
+  }, { once: true });
+}
+
+function _pmEsc(e) { if (e.key === 'Escape') closePraiseModal(); }
 
 function renderPraiseCard(q, chars) {
   const src = char => `data/images/avatars/${esc(char)}.webp`;
@@ -1632,7 +1662,7 @@ function renderPraiseCard(q, chars) {
          onclick="openPraiseModal(_praiseAll()[${q._pidx}])">
       <div class="rq-actors">
         <div class="rq-av-group">${froms.map(avatar).join('')}</div>
-        <span class="rq-arrow">→</span>
+        <span class="rq-arrow">✦</span>
         <div class="rq-av-group">${tos.map(avatar).join('')}</div>
         <span class="rq-ep">S${q.session}</span>
       </div>
