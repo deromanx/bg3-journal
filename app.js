@@ -1196,8 +1196,8 @@ function renderGrowthGrid(chars) {
   const sids = activeSessions.map(s => s.id);
 
   // 預計算各維度
-  const roastOut = {}, roastIn = {}, combat = {}, mvpMap = {};
-  CHAR_ORDER.forEach(c => { roastOut[c] = {}; roastIn[c] = {}; combat[c] = {}; mvpMap[c] = {}; });
+  const roastOut = {}, roastIn = {}, combat = {}, mvpMap = {}, praiseIn = {};
+  CHAR_ORDER.forEach(c => { roastOut[c] = {}; roastIn[c] = {}; combat[c] = {}; mvpMap[c] = {}; praiseIn[c] = {}; });
 
   const quotes = roastStats.quotes || [];
   quotes.forEach(q => {
@@ -1206,6 +1206,12 @@ function renderGrowthGrid(chars) {
     const tos   = Array.isArray(q.to)   ? q.to   : [q.to];
     froms.forEach(c => { if (roastOut[c]) roastOut[c][sid] = (roastOut[c][sid] || 0) + 1; });
     tos.forEach(c   => { if (roastIn[c])  roastIn[c][sid]  = (roastIn[c][sid]  || 0) + 1; });
+  });
+
+  (praiseStats.quotes || []).forEach(q => {
+    const sid = q.session;
+    const tos = Array.isArray(q.to) ? q.to : [q.to];
+    tos.forEach(c => { if (praiseIn[c]) praiseIn[c][sid] = (praiseIn[c][sid] || 0) + 1; });
   });
 
   chars.forEach(c => {
@@ -1220,10 +1226,11 @@ function renderGrowthGrid(chars) {
   });
 
   const METRICS = [
-    { key: 'out',    label: '靠北輸出', data: roastOut, palette: 'orange' },
-    { key: 'in',     label: '靠北被轟', data: roastIn,  palette: 'red'    },
-    { key: 'combat', label: '戰功貢獻', data: combat,   palette: 'blue'   },
-    { key: 'mvp',    label: 'MVP 獲選', data: mvpMap,   palette: 'gold'   },
+    { key: 'out',    label: '靠北輸出', data: roastOut,  palette: 'orange' },
+    { key: 'in',     label: '靠北被轟', data: roastIn,   palette: 'red'    },
+    { key: 'praise', label: '被稱讚',   data: praiseIn,  palette: 'green'  },
+    { key: 'combat', label: '戰功貢獻', data: combat,    palette: 'blue'   },
+    { key: 'mvp',    label: 'MVP 獲選', data: mvpMap,    palette: 'gold'   },
   ];
 
   function cellClass(val, palette) {
@@ -1287,7 +1294,7 @@ function switchGrowthTab(key) {
   if (palette) {
     document.querySelectorAll('#gc-legend-bar .gc-leg-dot').forEach(dot => {
       if (dot.classList.contains('gc-0')) return;
-      ['gc-orange', 'gc-red', 'gc-blue', 'gc-gold'].forEach(p => dot.classList.remove(p));
+      ['gc-orange', 'gc-red', 'gc-green', 'gc-blue', 'gc-gold'].forEach(p => dot.classList.remove(p));
       dot.classList.add('gc-' + palette);
     });
   }

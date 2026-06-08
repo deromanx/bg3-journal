@@ -3627,6 +3627,11 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .gc-3.gc-gold { background: rgba(200,160,20,0.75); }
 .gc-4.gc-gold { background: rgba(200,160,20,0.75); }
 
+.gc-1.gc-green { background: rgba(26,110,50,0.22); }
+.gc-2.gc-green { background: rgba(26,110,50,0.42); }
+.gc-3.gc-green { background: rgba(26,110,50,0.62); }
+.gc-4.gc-green { background: rgba(26,110,50,0.80); }
+
 @media (max-width: 720px) {
   .gc-char-label { min-width: 80px; width: 80px; }
   .gc-char-name { font-size: 10.5px; }
