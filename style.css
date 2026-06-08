@@ -3365,6 +3365,18 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   box-shadow: 0 6px 20px rgba(0,0,0,0.18), 0 0 0 1px rgba(122,21,21,0.12);
 }
 
+/* 稱讚卡片：綠色邊框 */
+.praise-quote-card {
+  background: rgba(26,92,42,0.04);
+  border: 1px solid rgba(26,92,42,0.14);
+  border-left: 3px solid rgba(26,92,42,0.30);
+}
+.praise-quote-card:hover {
+  background: rgba(26,92,42,0.09);
+  border-left-color: rgba(74,170,90,0.65);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.18), 0 0 0 1px rgba(26,92,42,0.12);
+}
+
 /* 角色大頭貼行 */
 .rq-actors {
   display: flex;

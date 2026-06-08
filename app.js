@@ -55,6 +55,7 @@ Promise.all([
   praiseStats  = praiseData;
   // 為每條語錄附加穩定 index，供 onclick 引用
   (roastStats.quotes || roastStats.highlights || []).forEach((q, i) => { q._idx = i; });
+  (praiseStats.quotes || []).forEach((q, i) => { q._pidx = i; });
   renderSidebar();
   // 填入首頁最新集標題
   const _latest = sessions.slice().reverse().find(s => !s.placeholder);
@@ -479,6 +480,9 @@ function renderStats() {
   _roastFilter.clear();
   _roastPairFilter = null;
   _roastSort = 'desc';
+  _praiseFilter.clear();
+  _praisePairFilter = null;
+  _praiseSort = 'desc';
 
   if (_statsRendered) {
     const inner = document.getElementById('stats-inner');
@@ -889,6 +893,12 @@ function renderMatchupSplits(matchupData) {
 const asArr = v => Array.isArray(v) ? v : [v];
 
 const ROAST_PAGE_SIZE = 24;
+let _praiseFilter     = new Set();
+let _praisePairFilter = null;
+let _praiseFiltered   = null;
+let _praisePage       = 1;
+let _praiseSort       = 'desc';
+
 let _roastFilter     = new Set();
 let _roastPairFilter = null;   // {from, to} or null
 let _roastFiltered   = null;   // null = 全部；array = 未排序篩選結果
@@ -1463,6 +1473,217 @@ function renderPraiseSection() {
           <div class="rb-board">${initiatedRows}</div>
         </div>
       </div>
+    </div>
+    ${renderPraiseQuotes()}`;
+}
+
+// ══════════════════════════════════════════════════════════
+// 稱讚語錄系統（與靠北平行）
+// ══════════════════════════════════════════════════════════
+function _praiseAll() {
+  return praiseStats.quotes || [];
+}
+
+function _sortedPraiseQuotes(quotes) {
+  const q = quotes.slice();
+  if (_praiseSort === 'asc') return q.sort((a, b) => a.session - b.session);
+  if (_praiseSort === 'hot') {
+    const all = _praiseAll();
+    const pc = {};
+    all.forEach(r => {
+      const k = asArr(r.from).join(',') + '→' + asArr(r.to).join(',');
+      pc[k] = (pc[k] || 0) + 1;
+    });
+    const key = r => asArr(r.from).join(',') + '→' + asArr(r.to).join(',');
+    return q.sort((a, b) => (pc[key(b)] - pc[key(a)]) || (b.session - a.session));
+  }
+  return q.sort((a, b) => b.session - a.session);
+}
+
+function setPraiseSort(mode) {
+  _praiseSort = mode;
+  document.querySelectorAll('.pq-sort-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.sort === mode);
+  });
+  _praisePage = 1;
+  applyPraiseGrid();
+}
+
+function applyPraiseGrid() {
+  const quotes = _sortedPraiseQuotes(_praiseFiltered ?? _praiseAll());
+  const total  = quotes.length;
+  const totalPages = Math.max(1, Math.ceil(total / ROAST_PAGE_SIZE));
+  _praisePage = Math.min(Math.max(_praisePage, 1), totalPages);
+
+  const chars = charStats.characters || [];
+  const start = (_praisePage - 1) * ROAST_PAGE_SIZE;
+  const pageQuotes = quotes.slice(start, start + ROAST_PAGE_SIZE);
+
+  const countEl = document.getElementById('pq-count');
+  if (countEl) countEl.textContent = total;
+
+  const grid = document.getElementById('pq-grid');
+  if (grid) {
+    grid.innerHTML = total === 0
+      ? `<div class="rq-empty">（無符合語錄）</div>`
+      : pageQuotes.map(q => renderPraiseCard(q, chars)).join('');
+  }
+
+  const pager = document.getElementById('pq-pager');
+  if (!pager) return;
+  if (totalPages <= 1) { pager.innerHTML = ''; return; }
+  pager.innerHTML = `
+    <button class="rq-pg-btn" onclick="setPraisePage(${_praisePage - 1})"
+            ${_praisePage <= 1 ? 'disabled' : ''}>← 上頁</button>
+    <span class="rq-pg-info">第 ${_praisePage} / ${totalPages} 頁</span>
+    <button class="rq-pg-btn" onclick="setPraisePage(${_praisePage + 1})"
+            ${_praisePage >= totalPages ? 'disabled' : ''}>下頁 →</button>`;
+}
+
+function setPraisePage(n) {
+  _praisePage = n;
+  applyPraiseGrid();
+  document.getElementById('pq-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function clearPraiseFilter() {
+  _praiseFilter.clear();
+  _praisePairFilter = null;
+  _praiseFiltered   = null;
+  _praisePage       = 1;
+  document.querySelectorAll('.pq-filter-btn').forEach(btn => btn.classList.remove('active'));
+  const clearBtn = document.getElementById('pq-clear-btn');
+  if (clearBtn) clearBtn.classList.add('hidden');
+  applyPraiseGrid();
+}
+
+function filterPraiseQuotes(charName) {
+  _praisePairFilter = null;
+  if (_praiseFilter.has(charName)) {
+    _praiseFilter.delete(charName);
+  } else {
+    _praiseFilter.add(charName);
+  }
+  document.querySelectorAll('.pq-filter-btn').forEach(btn => {
+    btn.classList.toggle('active', _praiseFilter.has(btn.dataset.char));
+  });
+  const clearBtn = document.getElementById('pq-clear-btn');
+  if (clearBtn) clearBtn.classList.toggle('hidden', _praiseFilter.size === 0);
+
+  const quotes = _praiseAll();
+  const filtered = _praiseFilter.size === 0 ? quotes : quotes.filter(q => {
+    const all = [...asArr(q.from), ...asArr(q.to)];
+    return [..._praiseFilter].every(c => all.includes(c));
+  });
+  _praiseFiltered = _praiseFilter.size === 0 ? null : filtered.slice();
+  _praisePage = 1;
+  applyPraiseGrid();
+}
+
+function openPraiseModal(q) {
+  _rmInit();
+  const overlay = document.getElementById('rm-overlay');
+  const froms   = asArr(q.from);
+  const tos     = asArr(q.to);
+  const sRef    = sessions.find(s => s.id === q.session);
+
+  const charBlock = (chars, label) => {
+    const avatars = chars.map(c => `
+      <div class="rm-av av-${esc(c)}">
+        <img src="data/images/avatars/${esc(c)}.webp" alt="${esc(c)}"
+             loading="lazy" decoding="async" onerror="this.style.display='none'">
+      </div>`).join('');
+    const names = chars.map(c => `<span>${esc(c)}</span>`).join('、');
+    return `
+      <div class="rm-char-block">
+        <div class="rm-char-label">${label}</div>
+        <div class="rm-av-group">${avatars}</div>
+        <div class="rm-char-names">${names}</div>
+      </div>`;
+  };
+
+  const epTitle = sRef ? `第 ${q.session} 集・${sRef.title}` : `第 ${q.session} 集`;
+  document.getElementById('rm-header').innerHTML = `
+    <div class="rm-actors-row">
+      ${charBlock(froms, '稱讚方')}
+      <span class="rm-arrow">→</span>
+      ${charBlock(tos, '被稱讚對象')}
+    </div>
+    <div class="rm-ep-title">${esc(epTitle)}</div>`;
+
+  document.getElementById('rm-quote').textContent = q.quote ? `「${q.quote}」` : '';
+  document.getElementById('rm-desc').textContent   = q.desc || '';
+
+  overlay.classList.add('rm-open');
+  document.addEventListener('keydown', _rmEsc);
+}
+
+function renderPraiseCard(q, chars) {
+  const src = char => `data/images/avatars/${esc(char)}.webp`;
+  const avatar = char => `<div class="rq-av av-${esc(char)}" data-tip="${esc(char)}">
+          <img src="${src(char)}" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+        </div>`;
+  const froms = asArr(q.from);
+  const tos   = asArr(q.to);
+  const sRef  = sessions.find(s => s.id === q.session);
+  const cardTip = sRef ? `第 ${q.session} 集《${sRef.title}》` : `S${q.session}`;
+  return `
+    <div class="roast-quote-card praise-quote-card" data-tip="${esc(cardTip)}"
+         onclick="openPraiseModal(_praiseAll()[${q._pidx}])">
+      <div class="rq-actors">
+        <div class="rq-av-group">${froms.map(avatar).join('')}</div>
+        <span class="rq-arrow">→</span>
+        <div class="rq-av-group">${tos.map(avatar).join('')}</div>
+        <span class="rq-ep">S${q.session}</span>
+      </div>
+      ${q.quote ? `<div class="rq-quote">${esc(q.quote)}</div>` : ''}
+      <div class="rq-text">${esc(q.desc)}</div>
+    </div>`;
+}
+
+function renderPraiseQuotes() {
+  const quotes = _praiseAll();
+  if (!quotes.length) return '';
+  const chars = charStats.characters || [];
+
+  const filterBtns = chars.map(c => `
+    <button class="pq-filter-btn rq-filter-btn" data-char="${esc(c.char)}"
+            onclick="filterPraiseQuotes('${esc(c.char)}')"
+            data-tip="${esc(c.char)}">
+      <div class="rq-fav av-${esc(c.char)}">
+        <img src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+      </div>
+      <span class="rq-fname">${esc(c.char)}</span>
+    </button>`).join('');
+
+  _praiseFiltered = null;
+  _praisePage     = 1;
+  const firstPage  = _sortedPraiseQuotes(quotes).slice(0, ROAST_PAGE_SIZE).map(q => renderPraiseCard(q, chars)).join('');
+  const totalPages = Math.ceil(quotes.length / ROAST_PAGE_SIZE);
+  const initPager  = totalPages > 1 ? `
+    <div class="rq-pager" id="pq-pager">
+      <button class="rq-pg-btn" disabled>← 上頁</button>
+      <span class="rq-pg-info">第 1 / ${totalPages} 頁</span>
+      <button class="rq-pg-btn" onclick="setPraisePage(2)">下頁 →</button>
+    </div>` : `<div id="pq-pager"></div>`;
+
+  return `
+    <div class="stats-section" id="pq-section">
+      <div class="stats-section-title">📜 稱讚語錄大全</div>
+      <div class="rq-filter-row">
+        <span class="rq-filter-label">篩選角色：</span>
+        ${filterBtns}
+        <button id="pq-clear-btn" class="rq-clear-btn hidden" onclick="clearPraiseFilter()">✕ 清空</button>
+        <span class="rq-total">共 <strong id="pq-count">${quotes.length}</strong> 條</span>
+      </div>
+      <div class="rq-sort-row">
+        <span class="rq-sort-label">排序：</span>
+        <button class="pq-sort-btn rq-sort-btn active" data-sort="desc" onclick="setPraiseSort('desc')">最新</button>
+        <button class="pq-sort-btn rq-sort-btn" data-sort="asc" onclick="setPraiseSort('asc')">最舊</button>
+        <button class="pq-sort-btn rq-sort-btn" data-sort="hot" onclick="setPraiseSort('hot')">熱門</button>
+      </div>
+      <div class="roast-quotes-grid" id="pq-grid">${firstPage}</div>
+      ${initPager}
     </div>`;
 }
 
