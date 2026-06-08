@@ -163,20 +163,12 @@ def extract_docx(docx_path: Path, session_id: int) -> list[dict]:
                 t = "li"
         raw.append({"t": t, "v": text, "left": left})
 
-    # ── 後處理：h1 後若緊跟深縮排 body（left≥660）則降為 h2 ──
+    # ── 後處理：依自身縮排決定 h1/h2（left=0 → h1，left>0 → h2）──
     items = []
-    for i, item in enumerate(raw):
+    for item in raw:
         t = item["t"]
-        if t == "h1":
-            for j in range(i + 1, min(i + 6, len(raw))):
-                nxt = raw[j]
-                if nxt["t"] == "img":
-                    continue
-                if nxt["t"] in ("h1", "h2"):
-                    break  # 另一個標題緊跟 → 保持 h1
-                if nxt["left"] >= 660:
-                    t = "h2"
-                break
+        if t == "h1" and item["left"] > 0:
+            t = "h2"
         items.append({"t": t, "v": item["v"]})
 
     return items
