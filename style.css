@@ -637,9 +637,9 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   text-justify: inter-ideograph;
 }
 
-/* ── Drop Cap — 戲劇性首字（文章首段 4.4em，各 section 首段 2.8em） */
+/* ── Drop Cap — 戲劇性首字（文章首段 4.4em，第一個 section 首段 2.8em） */
 #session-body > p:first-of-type::first-letter,
-#session-body h2.section-h1 + p::first-letter {
+#session-body h2.section-h1:first-of-type + p::first-letter {
   float: left;
   font-family: 'Cinzel', serif;
   font-weight: 700;
@@ -653,7 +653,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 #session-body > p:first-of-type::first-letter {
   font-size: 4.4em;
 }
-#session-body h2.section-h1 + p::first-letter {
+#session-body h2.section-h1:first-of-type + p::first-letter {
   font-size: 2.8em;
   line-height: 0.85;
   padding-top: 4px;
@@ -959,7 +959,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   #session-body { font-size: 16px; }
   .content-frame { display: none; }
   #session-body > p:first-of-type::first-letter { font-size: 3.2em; }
-  #session-body h2.section-h1 + p::first-letter { font-size: 2.2em; }
+  #session-body h2.section-h1:first-of-type + p::first-letter { font-size: 2.2em; }
   /* 手機首屏：縮小封面圖避免佔太多視窗 */
   .welcome-cover-img { height: 28vh; }
 }
