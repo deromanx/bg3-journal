@@ -7,10 +7,11 @@
 用法：python3 extract.py
 """
 
-import os, re, json, io
+import os, re, json, io, zipfile
 from pathlib import Path
 from docx import Document
 from docx.oxml.ns import qn
+from lxml import etree
 from name_fixes import NAME_FIXES
 
 try:
@@ -104,6 +105,43 @@ def save_image(blob: bytes, out_path: Path, ext: str) -> bool:
         print(f"    ⚠ 圖片儲存失敗：{e}")
         return False
 
+# ── 讀取 numbering.xml，建立 numId → 有效縮排（left-hanging）對應表 ──
+def _build_num_indent_map(docx_path: Path) -> dict:
+    W = 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'
+    def wtag(n): return f'{{{W}}}{n}'
+    try:
+        with zipfile.ZipFile(docx_path, 'r') as z:
+            if 'word/numbering.xml' not in z.namelist():
+                return {}
+            root = etree.fromstring(z.read('word/numbering.xml'))
+    except Exception:
+        return {}
+
+    abstract_eff: dict[str, int] = {}
+    for an in root.iter(wtag('abstractNum')):
+        aid = an.get(wtag('abstractNumId'))
+        for lvl in an.iter(wtag('lvl')):
+            if lvl.get(wtag('ilvl')) != '0':
+                continue
+            # w:ind 位於 w:lvl/w:pPr/w:ind
+            ind = lvl.find(f'.//{wtag("ind")}')
+            if ind is not None:
+                left    = int(ind.get(wtag('left'),    '0') or '0')
+                hanging = int(ind.get(wtag('hanging'), '0') or '0')
+                abstract_eff[aid] = max(0, left - hanging)
+            else:
+                abstract_eff[aid] = 0
+            break
+
+    result: dict[str, int] = {}
+    for num in root.iter(wtag('num')):
+        nid = num.get(wtag('numId'))
+        an_ref = num.find(wtag('abstractNumId'))
+        if an_ref is not None:
+            result[nid] = abstract_eff.get(an_ref.get(wtag('val')), 0)
+    return result
+
+
 # ── DOCX 內容萃取 ─────────────────────────────────────────────
 def extract_docx(docx_path: Path, session_id: int) -> list[dict]:
     """
@@ -115,6 +153,7 @@ def extract_docx(docx_path: Path, session_id: int) -> list[dict]:
     img_dir = IMAGES_DIR / str(session_id)
     img_counter = 0
     raw = []  # {"t": ..., "v": ..., "left": int}
+    num_indent = _build_num_indent_map(docx_path)
 
     for para in doc.paragraphs:
         drawings = para._element.findall(".//" + qn("w:drawing"))
@@ -149,11 +188,18 @@ def extract_docx(docx_path: Path, session_id: int) -> list[dict]:
         if not text or is_meta(text):
             continue
         bold = any(run.bold for run in para.runs if run.text.strip())
-        # 讀縮排值判斷列表層級
+        # 讀縮排值：優先用段落自身 w:ind；若無則從 numbering 定義推算
         pPr = para._element.find(qn("w:pPr"))
         ind_el = pPr.find(qn("w:ind")) if pPr is not None else None
         left_raw = ind_el.get(qn("w:left"), "0") if ind_el is not None else "0"
         left = int(left_raw) if left_raw.isdigit() else 0
+        # 段落沒有自訂 w:ind 時，從 numbering.xml 取有效縮排
+        if ind_el is None and pPr is not None:
+            numPr = pPr.find(qn("w:numPr"))
+            if numPr is not None:
+                nid_el = numPr.find(qn("w:numId"))
+                if nid_el is not None:
+                    left = num_indent.get(nid_el.get(qn("w:val")), 0)
         t = classify(text, bold=bold)
         # 非標題段落：依縮排深度細分
         if t == "p":
