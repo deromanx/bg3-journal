@@ -425,19 +425,14 @@ function initMatrixHover() {
       th.classList.toggle('mm-col-active', i === colIdx - 1));
     tbl.querySelectorAll('.mm-row-hdr').forEach(th =>
       th.classList.toggle('mm-row-active', th.parentElement === row));
-    tbl.querySelectorAll('td').forEach(c => {
-      const ci = Array.from(c.parentElement.cells).indexOf(c);
-      c.classList.toggle('mm-same-row', c.parentElement === row && c !== cell);
-      c.classList.toggle('mm-same-col', ci === colIdx && c !== cell);
-    });
   });
   document.addEventListener('mouseout', e => {
     const cell = e.target.closest('.mm-cell,.mm-empty,.mm-self');
     if (!cell) return;
     const tbl = cell.closest('.matchup-matrix');
     if (!tbl || tbl.contains(e.relatedTarget)) return;
-    tbl.querySelectorAll('.mm-hdr,.mm-row-hdr,td')
-      .forEach(el => el.classList.remove('mm-col-active','mm-row-active','mm-same-row','mm-same-col'));
+    tbl.querySelectorAll('.mm-hdr,.mm-row-hdr')
+      .forEach(el => el.classList.remove('mm-col-active','mm-row-active'));
   });
 }
 
