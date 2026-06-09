@@ -29,6 +29,7 @@ let charStats     = { characters: [] };
 let roastStats    = { matrix: [], highlights: [] };
 let praiseStats   = { matrix: [], highlights: [] };
 let ffStats       = { incidents: [], total: 0 };
+let _ffFilter     = '全部';
 let storyData     = { chapters: [] };
 let currentId     = null;
 let currentView   = 'journal';
@@ -736,7 +737,7 @@ function renderStats() {
     </div>`;
 
   _statsRendered = true;
-  requestAnimationFrame(() => initStatsAnimations(inner));
+  requestAnimationFrame(() => { initStatsAnimations(inner); ffInit(); });
 }
 
 // ══════════════════════════════════════════════════════════
@@ -821,11 +822,49 @@ function countUp(el, target, duration) {
 // ══════════════════════════════════════════════════════════
 function renderFriendlyFire() {
   if (!ffStats?.incidents?.length) return '';
-  const incidents = ffStats.incidents.map(inc => {
+  const incidents = ffStats.incidents;
+
+  // Build counts
+  const perpCount = {}, victimCount = {};
+  CHAR_ORDER.forEach(c => { perpCount[c] = 0; victimCount[c] = 0; });
+  incidents.forEach(inc => {
+    if (inc.perp   in perpCount)   perpCount[inc.perp]++;
+    if (inc.victim in victimCount) victimCount[inc.victim]++;
+  });
+  const maxPerp   = Math.max(...Object.values(perpCount), 1);
+  const maxVictim = Math.max(...Object.values(victimCount), 1);
+
+  const perpSorted   = [...CHAR_ORDER].sort((a,b) => perpCount[b]   - perpCount[a]);
+  const victimSorted = [...CHAR_ORDER].sort((a,b) => victimCount[b] - victimCount[a]);
+
+  function miniBar(char, count, max, isPerp) {
+    const pct = (count / max * 100).toFixed(1);
+    const barClass = isPerp ? 'ff-mini-bar-perp' : 'ff-mini-bar-victim';
+    return `
+      <div class="ff-mini-row">
+        <div class="ff-mini-av av-${esc(char)}">
+          <img src="data/images/avatars/${esc(char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+        </div>
+        <div class="ff-mini-info">
+          <div class="ff-mini-name">${esc(char)}</div>
+          <div class="rb-bar-track"><div class="${barClass}" data-w="${pct}%" style="width:0"></div></div>
+        </div>
+        <span class="ff-mini-count">${count}</span>
+      </div>`;
+  }
+
+  const perpRows   = perpSorted.map(c => miniBar(c, perpCount[c],   maxPerp,   true)).join('');
+  const victimRows = victimSorted.map(c => miniBar(c, victimCount[c], maxVictim, false)).join('');
+
+  const pills = ['全部', ...CHAR_ORDER].map(c =>
+    `<button class="ff-pill${c === '全部' ? ' ff-pill-active' : ''}" data-ff-filter="${esc(c)}" onclick="ffSetFilter('${esc(c)}')">${esc(c)}</button>`
+  ).join('');
+
+  const cards = incidents.map((inc, idx) => {
     const sRef = sessions.find(s => s.id === inc.session);
     const epLabel = sRef ? `第 ${inc.session} 集・${sRef.title}` : `第 ${inc.session} 集`;
     return `
-    <div class="ff-card">
+    <div class="ff-card" data-perp="${esc(inc.perp)}" data-victim="${esc(inc.victim)}" data-idx="${idx}">
       <div class="ff-actors">
         <div class="ff-actor">
           <div class="ff-av av-${esc(inc.perp)}">
@@ -850,11 +889,75 @@ function renderFriendlyFire() {
       <p class="ff-desc">${esc(inc.desc)}</p>
     </div>`;
   }).join('');
+
   return `
     <div class="stats-section">
       <div class="stats-section-title">⚔️ 友軍傷害榜</div>
-      <div class="ff-list">${incidents}</div>
+      <div class="ff-ranking">
+        <div class="ff-ranking-col">
+          <div class="ff-ranking-label">最愛打人</div>
+          <div class="ff-mini-board">${perpRows}</div>
+        </div>
+        <div class="ff-ranking-col">
+          <div class="ff-ranking-label">最常被揍</div>
+          <div class="ff-mini-board">${victimRows}</div>
+        </div>
+      </div>
+      <div class="ff-pills">${pills}</div>
+      <div class="ff-list" id="ff-list">${cards}</div>
+      <button class="ff-expand-btn" id="ff-expand-btn" onclick="ffExpand()" style="display:none">查看全部 <span id="ff-hidden-count"></span> 筆</button>
     </div>`;
+}
+
+const FF_PREVIEW = 6;
+
+function ffSetFilter(char) {
+  _ffFilter = char;
+  document.querySelectorAll('.ff-pill').forEach(p =>
+    p.classList.toggle('ff-pill-active', p.dataset.ffFilter === char)
+  );
+  _ffApply(false);
+}
+
+function ffExpand() {
+  _ffApply(true);
+  const btn = document.getElementById('ff-expand-btn');
+  if (btn) btn.style.display = 'none';
+}
+
+function _ffApply(expanded) {
+  const list   = document.getElementById('ff-list');
+  const btn    = document.getElementById('ff-expand-btn');
+  const cntEl  = document.getElementById('ff-hidden-count');
+  if (!list) return;
+  let visible = 0, hidden = 0;
+  list.querySelectorAll('.ff-card').forEach(card => {
+    const match = _ffFilter === '全部'
+      || card.dataset.perp   === _ffFilter
+      || card.dataset.victim === _ffFilter;
+    if (!match) {
+      card.style.display = 'none';
+    } else if (!expanded && _ffFilter === '全部' && visible >= FF_PREVIEW) {
+      card.style.display = 'none';
+      hidden++;
+    } else {
+      card.style.display = '';
+      visible++;
+    }
+  });
+  if (btn) {
+    if (hidden > 0) {
+      if (cntEl) cntEl.textContent = hidden;
+      btn.style.display = '';
+    } else {
+      btn.style.display = 'none';
+    }
+  }
+}
+
+function ffInit() {
+  _ffFilter = '全部';
+  _ffApply(false);
 }
 
 // ══════════════════════════════════════════════════════════

@@ -1747,15 +1747,116 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 /* ══════════════════════════════════════════════════════════
    統計：友軍傷害榜
    ══════════════════════════════════════════════════════════ */
-.ff-summary {
-  font-size: 13px;
-  line-height: 1.7;
-  color: var(--ink-light);
-  font-style: italic;
+
+/* ── 排行摘要 ──────────────────────────────────────────────── */
+.ff-ranking {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
   margin-bottom: 20px;
-  padding: 12px 16px;
-  background: rgba(122,21,21,0.06);
-  border-left: 3px solid rgba(122,21,21,0.35);
+}
+
+.ff-ranking-label {
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(217,176,122,0.50);
+  margin-bottom: 10px;
+}
+
+.ff-mini-board { display: flex; flex-direction: column; gap: 8px; }
+
+.ff-mini-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 28px;
+  align-items: center;
+  gap: 8px;
+}
+
+.ff-mini-av {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 1px solid rgba(217,176,122,0.22);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.ff-mini-av img { width: 100%; height: 100%; object-fit: cover; }
+
+.ff-mini-info { display: flex; flex-direction: column; gap: 4px; }
+
+.ff-mini-name {
+  font-size: 12px;
+  color: rgba(217,176,122,0.75);
+  line-height: 1;
+}
+
+.ff-mini-count {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(217,176,122,0.70);
+  text-align: right;
+  line-height: 1;
+}
+
+.ff-mini-bar-perp {
+  height: 4px;
+  background: linear-gradient(to right, #7a1515, #c94040);
+  transition: width 0.6s ease;
+}
+
+.ff-mini-bar-victim {
+  height: 4px;
+  background: linear-gradient(to right, #7a5510, #c9a84c);
+  transition: width 0.6s ease;
+}
+
+/* ── 篩選 pills ────────────────────────────────────────────── */
+.ff-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.ff-pill {
+  padding: 4px 12px;
+  font-size: 12px;
+  font-family: inherit;
+  color: rgba(217,176,122,0.55);
+  background: rgba(139,90,40,0.08);
+  border: 1px solid rgba(139,90,40,0.20);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.ff-pill:hover {
+  background: rgba(139,90,40,0.16);
+  color: rgba(217,176,122,0.85);
+}
+.ff-pill.ff-pill-active {
+  background: rgba(122,21,21,0.20);
+  border-color: rgba(200,60,60,0.45);
+  color: rgba(200,100,100,0.95);
+}
+
+/* ── 展開按鈕 ──────────────────────────────────────────────── */
+.ff-expand-btn {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 10px;
+  font-size: 12px;
+  letter-spacing: 1px;
+  font-family: inherit;
+  color: rgba(217,176,122,0.55);
+  background: rgba(139,90,40,0.06);
+  border: 1px dashed rgba(139,90,40,0.25);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.ff-expand-btn:hover {
+  background: rgba(139,90,40,0.12);
+  color: rgba(217,176,122,0.80);
 }
 
 .ff-list {
@@ -3680,7 +3781,9 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   .ff-chapter { font-size: 13px; }
   .ff-method  { font-size: 14px; }
   .ff-desc    { font-size: 15px; line-height: 1.75; }
-  .ff-summary { font-size: 15px; }
+  .ff-ranking { grid-template-columns: 1fr; gap: 12px; }
+  .ff-mini-name { font-size: 13px; }
+  .ff-mini-count { font-size: 15px; }
 
   /* 對戰 */
   .matchup-note-row { font-size: 14px; }
