@@ -30,6 +30,7 @@ let roastStats    = { matrix: [], highlights: [] };
 let praiseStats   = { matrix: [], highlights: [] };
 let ffStats       = { incidents: [], total: 0 };
 let _ffFilter     = '全部';
+let _ffSort       = 'desc';
 let storyData     = { chapters: [] };
 let currentId     = null;
 let currentView   = 'journal';
@@ -903,7 +904,13 @@ function renderFriendlyFire() {
           <div class="ff-mini-board">${victimRows}</div>
         </div>
       </div>
-      <div class="ff-pills">${pills}</div>
+      <div class="ff-toolbar">
+        <div class="ff-pills">${pills}</div>
+        <div class="ff-sort">
+          <button class="ff-sort-btn ff-sort-active" data-ff-sort="desc" onclick="ffSetSort('desc')">最新</button>
+          <button class="ff-sort-btn" data-ff-sort="asc"  onclick="ffSetSort('asc')">最舊</button>
+        </div>
+      </div>
       <div class="ff-list" id="ff-list">${cards}</div>
       <button class="ff-expand-btn" id="ff-expand-btn" onclick="ffExpand()" style="display:none">查看全部 <span id="ff-hidden-count"></span> 筆</button>
     </div>`;
@@ -919,6 +926,14 @@ function ffSetFilter(char) {
   _ffApply(false);
 }
 
+function ffSetSort(dir) {
+  _ffSort = dir;
+  document.querySelectorAll('.ff-sort-btn').forEach(b =>
+    b.classList.toggle('ff-sort-active', b.dataset.ffSort === dir)
+  );
+  _ffApply(false);
+}
+
 function ffExpand() {
   _ffApply(true);
   const btn = document.getElementById('ff-expand-btn');
@@ -926,12 +941,21 @@ function ffExpand() {
 }
 
 function _ffApply(expanded) {
-  const list   = document.getElementById('ff-list');
-  const btn    = document.getElementById('ff-expand-btn');
-  const cntEl  = document.getElementById('ff-hidden-count');
+  const list  = document.getElementById('ff-list');
+  const btn   = document.getElementById('ff-expand-btn');
+  const cntEl = document.getElementById('ff-hidden-count');
   if (!list) return;
+
+  // Sort DOM nodes by data-idx
+  const cards = Array.from(list.querySelectorAll('.ff-card'));
+  cards.sort((a, b) => {
+    const diff = parseInt(a.dataset.idx) - parseInt(b.dataset.idx);
+    return _ffSort === 'desc' ? -diff : diff;
+  });
+  cards.forEach(c => list.appendChild(c));
+
   let visible = 0, hidden = 0;
-  list.querySelectorAll('.ff-card').forEach(card => {
+  cards.forEach(card => {
     const match = _ffFilter === '全部'
       || card.dataset.perp   === _ffFilter
       || card.dataset.victim === _ffFilter;
@@ -945,6 +969,7 @@ function _ffApply(expanded) {
       visible++;
     }
   });
+
   if (btn) {
     if (hidden > 0) {
       if (cntEl) cntEl.textContent = hidden;
@@ -957,6 +982,7 @@ function _ffApply(expanded) {
 
 function ffInit() {
   _ffFilter = '全部';
+  _ffSort   = 'desc';
   _ffApply(false);
 }
 
