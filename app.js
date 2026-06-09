@@ -2002,7 +2002,7 @@ const RADAR_DIMS = [
   { key: '貢獻度', label: '貢獻度', unit: '次', desc: '戰鬥貢獻＋MVP×2' },
   { key: '抗揍力', label: '抗揍力', unit: '',   desc: '陣亡×3＋倒地×1（越低越高）' },
   { key: '決鬥力', label: '決鬥力', unit: '%',  desc: '決鬥勝率' },
-  { key: '搞事力', label: '搞事力', unit: '次', desc: '被靠北次數' },
+  { key: '搞事力', label: '搞事力', unit: '次', desc: '被靠北次數＋友軍傷害次數' },
 ];
 
 function buildRadarScores(allChars) {
@@ -2012,12 +2012,13 @@ function buildRadarScores(allChars) {
     const decisive = (c.duels?.wins || 0) + (c.duels?.losses || 0);
     const initiated = matrix.filter(r => r.from === c.char).reduce((s, r) => s + r.count, 0);
     const received  = matrix.filter(r => r.to   === c.char).reduce((s, r) => s + r.count, 0);
+    const ffPerp    = (ffStats.incidents || []).filter(i => i.perp === c.char).length;
     raw[c.char] = {
       嘴砲力: initiated,
       貢獻度: (c.combat_contrib || c.praised || 0) + (c.mvp_count || 0) * 2,
       抗揍力: (c.deaths || 0) * 3 + (c.downed || 0),  // 加權懲罰分（越低越好）
       決鬥力: decisive ? Math.round((c.duels.wins || 0) / decisive * 100) : 0,
-      搞事力: received,
+      搞事力: received + ffPerp,
     };
   });
   // 各維度正規化到 0-100（決鬥力已是百分比；抗揍力反轉）
