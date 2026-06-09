@@ -1760,7 +1760,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   font-size: 11px;
   letter-spacing: 1.5px;
   text-transform: uppercase;
-  color: rgba(217,176,122,0.50);
+  color: var(--ink-light);
   margin-bottom: 10px;
 }
 
@@ -1786,7 +1786,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .ff-mini-name {
   font-size: 12px;
-  color: rgba(217,176,122,0.75);
+  color: var(--ink-mid);
   line-height: 1;
 }
 
@@ -1794,7 +1794,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   font-family: 'Cinzel', serif;
   font-size: 13px;
   font-weight: 700;
-  color: rgba(217,176,122,0.70);
+  color: var(--ink-mid);
   text-align: right;
   line-height: 1;
 }
@@ -1823,20 +1823,21 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   padding: 4px 12px;
   font-size: 12px;
   font-family: inherit;
-  color: rgba(217,176,122,0.55);
+  color: var(--ink-light);
   background: rgba(139,90,40,0.08);
-  border: 1px solid rgba(139,90,40,0.20);
+  border: 1px solid rgba(139,90,40,0.25);
   cursor: pointer;
   transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
 .ff-pill:hover {
   background: rgba(139,90,40,0.16);
-  color: rgba(217,176,122,0.85);
+  color: var(--ink-mid);
 }
 .ff-pill.ff-pill-active {
-  background: rgba(122,21,21,0.20);
-  border-color: rgba(200,60,60,0.45);
-  color: rgba(200,100,100,0.95);
+  background: rgba(122,21,21,0.14);
+  border-color: rgba(180,50,50,0.50);
+  color: #8b1a1a;
+  font-weight: 600;
 }
 
 /* ── 展開按鈕 ──────────────────────────────────────────────── */
@@ -1848,15 +1849,15 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   font-size: 12px;
   letter-spacing: 1px;
   font-family: inherit;
-  color: rgba(217,176,122,0.55);
+  color: var(--ink-light);
   background: rgba(139,90,40,0.06);
-  border: 1px dashed rgba(139,90,40,0.25);
+  border: 1px dashed rgba(139,90,40,0.30);
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
 .ff-expand-btn:hover {
-  background: rgba(139,90,40,0.12);
-  color: rgba(217,176,122,0.80);
+  background: rgba(139,90,40,0.13);
+  color: var(--ink-mid);
 }
 
 .ff-list {
