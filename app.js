@@ -542,8 +542,8 @@ function renderStats() {
     const lPct   = total ? Math.round(c.duels.losses  / total * 100) : 0;
     const dPct   = total ? 100 - wPct - lPct : 0;
     const medal  = rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : '';
-    const baseTip = `${c.duels.wins}勝 ${c.duels.losses}敗${draws ? ` ${draws}平` : ''}，勝率 ${pct}%（僅計決定局）`;
-    const duelTip = c.duels.detail ? `${c.duels.detail}\n\n${baseTip}` : baseTip;
+    const det = c.duels.detail || '';
+    const duelTip = det.length > 120 ? det.slice(0, 120) + '…' : det;
     return `
       <div class="duel-row" data-tip="${esc(duelTip)}">
         <div class="dr-av av-${esc(c.char)}">

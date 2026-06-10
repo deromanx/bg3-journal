@@ -152,16 +152,19 @@ def update_character_stats(char_stats, result, sid):
             idx = 0 if existing["chars"][0] == winner else 1
             existing["wins"][idx] += 1
 
-    # 將本集決鬥亮點追加進 detail 字串
+    # 將本集決鬥亮點追加進 detail 字串（每角色只加一次）
     highlights = result.get("duel_highlights", [])
     if highlights:
+        additions = "；".join(highlights)
+        involved = set()
         for duel in result.get("duels", []):
             for name in [duel.get("winner"), duel.get("loser")]:
                 if name and name in char_map:
-                    c = char_map[name]
-                    existing_detail = c["duels"].get("detail", "")
-                    additions = "；".join(highlights)
-                    c["duels"]["detail"] = (existing_detail + "；" + additions).lstrip("；")
+                    involved.add(name)
+        for name in involved:
+            c = char_map[name]
+            existing_detail = c["duels"].get("detail", "")
+            c["duels"]["detail"] = (existing_detail + "；" + additions).lstrip("；")
 
     char_stats["matchups"] = matchups
     return char_stats
