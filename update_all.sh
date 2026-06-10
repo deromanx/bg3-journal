@@ -64,8 +64,14 @@ else
     run python3 gen_ff_stats.py --from "$LATEST"
 fi
 
-# 9. 統一修正下游 JSON 的角色名錯字（收尾）
+# 9. 角色介紹 & 死亡敘述（全量重生成，耗時，需明確指定）
+if [[ "${1:-}" == "--chars-all" ]]; then
+    run python3 gen_char_summaries.py
+fi
+
+# 10. 統一修正下游 JSON 的角色名錯字（收尾）
 run python3 normalize_names.py
 
 echo
 echo "✅ Pipeline 完成。檢查 git diff 後即可 commit / push。"
+echo "   提示：角色介紹如需重生成，加 --chars-all 旗標重跑。"
