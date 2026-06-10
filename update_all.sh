@@ -65,9 +65,15 @@ else
     run python3 gen_ff_stats.py --from "$LATEST"
 fi
 
-# 9. 角色介紹 & 死亡敘述（預設每次重生成，加 --skip-chars 可略過）
+# 9. 角色介紹、死亡敘述、成就（預設每次重生成，加 --skip-chars 可略過；兩支並行）
 if [[ "${1:-}" != "--skip-chars" ]]; then
-    run python3 gen_char_summaries.py
+    echo
+    echo "▶ gen_char_summaries.py + gen_char_achievements.py（並行）"
+    python3 gen_char_summaries.py   > /tmp/bg3_char_summaries.log   2>&1 & PID_SUMM=$!
+    python3 gen_char_achievements.py > /tmp/bg3_char_achievements.log 2>&1 & PID_ACH=$!
+    wait $PID_SUMM || { cat /tmp/bg3_char_summaries.log    >&2; echo "❌ gen_char_summaries.py 失敗"    >&2; exit 1; }
+    wait $PID_ACH  || { cat /tmp/bg3_char_achievements.log >&2; echo "❌ gen_char_achievements.py 失敗" >&2; exit 1; }
+    echo "  ✓ 角色介紹與成就均完成"
 fi
 
 # 10. 統一修正下游 JSON 的角色名錯字（收尾）
