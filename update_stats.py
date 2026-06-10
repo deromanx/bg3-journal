@@ -307,11 +307,69 @@ def update_story(story, session):
     return story
 
 
+def reset_duel_stats(char_stats):
+    for c in char_stats.get("characters", []):
+        c["duels"] = {"wins": 0, "losses": 0, "draws": 0, "detail": ""}
+    char_stats["matchups"] = []
+    return char_stats
+
+
+def update_duels_only(char_stats, result):
+    """只更新決鬥統計，不動陣亡/靠北等其他欄位。"""
+    chars = char_stats.get("characters", [])
+    char_map = {c["char"]: c for c in chars}
+    matchups = char_stats.get("matchups", [])
+
+    for duel in result.get("duels", []):
+        winner = duel.get("winner", "")
+        loser  = duel.get("loser", "")
+        draw   = duel.get("draw", False)
+        if winner not in char_map or loser not in char_map:
+            continue
+        if draw:
+            char_map[winner]["duels"]["draws"] = char_map[winner]["duels"].get("draws", 0) + 1
+            char_map[loser]["duels"]["draws"]  = char_map[loser]["duels"].get("draws", 0) + 1
+        else:
+            char_map[winner]["duels"]["wins"]   = char_map[winner]["duels"].get("wins", 0) + 1
+            char_map[loser]["duels"]["losses"]  = char_map[loser]["duels"].get("losses", 0) + 1
+
+        pair_key = tuple(sorted([winner, loser]))
+        existing = next(
+            (m for m in matchups if tuple(sorted(m["chars"])) == pair_key), None
+        )
+        if existing is None:
+            existing = {"chars": [winner, loser], "wins": [0, 0], "draws": 0}
+            matchups.append(existing)
+        if draw:
+            existing["draws"] = existing.get("draws", 0) + 1
+        else:
+            idx = 0 if existing["chars"][0] == winner else 1
+            existing["wins"][idx] += 1
+
+    highlights = result.get("duel_highlights", [])
+    if highlights:
+        additions = "；".join(highlights)
+        involved = set()
+        for duel in result.get("duels", []):
+            for name in [duel.get("winner"), duel.get("loser")]:
+                if name and name in char_map:
+                    involved.add(name)
+        for name in involved:
+            c = char_map[name]
+            existing_detail = c["duels"].get("detail", "")
+            c["duels"]["detail"] = (existing_detail + "；" + additions).lstrip("；")
+
+    char_stats["matchups"] = matchups
+    return char_stats
+
+
 # ── 主程式 ─────────────────────────────────────────────────────
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--reprocess", type=int, metavar="SESSION_ID",
                         help="強制重新處理指定集數")
+    parser.add_argument("--duels-only", action="store_true",
+                        help="清空決鬥資料並全量重建（不動陣亡/靠北統計）")
     args = parser.parse_args()
 
     sessions    = load_json(DATA / "sessions.json", [])
@@ -324,7 +382,11 @@ def main():
 
     processed = get_processed_ids()
 
-    if args.reprocess:
+    if args.duels_only:
+        char_stats = reset_duel_stats(char_stats)
+        to_process = [s for s in sessions if not s.get("placeholder") and s.get("content")]
+        print(f"🔄 全量重建決鬥資料（{len(to_process)} 集，不動其他統計）\n")
+    elif args.reprocess:
         target = next((s for s in sessions if s["id"] == args.reprocess), None)
         if not target:
             print(f"❌ 找不到第 {args.reprocess} 集")
@@ -342,8 +404,9 @@ def main():
         print("✓ 沒有新集數需要處理")
         return
 
-    print(f"發現 {len(to_process)} 集待處理...\n")
-    stat_done = []  # 統計成功的集數，稍後生成故事
+    if not args.duels_only:
+        print(f"發現 {len(to_process)} 集待處理...\n")
+    stat_done = []
 
     # ── 階段一：統計分析（穩定，先處理並落盤）──
     for session in to_process:
@@ -356,9 +419,16 @@ def main():
             print("  ⚠ 分析失敗，跳過\n")
             continue
 
-        # 印出摘要
+        duels = result.get("duels", [])
+
+        if args.duels_only:
+            print(f"  決鬥：{len(duels)} 場")
+            char_stats = update_duels_only(char_stats, result)
+            save_json(DATA / "character-stats.json", char_stats)
+            print(f"  ✓ 已存\n")
+            continue
+
         deaths = result.get("deaths", [])
-        duels  = result.get("duels", [])
         ms     = result.get("milestones", [])
         print(f"  陣亡/倒地：{len(deaths)} 筆  決鬥：{len(duels)} 場  里程碑：{len(ms)} 條")
 
@@ -371,6 +441,10 @@ def main():
             mark_processed(sid)
         stat_done.append(session)
         print(f"  ✓ 統計完成\n")
+
+    if args.duels_only:
+        print("✅ 決鬥資料重建完成")
+        return
 
     if not stat_done:
         print("✓ 無變更")
