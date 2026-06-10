@@ -6,8 +6,9 @@
 # 內容生成全走 Gemini CLI 免費額度。
 #
 # 用法：
-#   ./update_all.sh              一般更新（regen_roast 只重算最新一集，省時）
+#   ./update_all.sh              一般更新
 #   ./update_all.sh --roast-all  靠北統計全量重跑（改了 regen 邏輯時才需要）
+#   ./update_all.sh --skip-chars 跳過角色介紹重生成（省 ~5 分鐘）
 #
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -64,8 +65,8 @@ else
     run python3 gen_ff_stats.py --from "$LATEST"
 fi
 
-# 9. 角色介紹 & 死亡敘述（全量重生成，耗時，需明確指定）
-if [[ "${1:-}" == "--chars-all" ]]; then
+# 9. 角色介紹 & 死亡敘述（預設每次重生成，加 --skip-chars 可略過）
+if [[ "${1:-}" != "--skip-chars" ]]; then
     run python3 gen_char_summaries.py
 fi
 
@@ -74,4 +75,4 @@ run python3 normalize_names.py
 
 echo
 echo "✅ Pipeline 完成。檢查 git diff 後即可 commit / push。"
-echo "   提示：角色介紹如需重生成，加 --chars-all 旗標重跑。"
+echo "   提示：加 --skip-chars 可跳過角色介紹重生成（省 ~5 分鐘）。"

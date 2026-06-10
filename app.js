@@ -542,8 +542,10 @@ function renderStats() {
     const lPct   = total ? Math.round(c.duels.losses  / total * 100) : 0;
     const dPct   = total ? 100 - wPct - lPct : 0;
     const medal  = rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : '';
-    const det = c.duels.detail || '';
-    const duelTip = det.length > 120 ? det.slice(0, 120) + '…' : det;
+    const hlArr = c.duels.highlights || [];
+    const duelTip = hlArr.length
+      ? hlArr.slice(-3).map(h => `S${h.session_id}：${h.text}`).join('\n').slice(0, 250)
+      : '';
     return `
       <div class="duel-row" data-tip="${esc(duelTip)}">
         <div class="dr-av av-${esc(c.char)}">
@@ -2313,10 +2315,12 @@ function renderCharacters(charName) {
         </div>` : ''}
       </div>` : ''}
 
-      ${c.duels?.detail ? `
+      ${(c.duels?.highlights || []).length ? `
       <div class="cp-section">
         <div class="cp-section-title">⚔ 決鬥歷程</div>
-        <p class="cp-duel-detail">${esc(c.duels.detail)}</p>
+        <div class="cp-duel-highlights">
+          ${c.duels.highlights.map(h => `<div class="cp-duel-entry"><span class="cp-duel-sid">S${h.session_id}</span>${esc(h.text)}</div>`).join('')}
+        </div>
       </div>` : ''}
     </div>`;
 }

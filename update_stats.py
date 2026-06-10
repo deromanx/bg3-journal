@@ -1,8 +1,15 @@
 #!/usr/bin/env python3
 """
 update_stats.py — 分析新集數，同步更新統計 JSON
-用法：python3 update_stats.py              # 處理所有新集數
-      python3 update_stats.py --reprocess 19  # 重新處理指定集數
+
+架構：
+  sessions-raw/{id}.json  每集的 Gemini 原始萃取結果（單一事實來源）
+  character-stats.json    由 sessions-raw/ 全量重算，任何時候都可重建
+
+用法：
+  python3 update_stats.py              # 萃取新集數 → 全量重建
+  python3 update_stats.py --reprocess 19  # 重新萃取第19集 → 全量重建
+  python3 update_stats.py --rebuild    # 從現有 sessions-raw/ 全量重建（不呼叫 Gemini）
 """
 
 import json, subprocess, sys, re, argparse
@@ -10,7 +17,7 @@ from pathlib import Path
 
 BASE = Path(__file__).parent
 DATA = BASE / "data"
-PROCESSED_FILE = DATA / ".stats_processed.json"
+SESSIONS_RAW_DIR = DATA / "sessions-raw"
 
 CHAR_NAMES = ["影心", "阿斯代倫", "曹", "卡拉克", "貓咕咕"]
 
@@ -25,13 +32,19 @@ def load_json(path, default):
 def save_json(path, data):
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2), "utf-8")
 
-def get_processed_ids():
-    return set(load_json(PROCESSED_FILE, []))
+def raw_path(sid):
+    return SESSIONS_RAW_DIR / f"{sid}.json"
 
-def mark_processed(sid):
-    ids = get_processed_ids()
-    ids.add(sid)
-    save_json(PROCESSED_FILE, sorted(ids))
+def save_raw(sid, result):
+    SESSIONS_RAW_DIR.mkdir(exist_ok=True)
+    save_json(raw_path(sid), result)
+
+def load_raw(sid):
+    p = raw_path(sid)
+    return load_json(p, None) if p.exists() else None
+
+def raw_exists(sid):
+    return raw_path(sid).exists()
 
 def session_to_text(session):
     lines = [f"集數：{session['chapter']} 《{session['title']}》"]
@@ -90,7 +103,6 @@ def gemini_analyze(text):
         return None
 
     output = result.stdout.strip()
-    # 嘗試從回應中取出 JSON
     json_match = re.search(r'\{[\s\S]*\}', output)
     if json_match:
         try:
@@ -137,7 +149,6 @@ def update_character_stats(char_stats, result, sid):
             char_map[winner]["duels"]["wins"]   = char_map[winner]["duels"].get("wins", 0) + 1
             char_map[loser]["duels"]["losses"]  = char_map[loser]["duels"].get("losses", 0) + 1
 
-        # 更新 matchups 矩陣
         pair_key = tuple(sorted([winner, loser]))
         existing = next(
             (m for m in matchups if tuple(sorted(m["chars"])) == pair_key), None
@@ -152,10 +163,10 @@ def update_character_stats(char_stats, result, sid):
             idx = 0 if existing["chars"][0] == winner else 1
             existing["wins"][idx] += 1
 
-    # 將本集決鬥亮點追加進 detail 字串（每角色只加一次）
-    highlights = result.get("duel_highlights", [])
-    if highlights:
-        additions = "；".join(highlights)
+    # 決鬥亮點：每集一條 {session_id, text}，存入每位參與角色的 highlights 陣列
+    hl_texts = result.get("duel_highlights", [])
+    if hl_texts:
+        entry_text = "；".join(hl_texts)
         involved = set()
         for duel in result.get("duels", []):
             for name in [duel.get("winner"), duel.get("loser")]:
@@ -163,8 +174,9 @@ def update_character_stats(char_stats, result, sid):
                     involved.add(name)
         for name in involved:
             c = char_map[name]
-            existing_detail = c["duels"].get("detail", "")
-            c["duels"]["detail"] = (existing_detail + "；" + additions).lstrip("；")
+            c["duels"].setdefault("highlights", []).append(
+                {"session_id": sid, "text": entry_text}
+            )
 
     char_stats["matchups"] = matchups
     return char_stats
@@ -209,7 +221,6 @@ def update_roast_stats(roast_stats, result, sid):
         if not frm_list or not to_list:
             continue
 
-        # matrix 展開所有 from×to 組合
         for frm in frm_list:
             for to in to_list:
                 existing = next((r for r in matrix if r["from"] == frm and r["to"] == to), None)
@@ -218,7 +229,6 @@ def update_roast_stats(roast_stats, result, sid):
                 else:
                     matrix.append({"from": frm, "to": to, "count": count})
 
-        # quotes 保留原始陣列格式
         from_val = frm_list[0] if len(frm_list) == 1 else frm_list
         to_val   = to_list[0]  if len(to_list)  == 1 else to_list
         if desc:
@@ -236,7 +246,6 @@ def update_roast_stats(roast_stats, result, sid):
 
 # ── 故事生成 ────────────────────────────────────────────────
 def gemini_story(session, prev_chapters):
-    """以喬治馬丁風格將跑團紀錄改寫成一章奇幻小說散文。"""
     text = session_to_text(session)
     sid  = session["id"]
 
@@ -266,7 +275,6 @@ def gemini_story(session, prev_chapters):
 請以純 JSON 格式回傳（不加說明文字或 markdown）：
 {{"title": "本章標題（10字內，文學風格）", "text": "小說正文（純文字，段落以空行分隔）"}}"""
 
-    # 長逐字稿生成 1500 字小說偶爾很慢；拉長 timeout 並重試，超時不讓整個 script crash
     for attempt in range(1, 3):
         try:
             result = subprocess.run(
@@ -293,7 +301,6 @@ def gemini_story(session, prev_chapters):
 def update_story(story, session):
     chapters = story.get("chapters", [])
     sid = session["id"]
-    # 跳過已生成的章節
     if any(ch["session_id"] == sid for ch in chapters):
         return story
     result = gemini_story(session, chapters)
@@ -307,162 +314,138 @@ def update_story(story, session):
     return story
 
 
-def reset_duel_stats(char_stats):
+# ── 重建邏輯 ────────────────────────────────────────────────────
+def reset_accumulated_stats(char_stats, awards, milestones, roast_stats):
+    """清空所有由 update_stats.py 管理的累計欄位，保留 ai_intro 等靜態欄位。"""
     for c in char_stats.get("characters", []):
-        c["duels"] = {"wins": 0, "losses": 0, "draws": 0, "detail": ""}
+        c["deaths"] = 0
+        c["downed"] = 0
+        c["death_notes"] = []
+        c.setdefault("duels", {})
+        c["duels"]["wins"]       = 0
+        c["duels"]["losses"]     = 0
+        c["duels"]["draws"]      = 0
+        c["duels"]["highlights"] = []
+        c["duels"].pop("detail", None)  # 移除舊格式
     char_stats["matchups"] = []
-    return char_stats
+    awards.clear()
+    milestones.clear()
+    roast_stats.update({"matrix": [], "highlights": [], "quotes": [], "total": 0})
+    return char_stats, awards, milestones, roast_stats
 
 
-def update_duels_only(char_stats, result):
-    """只更新決鬥統計，不動陣亡/靠北等其他欄位。"""
-    chars = char_stats.get("characters", [])
-    char_map = {c["char"]: c for c in chars}
-    matchups = char_stats.get("matchups", [])
-
-    for duel in result.get("duels", []):
-        winner = duel.get("winner", "")
-        loser  = duel.get("loser", "")
-        draw   = duel.get("draw", False)
-        if winner not in char_map or loser not in char_map:
+def rebuild_all_from_raw(sessions, char_stats, awards, milestones, roast_stats):
+    """從 sessions-raw/ 全量重算所有統計（不含故事）。"""
+    char_stats, awards, milestones, roast_stats = reset_accumulated_stats(
+        char_stats, awards, milestones, roast_stats
+    )
+    count = 0
+    for session in sorted(sessions, key=lambda s: s["id"]):
+        sid = session["id"]
+        result = load_raw(sid)
+        if result is None:
             continue
-        if draw:
-            char_map[winner]["duels"]["draws"] = char_map[winner]["duels"].get("draws", 0) + 1
-            char_map[loser]["duels"]["draws"]  = char_map[loser]["duels"].get("draws", 0) + 1
-        else:
-            char_map[winner]["duels"]["wins"]   = char_map[winner]["duels"].get("wins", 0) + 1
-            char_map[loser]["duels"]["losses"]  = char_map[loser]["duels"].get("losses", 0) + 1
-
-        pair_key = tuple(sorted([winner, loser]))
-        existing = next(
-            (m for m in matchups if tuple(sorted(m["chars"])) == pair_key), None
-        )
-        if existing is None:
-            existing = {"chars": [winner, loser], "wins": [0, 0], "draws": 0}
-            matchups.append(existing)
-        if draw:
-            existing["draws"] = existing.get("draws", 0) + 1
-        else:
-            idx = 0 if existing["chars"][0] == winner else 1
-            existing["wins"][idx] += 1
-
-    highlights = result.get("duel_highlights", [])
-    if highlights:
-        additions = "；".join(highlights)
-        involved = set()
-        for duel in result.get("duels", []):
-            for name in [duel.get("winner"), duel.get("loser")]:
-                if name and name in char_map:
-                    involved.add(name)
-        for name in involved:
-            c = char_map[name]
-            existing_detail = c["duels"].get("detail", "")
-            c["duels"]["detail"] = (existing_detail + "；" + additions).lstrip("；")
-
-    char_stats["matchups"] = matchups
-    return char_stats
+        char_stats  = update_character_stats(char_stats, result, sid)
+        awards      = update_awards(awards, result, sid)
+        milestones  = update_milestones(milestones, result, sid, session)
+        roast_stats = update_roast_stats(roast_stats, result, sid)
+        count += 1
+    print(f"  ✓ 從 {count} 集 sessions-raw/ 重建完成")
+    return char_stats, awards, milestones, roast_stats
 
 
 # ── 主程式 ─────────────────────────────────────────────────────
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--reprocess", type=int, metavar="SESSION_ID",
-                        help="強制重新處理指定集數")
-    parser.add_argument("--duels-only", action="store_true",
-                        help="清空決鬥資料並全量重建（不動陣亡/靠北統計）")
+                        help="重新萃取指定集數後全量重建")
+    parser.add_argument("--rebuild", action="store_true",
+                        help="從現有 sessions-raw/ 全量重建，不呼叫 Gemini")
     args = parser.parse_args()
 
-    sessions    = load_json(DATA / "sessions.json", [])
-    char_stats  = load_json(DATA / "character-stats.json", {"characters": []})
-    awards      = load_json(DATA / "awards.json", {})
-    milestones  = load_json(DATA / "milestones.json", [])
-    roast_stats = load_json(DATA / "roast-stats.json",
-                            {"matrix": [], "highlights": [], "total": 0})
-    story       = load_json(DATA / "story.json", {"chapters": []})
+    all_sessions = load_json(DATA / "sessions.json", [])
+    sessions     = [s for s in all_sessions if not s.get("placeholder") and s.get("content")]
+    char_stats   = load_json(DATA / "character-stats.json", {"characters": []})
+    awards       = load_json(DATA / "awards.json", {})
+    milestones   = load_json(DATA / "milestones.json", [])
+    roast_stats  = load_json(DATA / "roast-stats.json",
+                             {"matrix": [], "highlights": [], "total": 0})
+    story        = load_json(DATA / "story.json", {"chapters": []})
 
-    processed = get_processed_ids()
+    def save_all():
+        save_json(DATA / "character-stats.json", char_stats)
+        save_json(DATA / "awards.json",          awards)
+        save_json(DATA / "milestones.json",      milestones)
+        save_json(DATA / "roast-stats.json",     roast_stats)
 
-    if args.duels_only:
-        char_stats = reset_duel_stats(char_stats)
-        to_process = [s for s in sessions if not s.get("placeholder") and s.get("content")]
-        print(f"🔄 全量重建決鬥資料（{len(to_process)} 集，不動其他統計）\n")
-    elif args.reprocess:
+    # ── --rebuild：從現有 sessions-raw/ 重建，不呼叫 Gemini
+    if args.rebuild:
+        print("🔄 從 sessions-raw/ 全量重建統計...")
+        char_stats, awards, milestones, roast_stats = rebuild_all_from_raw(
+            sessions, char_stats, awards, milestones, roast_stats
+        )
+        save_all()
+        print("✅ 重建完成")
+        return
+
+    # ── 決定哪些集需要萃取
+    if args.reprocess:
         target = next((s for s in sessions if s["id"] == args.reprocess), None)
         if not target:
             print(f"❌ 找不到第 {args.reprocess} 集")
             sys.exit(1)
-        to_process = [target]
-        print(f"🔄 重新處理第 {args.reprocess} 集\n")
+        raw_path(args.reprocess).unlink(missing_ok=True)
+        to_extract = [target]
+        print(f"🔄 重新萃取第 {args.reprocess} 集\n")
     else:
-        to_process = [
-            s for s in sessions
-            if s["id"] not in processed and not s.get("placeholder")
-               and s.get("content")
-        ]
+        to_extract = [s for s in sessions if not raw_exists(s["id"])]
 
-    if not to_process:
+    if not to_extract:
         print("✓ 沒有新集數需要處理")
         return
 
-    if not args.duels_only:
-        print(f"發現 {len(to_process)} 集待處理...\n")
-    stat_done = []
+    print(f"發現 {len(to_extract)} 集待萃取...\n")
+    newly_extracted = []
 
-    # ── 階段一：統計分析（穩定，先處理並落盤）──
-    for session in to_process:
+    # ── 階段一：萃取並落盤 sessions-raw/
+    for session in to_extract:
         sid = session["id"]
         print(f"📖 {session['chapter']} 《{session['title']}》")
-
-        text = session_to_text(session)
+        text   = session_to_text(session)
         result = gemini_analyze(text)
         if not result:
             print("  ⚠ 分析失敗，跳過\n")
             continue
-
-        duels = result.get("duels", [])
-
-        if args.duels_only:
-            print(f"  決鬥：{len(duels)} 場")
-            char_stats = update_duels_only(char_stats, result)
-            save_json(DATA / "character-stats.json", char_stats)
-            print(f"  ✓ 已存\n")
-            continue
-
+        save_raw(sid, result)
+        newly_extracted.append(session)
         deaths = result.get("deaths", [])
+        duels  = result.get("duels", [])
         ms     = result.get("milestones", [])
-        print(f"  陣亡/倒地：{len(deaths)} 筆  決鬥：{len(duels)} 場  里程碑：{len(ms)} 條")
+        print(f"  陣亡/倒地：{len(deaths)} 筆  決鬥：{len(duels)} 場  里程碑：{len(ms)} 條  ✓ 已存\n")
 
-        char_stats  = update_character_stats(char_stats, result, sid)
-        awards      = update_awards(awards, result, sid)
-        milestones  = update_milestones(milestones, result, sid, session)
-        roast_stats = update_roast_stats(roast_stats, result, sid)
-
-        if not args.reprocess:
-            mark_processed(sid)
-        stat_done.append(session)
-        print(f"  ✓ 統計完成\n")
-
-    if args.duels_only:
-        print("✅ 決鬥資料重建完成")
+    if not newly_extracted:
+        print("✓ 無新資料")
         return
 
-    if not stat_done:
-        print("✓ 無變更")
-        return
-
-    # 統計先落盤：即使後面故事生成出意外，這部分也不會回滾、不需重算
-    save_json(DATA / "character-stats.json", char_stats)
-    save_json(DATA / "awards.json",           awards)
-    save_json(DATA / "milestones.json",       milestones)
-    save_json(DATA / "roast-stats.json",      roast_stats)
+    # ── 階段二：全量重建統計（idempotent，永遠從乾淨狀態算起）
+    print("🔄 重建統計...")
+    char_stats, awards, milestones, roast_stats = rebuild_all_from_raw(
+        sessions, char_stats, awards, milestones, roast_stats
+    )
+    save_all()
     print("✓ 統計 JSON 已儲存\n")
 
-    # ── 階段二：故事生成（慢且偶爾失敗，獨立處理；每集生成後立即存檔）──
+    # ── 階段三：故事生成
     failed = []
-    for session in stat_done:
+    for session in newly_extracted:
+        if args.reprocess:
+            story["chapters"] = [
+                ch for ch in story.get("chapters", [])
+                if ch["session_id"] != session["id"]
+            ]
         print(f"✍ 生成第 {session['id']} 集故事章節...")
         before = len(story.get("chapters", []))
-        story = update_story(story, session)
+        story  = update_story(story, session)
         if len(story.get("chapters", [])) > before:
             save_json(DATA / "story.json", story)
             print("  ✓ 已存")
