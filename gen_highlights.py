@@ -74,6 +74,11 @@ def main():
         if key not in awards:
             awards[key] = {}
 
+        # 已有 highlight 且非指定重跑時跳過
+        if awards[key].get("highlight") and not args.session:
+            print(f"  S{sid} 已有 highlight，跳過")
+            continue
+
         print(f"  處理 {session['chapter']} {session['title']}...", end=" ", flush=True)
         try:
             highlight = gen_highlight(session)

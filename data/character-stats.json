@@ -120,7 +120,7 @@
         "16": 1,
         "17": 2
       },
-      "mvp_count": 3
+      "mvp_count": 1
     },
     {
       "player": "林昱宇",
@@ -227,7 +227,7 @@
         "6": 1,
         "21": 1
       },
-      "mvp_count": 3,
+      "mvp_count": 2,
       "praised": 2,
       "praised_by_session": {
         "21": 2
@@ -350,7 +350,7 @@
         "20": 3,
         "21": 1
       },
-      "mvp_count": 8
+      "mvp_count": 10
     },
     {
       "player": "丁丁",
@@ -438,7 +438,7 @@
         "19": 1,
         "21": 2
       },
-      "mvp_count": 3
+      "mvp_count": 4
     },
     {
       "player": "昱如",
@@ -533,7 +533,7 @@
         "19": 1,
         "21": 1
       },
-      "mvp_count": 3
+      "mvp_count": 4
     }
   ],
   "friendly_fire": {

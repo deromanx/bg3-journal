@@ -30,16 +30,10 @@ run python3 update_stats.py
 run python3 count_praised.py
 run python3 count_combat_contrib.py
 
-# 4. 獎項、金句說話者、本集亮點（三者互相獨立，並行執行）
-echo
-echo "▶ gen_awards.py + gen_quote_by.py + gen_highlights.py（並行）"
-python3 gen_awards.py    > /tmp/bg3_awards.log    2>&1 & PID_AWARDS=$!
-python3 gen_quote_by.py  > /tmp/bg3_quoteby.log   2>&1 & PID_QUOTE=$!
-python3 gen_highlights.py > /tmp/bg3_highlights.log 2>&1 & PID_HL=$!
-wait $PID_AWARDS   || { cat /tmp/bg3_awards.log    >&2; echo "❌ gen_awards.py 失敗"    >&2; exit 1; }
-wait $PID_QUOTE    || { cat /tmp/bg3_quoteby.log   >&2; echo "❌ gen_quote_by.py 失敗"  >&2; exit 1; }
-wait $PID_HL       || { cat /tmp/bg3_highlights.log >&2; echo "❌ gen_highlights.py 失敗" >&2; exit 1; }
-echo "  ✓ 三支腳本均完成"
+# 4. 獎項、金句說話者、本集亮點（依序執行，避免 awards.json 競態）
+run python3 gen_awards.py
+run python3 gen_quote_by.py
+run python3 gen_highlights.py
 
 # 5. 補齊 update_stats 階段二可能漏掉的故事章節
 run python3 gen_story.py
@@ -65,15 +59,10 @@ else
     run python3 gen_ff_stats.py --from "$LATEST"
 fi
 
-# 9. 角色介紹、死亡敘述、成就（預設每次重生成，加 --skip-chars 可略過；兩支並行）
+# 9. 角色介紹、死亡敘述、成就（預設每次重生成，加 --skip-chars 可略過；依序執行避免競態）
 if [[ "${1:-}" != "--skip-chars" ]]; then
-    echo
-    echo "▶ gen_char_summaries.py + gen_char_achievements.py（並行）"
-    python3 gen_char_summaries.py   > /tmp/bg3_char_summaries.log   2>&1 & PID_SUMM=$!
-    python3 gen_char_achievements.py > /tmp/bg3_char_achievements.log 2>&1 & PID_ACH=$!
-    wait $PID_SUMM || { cat /tmp/bg3_char_summaries.log    >&2; echo "❌ gen_char_summaries.py 失敗"    >&2; exit 1; }
-    wait $PID_ACH  || { cat /tmp/bg3_char_achievements.log >&2; echo "❌ gen_char_achievements.py 失敗" >&2; exit 1; }
-    echo "  ✓ 角色介紹與成就均完成"
+    run python3 gen_char_summaries.py
+    run python3 gen_char_achievements.py
 fi
 
 # 10. 統一修正下游 JSON 的角色名錯字（收尾）

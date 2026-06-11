@@ -321,6 +321,7 @@ def reset_accumulated_stats(char_stats, awards, milestones, roast_stats):
         c["deaths"] = 0
         c["downed"] = 0
         c["death_notes"] = []
+        c["mvp_count"] = 0
         c.setdefault("duels", {})
         c["duels"]["wins"]       = 0
         c["duels"]["losses"]     = 0
@@ -395,6 +396,12 @@ def main():
             print(f"❌ 找不到第 {args.reprocess} 集")
             sys.exit(1)
         raw_path(args.reprocess).unlink(missing_ok=True)
+        # 同步清除 count_praised / count_combat_contrib 的 processed 標記
+        for pf in [DATA / ".praised_processed.json", DATA / ".combat_contrib_processed.json"]:
+            if pf.exists():
+                ids = load_json(pf, [])
+                if args.reprocess in ids:
+                    save_json(pf, sorted(i for i in ids if i != args.reprocess))
         to_extract = [target]
         print(f"🔄 重新萃取第 {args.reprocess} 集\n")
     else:
