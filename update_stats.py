@@ -186,7 +186,9 @@ def update_awards(awards, result, sid):
     a = result.get("awards", {})
     entry = {k: v for k, v in a.items() if v}
     if entry:
-        awards[str(sid)] = entry
+        # 保留已存在的 best_quote_by / highlight，sessions-raw 欄位優先覆蓋其餘
+        existing = awards.get(str(sid), {})
+        awards[str(sid)] = {**existing, **entry}
     return awards
 
 
@@ -329,7 +331,14 @@ def reset_accumulated_stats(char_stats, awards, milestones, roast_stats):
         c["duels"]["highlights"] = []
         c["duels"].pop("detail", None)  # 移除舊格式
     char_stats["matchups"] = []
+    # 保留由獨立腳本填充的欄位（best_quote_by / highlight），重建時不重跑
+    PRESERVED_FIELDS = ("best_quote_by", "highlight")
+    preserved = {k: {f: v[f] for f in PRESERVED_FIELDS if v.get(f)}
+                 for k, v in awards.items()}
     awards.clear()
+    for k, v in preserved.items():
+        if v:
+            awards[k] = v
     milestones.clear()
     roast_stats.update({"matrix": [], "highlights": [], "quotes": [], "total": 0})
     return char_stats, awards, milestones, roast_stats
