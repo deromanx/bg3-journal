@@ -561,7 +561,7 @@ function renderStats() {
         <div class="dc-skull">☠</div>
         <div class="dc-count">${c.deaths}</div>
         <div class="dc-unit">次陣亡</div>
-        ${c.downed != null ? `<div class="dc-downed">${c.downed} 次倒地</div>` : ''}
+        ${c.downed ? `<div class="dc-downed" title="僅計日誌明確記載的倒地，實際次數遠多於此">另有 ${c.downed} 次倒地紀錄</div>` : ''}
         ${c.death_narrative ? `<p class="dc-narrative">${esc(c.death_narrative)}</p>` : ''}
       </div>`;
   }).join('');
