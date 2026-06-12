@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 從 Google Drive BG3 場次資料夾讀取 .docx，萃取文字段落 + 插圖，
-輸出 data/sessions.json 與 data/images/<id>/*.jpg。
+輸出 data/sessions.json 與 data/images/<id>/*.webp。
 新增場次後重跑即可更新。
 
 用法：python3 extract.py
@@ -87,7 +87,7 @@ IMG_MAX_W = 900   # 最大寬度（px），超過則縮小
 def save_image(blob: bytes, out_path: Path, ext: str) -> bool:
     # 已存在則跳過解碼/縮放（只改文字重跑時不必重存全部圖片）。
     # 若某集圖片有更動，先刪掉 data/images/<id>/ 再重跑 extract.py。
-    if out_path.with_suffix(".jpg").exists():
+    if out_path.with_suffix(".webp").exists():
         return True
     out_path.parent.mkdir(parents=True, exist_ok=True)
     try:
@@ -99,7 +99,7 @@ def save_image(blob: bytes, out_path: Path, ext: str) -> bool:
             if w > IMG_MAX_W:
                 img = img.resize((IMG_MAX_W, int(h * IMG_MAX_W / w)),
                                  PILImage.LANCZOS)
-            img.save(out_path.with_suffix(".jpg"), "JPEG", quality=82, optimize=True)
+            img.save(out_path.with_suffix(".webp"), "WEBP", quality=75, method=6)
         else:
             out_path.write_bytes(blob)
         return True
@@ -176,7 +176,7 @@ def extract_docx(docx_path: Path, session_id: int) -> list[dict]:
                     blob = rel.target_part.blob
                     ext  = Path(rel.target_ref).suffix or ".png"
                     img_counter += 1
-                    fname = f"img_{img_counter:03d}.jpg"
+                    fname = f"img_{img_counter:03d}.webp"
                     out   = img_dir / fname
                     if save_image(blob, out, ext):
                         raw.append({"t": "img",

@@ -38,29 +38,52 @@ let _ignoreHash   = false;
 let _statsRendered = false;
 const _contentCache = {};
 
-// ── 載入 ──────────────────────────────────────────────────
+// ── 資料載入（首屏只抓必要檔，其餘分頁切換時延遲載入）────────
+const DATA_SOURCES = {
+  awards:      { url: 'data/awards.json',          fallback: {},
+                 assign: d => { awards = d; } },
+  milestones:  { url: 'data/milestones.json',      fallback: [],
+                 assign: d => { milestones = d; } },
+  charStats:   { url: 'data/character-stats.json', fallback: { characters: [] },
+                 assign: d => { charStats = d; } },
+  roastStats:  { url: 'data/roast-stats.json',     fallback: { matrix: [], highlights: [] },
+                 assign: d => {
+                   roastStats = d;
+                   // 為每條語錄附加穩定 index，供 onclick 引用
+                   (roastStats.quotes || roastStats.highlights || []).forEach((q, i) => { q._idx = i; });
+                 } },
+  praiseStats: { url: 'data/praise-stats.json',    fallback: { matrix: [], highlights: [] },
+                 assign: d => {
+                   praiseStats = d;
+                   (praiseStats.quotes || []).forEach((q, i) => { q._pidx = i; });
+                 } },
+  ffStats:     { url: 'data/ff-stats.json',        fallback: { incidents: [], total: 0 },
+                 assign: d => { ffStats = d; } },
+  storyData:   { url: 'data/story.json',           fallback: { chapters: [] },
+                 assign: d => { storyData = d; } },
+};
+const _dataPromises = {};
+
+function loadData(...keys) {
+  return Promise.all(keys.map(k => {
+    if (!_dataPromises[k]) {
+      const s = DATA_SOURCES[k];
+      _dataPromises[k] = fetch(s.url)
+        .then(r => r.json())
+        .catch(() => s.fallback)
+        .then(d => { s.assign(d); return d; });
+    }
+    return _dataPromises[k];
+  }));
+}
+
+// ── 首屏載入：側欄 + 本集戰報所需 ──────────────────────────
 Promise.all([
   fetch('data/sessions-meta.json').then(r => r.json()),
-  fetch('data/milestones.json').then(r => r.json()).catch(() => []),
-  fetch('data/awards.json').then(r => r.json()).catch(() => ({})),
-  fetch('data/character-stats.json').then(r => r.json()).catch(() => ({ characters: [] })),
-  fetch('data/roast-stats.json').then(r => r.json()).catch(() => ({ matrix: [], highlights: [] })),
-  fetch('data/story.json').then(r => r.json()).catch(() => ({ chapters: [] })),
-  fetch('data/praise-stats.json').then(r => r.json()).catch(() => ({ matrix: [], highlights: [] })),
-  fetch('data/ff-stats.json').then(r => r.json()).catch(() => ({ incidents: [], total: 0 })),
+  loadData('awards'),
 ])
-.then(([sessionsData, milestonesData, awardsData, charStatsData, roastData, storyJson, praiseData, ffData]) => {
-  sessions     = sessionsData;
-  milestones   = milestonesData;
-  awards       = awardsData;
-  charStats    = charStatsData;
-  roastStats   = roastData;
-  storyData    = storyJson;
-  praiseStats  = praiseData;
-  ffStats      = ffData;
-  // 為每條語錄附加穩定 index，供 onclick 引用
-  (roastStats.quotes || roastStats.highlights || []).forEach((q, i) => { q._idx = i; });
-  (praiseStats.quotes || []).forEach((q, i) => { q._pidx = i; });
+.then(([sessionsData]) => {
+  sessions = sessionsData;
   renderSidebar();
   // 填入首頁最新集標題
   const _latest = sessions.slice().reverse().find(s => !s.placeholder);
@@ -143,10 +166,22 @@ function showView(view) {
   const storyNav = document.getElementById('story-nav');
   if (storyNav) storyNav.classList.toggle('hidden-nav', view !== 'story');
 
-  if (view === 'characters') { _setHash('#characters'); renderCharacters(); }
-  if (view === 'stats')      { _setHash('#stats');      renderStats(); }
-  if (view === 'milestones') { _setHash('#milestones'); renderMilestones(); }
-  if (view === 'story')      { _setHash('#story');      renderStory(); renderStoryNav(); }
+  if (view === 'characters') {
+    _setHash('#characters');
+    loadData('charStats', 'roastStats', 'ffStats').then(() => renderCharacters());
+  }
+  if (view === 'stats') {
+    _setHash('#stats');
+    loadData('charStats', 'roastStats', 'praiseStats', 'ffStats').then(() => renderStats());
+  }
+  if (view === 'milestones') {
+    _setHash('#milestones');
+    loadData('milestones').then(() => renderMilestones());
+  }
+  if (view === 'story') {
+    _setHash('#story');
+    loadData('storyData').then(() => { renderStory(); renderStoryNav(); });
+  }
   if (view === 'journal')    { _setHash(currentId ? '#s' + currentId : '#home'); }
 
   // Force fade-in animation restart on each view switch
@@ -325,20 +360,26 @@ function renderAwardCard(sessionId) {
     </div>`;
 }
 
-// ── 閱讀進度條 ────────────────────────────────────────────
+// ── 閱讀進度條（rAF 節流）─────────────────────────────────
+let _progressTick = false;
 function updateProgress() {
-  const view = document.getElementById('session-view');
-  const bar  = document.getElementById('progress-bar');
-  if (!view || !bar) return;
-  const pct = view.scrollHeight <= view.clientHeight
-    ? 100
-    : (view.scrollTop / (view.scrollHeight - view.clientHeight)) * 100;
-  bar.style.width = pct + '%';
+  if (_progressTick) return;
+  _progressTick = true;
+  requestAnimationFrame(() => {
+    _progressTick = false;
+    const view = document.getElementById('session-view');
+    const bar  = document.getElementById('progress-bar');
+    if (!view || !bar) return;
+    const pct = view.scrollHeight <= view.clientHeight
+      ? 100
+      : (view.scrollTop / (view.scrollHeight - view.clientHeight)) * 100;
+    bar.style.width = pct + '%';
+  });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('session-view')
-    ?.addEventListener('scroll', updateProgress);
+    ?.addEventListener('scroll', updateProgress, { passive: true });
   initTooltip();
   initMatrixHover();
   initKeyboard();
@@ -355,8 +396,8 @@ function initBackToTop() {
   const handler = function() {
     btn.classList.toggle('visible', this.scrollTop > 400);
   };
-  document.getElementById('session-view')?.addEventListener('scroll', handler);
-  document.querySelectorAll('.content-scroll').forEach(el => el.addEventListener('scroll', handler));
+  document.getElementById('session-view')?.addEventListener('scroll', handler, { passive: true });
+  document.querySelectorAll('.content-scroll').forEach(el => el.addEventListener('scroll', handler, { passive: true }));
 }
 
 function scrollToTop() {
