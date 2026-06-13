@@ -7,6 +7,7 @@ gen_char_achievements.py — 用 Gemini 全量重生成角色 achievements 欄�
 
 import json, subprocess, re
 from pathlib import Path
+from placeholders import GUIDE as PLACEHOLDER_GUIDE
 
 BASE = Path(__file__).parent
 DATA = BASE / "data"
@@ -94,10 +95,12 @@ def gemini_generate(char_name, context):
 角色資料：
 {context}
 
+{PLACEHOLDER_GUIDE}
+
 成就設計要求：
-1. 每個成就包含：icon（單一emoji）、name（6-10字的幽默稱號）、desc（30-60字，幽默有梗，必須引用具體事件或精確數字）
+1. 每個成就包含：icon（單一emoji）、name（6-10字的幽默稱號）、desc（30-60字，幽默有梗，必須引用具體事件）
 2. 三個成就應涵蓋不同面向（例如：戰鬥特色、人設梗、特定代表事件）
-3. 數字必須正確：死亡次數、決鬥勝負、友軍傷害次數等都要與資料一致
+3. 累計統計數字一律用上述佔位符（如 {{deaths}}、{{mvp}}），不要寫實際數字
 4. 禁止出現「未嘗敗績」「全場第一」等可能因集數增加而過時的宣告
 5. 如果有決鬥敗績，禁止說「不敗」
 

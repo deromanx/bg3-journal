@@ -7,6 +7,7 @@ gen_char_summaries.py — 用 Gemini 全量重生成角色 ai_intro 與 death_na
 
 import json, subprocess, re
 from pathlib import Path
+from placeholders import GUIDE as PLACEHOLDER_GUIDE
 
 BASE = Path(__file__).parent
 DATA = BASE / "data"
@@ -84,9 +85,11 @@ def gemini_generate(char_name, context):
 角色資料：
 {context}
 
+{PLACEHOLDER_GUIDE}
+
 要求：
 1. ai_intro：60-100字，幽默、有個性。必須：①點出該角色在隊伍中的定位或特技、②提到至少一個具體的梗或事件、③末尾一句話點出性格。禁止使用「未嘗敗績」「全場第一」等可能過時的宣言。
-2. death_narrative：40-70字，簡潔有諷刺感。依時間序描述該角色最有代表性的幾次死法，數字要與死亡記錄一致。若死亡次數為0，寫「至今毫髮無傷，不知是實力還是運氣。」
+2. death_narrative：40-70字，簡潔有諷刺感。依時間序描述該角色最有代表性的幾次死法。若死亡次數為0，寫「至今毫髮無傷，不知是實力還是運氣。」
 
 回傳格式（JSON，不加說明）：
 {{

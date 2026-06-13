@@ -129,79 +129,60 @@ def check_structural(cs, gt):
     return issues
 
 
-# ── B. 文案脫鉤 ────────────────────────────────────────────────
-# 每條 (正則, 真實統計 key, 說明)。正則第一個 group 為聲稱數字。
-# 只放「措辭明確、不會與集數/傷害值混淆」的 pattern，寧可漏報不要誤報。
-PROSE_PATTERNS = [
-    (r"(\d+)\s*次(?:陣亡|死亡)", "deaths", "陣亡次數"),
-    (r"(?:陣亡|死亡)\s*(\d+)\s*次", "deaths", "陣亡次數"),
-    (r"(\d+)\s*[次場]\s*MVP", "mvp", "MVP次數"),
-    (r"MVP\s*(\d+)\s*[次場]", "mvp", "MVP次數"),
-    (r"(?:奪得|奪下|拿過|拿下|榮膺)\s*(\d+)\s*[次場](?=[^，。；！]*MVP)", "mvp", "MVP次數"),
-    (r"(\d+)\s*次倒地", "downed", "倒地次數"),
-    (r"倒地\s*(\d+)\s*次", "downed", "倒地次數"),
+# ── B. 文案佔位符檢查 ──────────────────────────────────────────
+# 資料已改用佔位符（{deaths} 等），由 app.js 渲染時注入真實值，數字永遠同步。
+# 驗證器的職責因此轉為：偵測「該用佔位符卻寫死的裸數字」——Gemini 漏用佔位符
+# 時會留下裸數字，未來統計變動就脫鉤。各 pattern 命中即代表應改佔位符。
+# 例外（合法的裸數字，不攔截）：集數編號 S20/第10集、單次傷害值、對特定人的配對靠北。
+
+# (正則, 應改用的佔位符, 說明)。命中即視為該佔位符化。
+BARE_PATTERNS = [
+    (r"\d+\s*次(?:陣亡|死亡)", "deaths", "陣亡次數"),
+    (r"(?:陣亡|死亡)\s*\d+\s*次", "deaths", "陣亡次數"),
+    (r"\d+\s*[次場]\s*MVP", "mvp", "MVP次數"),
+    (r"MVP\s*\d+\s*[次場]", "mvp", "MVP次數"),
+    (r"\d+\s*次倒地", "downed", "倒地次數"),
+    (r"倒地\s*\d+\s*次", "downed", "倒地次數"),
+    (r"\d+\s*勝\s*\d+\s*敗(?:\s*\d+\s*平)?", "wins/losses/draws", "決鬥戰績"),
+    (r"\d+\s*次友(?:軍|傷)", "ff_perp/ff_victim", "友軍傷害次數"),
 ]
 
-# 友軍傷害：prose 難分「施暴 / 受害」，故聲稱數字符合任一即視為正確，
-# 只攔截兩者皆不符（必為過時或幻覺）的情況。
-FF_PATTERN = r"(\d+)\s*次友(?:軍|傷)"
-
-# 靠北：prose 難分「主動/被動/配對」，數字符合任一合法值即可。
-# 動詞關鍵字（靠北/吐槽/嘲諷/開噴/回敬）為靠北專屬，誤報風險低。
-ROAST_PATTERNS = [
-    r"(?:靠北|吐槽|嘲諷|開噴|回敬|噴)(?:達|了)?\s*(\d+)\s*次",
-    r"(\d+)\s*次(?:靠北|吐槽|嘲諷)",
+# 靠北裸數字（須排除「對X」配對語境，配對是合法裸數字）。
+ROAST_BARE = [
+    r"(?:靠北|吐槽|嘲諷|開噴|回敬)(?:達|了)?\s*\d+\s*次",
+    r"\d+\s*次(?:靠北|吐槽|嘲諷)",
 ]
 
 
 def check_prose(cs, gt, warn):
+    """偵測 prose 內該用佔位符卻寫死的裸統計數字。"""
     issues = []
     for c in cs["characters"]:
         n = c["char"]
-        g = gt[n]
 
         fields = [("ai_intro", c.get("ai_intro", "")),
                   ("death_narrative", c.get("death_narrative", ""))]
         for i, a in enumerate(c.get("achievements", [])):
+            fields.append((f"achievements[{i}].name", a.get("name", "")))
             fields.append((f"achievements[{i}].desc", a.get("desc", "")))
 
         for fname, text in fields:
-            # 戰績「N勝N敗(N平)」整組比對
-            for m in re.finditer(r"(\d+)\s*勝\s*(\d+)\s*敗(?:\s*(\d+)\s*平)?", text):
-                w, l = int(m.group(1)), int(m.group(2))
-                dr = int(m.group(3)) if m.group(3) else None
-                if w != g["wins"] or l != g["losses"] or (dr is not None and dr != g["draws"]):
-                    real = f"{g['wins']}勝{g['losses']}敗{g['draws']}平"
-                    issues.append(f"{n}.{fname}: 戰績「{m.group(0).strip()}」≠ 實際 {real}")
-
-            # 單一統計數字比對
-            for pat, key, label in PROSE_PATTERNS:
+            for pat, ph, label in BARE_PATTERNS:
                 for m in re.finditer(pat, text):
-                    claimed = int(m.group(1))
-                    real = g[key]
-                    if claimed != real:
-                        issues.append(
-                            f"{n}.{fname}: {label}「{m.group(0).strip()}」聲稱 {claimed}，實際 {real}"
-                        )
-
-            # 友軍傷害：符合施暴或受害任一即可
-            for m in re.finditer(FF_PATTERN, text):
-                claimed = int(m.group(1))
-                if claimed not in (g["ff_perp"], g["ff_victim"]):
                     issues.append(
-                        f"{n}.{fname}: 友軍傷害「{m.group(0).strip()}」聲稱 {claimed}，"
-                        f"實際施暴 {g['ff_perp']} / 受害 {g['ff_victim']}"
+                        f"{n}.{fname}: {label}「{m.group(0).strip()}」是寫死的裸數字，"
+                        f"應改用佔位符 {{{ph}}}"
                     )
-
-            # 靠北：符合主動/被動合計或任一配對值即可
-            for pat in ROAST_PATTERNS:
+            # 靠北：排除「對X」配對
+            for pat in ROAST_BARE:
                 for m in re.finditer(pat, text):
-                    claimed = int(m.group(1))
-                    if claimed not in g["roast_ok"]:
-                        issues.append(
-                            f"{n}.{fname}: 靠北「{m.group(0).strip()}」聲稱 {claimed}，"
-                            f"實際主動 {g['roast_from']} / 被動 {g['roast_to']}"
-                        )
+                    prefix = text[max(0, m.start() - 5):m.start()]
+                    if "對" in prefix and any(ch in prefix for ch in CHARS):
+                        continue  # 配對靠北，合法裸數字
+                    issues.append(
+                        f"{n}.{fname}: 靠北「{m.group(0).strip()}」是寫死的裸數字，"
+                        f"應改用佔位符 {{roast_from}} 或 {{roast_to}}"
+                    )
     return issues
 
 
@@ -226,12 +207,13 @@ def main():
         print("\n✓ 結構一致性：個人統計 / matchup / awards / by_session 全部對齊")
 
     if prose:
-        print(f"\n⚠ 文案數字脫鉤（{len(prose)}）：")
+        print(f"\n⚠ 文案寫死裸數字（{len(prose)}）：")
         for s in prose:
             print(f"  • {s}")
-        print("\n  → 修法：重跑 gen_char_achievements.py / gen_char_summaries.py")
+        print("\n  → 這些數字未來統計變動就會脫鉤；應改用佔位符（見 placeholders.py），"
+              "\n    手動改或重跑 gen_char_*.py（prompt 已要求輸出佔位符）")
     else:
-        print("✓ 文案數字：ai_intro / death_narrative / achievements 內嵌數字全部正確")
+        print("✓ 文案佔位符：ai_intro / death_narrative / achievements 無寫死的統計裸數字")
 
     total = len(structural) + len(prose)
     print()

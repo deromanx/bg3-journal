@@ -562,7 +562,7 @@ function renderStats() {
         <div class="dc-count">${c.deaths}</div>
         <div class="dc-unit">次陣亡</div>
         ${c.downed ? `<div class="dc-downed" title="僅計日誌明確記載的倒地，實際次數遠多於此">另有 ${c.downed} 次倒地紀錄</div>` : ''}
-        ${c.death_narrative ? `<p class="dc-narrative">${esc(c.death_narrative)}</p>` : ''}
+        ${c.death_narrative ? `<p class="dc-narrative">${escInject(c.death_narrative, c)}</p>` : ''}
       </div>`;
   }).join('');
 
@@ -2293,8 +2293,8 @@ function renderCharacters(charName) {
     <div class="cp-achieve">
       <div class="cp-a-icon">${a.icon}</div>
       <div class="cp-a-body">
-        <div class="cp-a-name">${esc(a.name)}</div>
-        <div class="cp-a-desc">${esc(a.desc)}</div>
+        <div class="cp-a-name">${escInject(a.name, c)}</div>
+        <div class="cp-a-desc">${escInject(a.desc, c)}</div>
       </div>
     </div>`).join('');
 
@@ -2331,7 +2331,7 @@ function renderCharacters(charName) {
       ${c.ai_intro ? `
       <div class="cp-section">
         <div class="cp-section-title">✦ 角色摘要</div>
-        <p class="cp-intro">${esc(c.ai_intro)}</p>
+        <p class="cp-intro">${escInject(c.ai_intro, c)}</p>
       </div>` : ''}
 
       ${c.quotes?.length ? `
@@ -2349,7 +2349,7 @@ function renderCharacters(charName) {
       ${c.death_narrative ? `
       <div class="cp-section">
         <div class="cp-section-title">☠ 死亡紀錄</div>
-        <p class="cp-narrative">${esc(c.death_narrative)}</p>
+        <p class="cp-narrative">${escInject(c.death_narrative, c)}</p>
         ${(c.death_notes || []).length ? `
         <div class="cp-death-notes">
           ${c.death_notes.map(n => `<div class="cp-death-note">— ${esc(n)}</div>`).join('')}
@@ -2460,6 +2460,39 @@ function esc(s) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+// ── 統計佔位符注入 ────────────────────────────────────────────
+// AI 生成的 prose（ai_intro / death_narrative / achievements）把累計統計
+// 寫成 {deaths} 等佔位符；渲染時即時由真實資料替換，數字永遠同步、不脫鉤。
+// 佔位符語彙須與 verify_data.py 的 PLACEHOLDERS 保持一致。
+function computeCharNumbers(c) {
+  const matrix    = roastStats.matrix || [];
+  const incidents = ffStats.incidents || [];
+  const d = c.duels || {};
+  return {
+    deaths:     c.deaths || 0,
+    downed:     c.downed || 0,
+    wins:       d.wins || 0,
+    losses:     d.losses || 0,
+    draws:      d.draws || 0,
+    mvp:        c.mvp_count || 0,
+    ff_perp:    incidents.filter(i => i.perp   === c.char).length,
+    ff_victim:  incidents.filter(i => i.victim === c.char).length,
+    roast_from: matrix.filter(r => r.from === c.char).reduce((s, r) => s + r.count, 0),
+    roast_to:   matrix.filter(r => r.to   === c.char).reduce((s, r) => s + r.count, 0),
+  };
+}
+
+// 先注入數字、再 HTML 跳脫（佔位符替換為整數，安全）
+function injectStats(text, c) {
+  if (!text) return text;
+  const nums = computeCharNumbers(c);
+  return text.replace(/\{(\w+)\}/g, (m, key) => (key in nums ? nums[key] : m));
+}
+
+function escInject(text, c) {
+  return esc(injectStats(text, c));
 }
 
 // ══════════════════════════════════════════════════════════
