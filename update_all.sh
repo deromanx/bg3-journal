@@ -76,6 +76,10 @@ fi
 # 10. 統一修正下游 JSON 的角色名錯字（收尾）
 run python3 normalize_names.py
 
+# 11. 資料一致性驗證（最後關卡；--warn 只警告不阻斷 pipeline）
+run python3 verify_data.py --warn
+
 echo
 echo "✅ Pipeline 完成。檢查 git diff 後即可 commit / push。"
 echo "   提示：加 --skip-chars 可跳過角色介紹重生成（省 ~5 分鐘）。"
+echo "   若上方出現「文案數字脫鉤」警告，重跑 gen_char_achievements.py 即可。"
