@@ -790,6 +790,65 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     0 14px 40px rgba(0,0,0,0.26);
 }
 
+/* 可點擊放大的插圖 */
+.session-img.zoomable img {
+  cursor: zoom-in;
+  transition: filter 0.15s ease;
+}
+.session-img.zoomable img:hover {
+  filter: brightness(1.05);
+}
+
+/* ── 插圖燈箱 lightbox ─────────────────────────────────── */
+.lb-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9500;
+  background: rgba(2,1,0,0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  backdrop-filter: blur(4px);
+  cursor: zoom-out;
+}
+.lb-overlay.lb-open {
+  opacity: 1;
+  pointer-events: all;
+}
+.lb-img {
+  max-width: 95vw;
+  max-height: 92vh;
+  object-fit: contain;
+  outline: 1px solid rgba(201,168,76,0.4);
+  outline-offset: 4px;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+  transform: scale(0.97);
+  transition: transform 0.2s ease;
+  cursor: default;
+}
+.lb-overlay.lb-open .lb-img {
+  transform: scale(1);
+}
+.lb-close {
+  position: fixed;
+  top: 18px;
+  right: 22px;
+  background: none;
+  border: none;
+  color: rgba(245,236,215,0.85);
+  font-size: 30px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 6px 12px;
+  opacity: 0.75;
+  transition: opacity 0.15s, color 0.15s;
+}
+.lb-close:hover { opacity: 1; color: var(--gold); }
+
 /* ══════════════════════════════════════════════════════════
    頁尾導航
    ══════════════════════════════════════════════════════════ */

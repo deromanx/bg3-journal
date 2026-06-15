@@ -384,6 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initMatrixHover();
   initKeyboard();
   initBackToTop();
+  initLightbox();
   window.addEventListener('hashchange', () => {
     if (_ignoreHash) { _ignoreHash = false; return; }
     restoreFromHash();
@@ -1284,6 +1285,51 @@ function closeRoastModal() {
 }
 
 function _rmEsc(e) { if (e.key === 'Escape') closeRoastModal(); }
+
+// ── 插圖燈箱 lightbox ─────────────────────────────────────
+// 事件委派：點 session 內文插圖即放大檢視。一個監聽器涵蓋所有
+// 現有與未來載入的插圖，不需逐圖綁定。
+function initLightbox() {
+  const el = document.createElement('div');
+  el.id = 'lb-overlay';
+  el.className = 'lb-overlay';
+  el.innerHTML = `
+    <button class="lb-close" aria-label="關閉 (Esc)">✕</button>
+    <img class="lb-img" id="lb-img" alt="">`;
+  // 點背景或關閉鈕關閉；點圖片本身不關
+  el.addEventListener('click', e => {
+    if (e.target === el || e.target.classList.contains('lb-close')) closeLightbox();
+  });
+  document.body.appendChild(el);
+
+  document.addEventListener('click', e => {
+    const img = e.target.closest('.session-img img');
+    if (img) openLightbox(img.src, img.alt);
+  });
+}
+
+function openLightbox(src, alt) {
+  const overlay = document.getElementById('lb-overlay');
+  if (!overlay) return;
+  const img = document.getElementById('lb-img');
+  img.src = src;
+  img.alt = alt || '';
+  overlay.classList.add('lb-open');
+  document.addEventListener('keydown', _lbEsc);
+}
+
+function closeLightbox() {
+  const overlay = document.getElementById('lb-overlay');
+  if (!overlay) return;
+  document.removeEventListener('keydown', _lbEsc);
+  overlay.classList.add('lb-closing');
+  overlay.addEventListener('transitionend', e => {
+    if (e.target !== overlay) return;
+    overlay.classList.remove('lb-open', 'lb-closing');
+  }, { once: true });
+}
+
+function _lbEsc(e) { if (e.key === 'Escape') closeLightbox(); }
 
 // ── 靠北卡片渲染 ──────────────────────────────────────────
 function renderRoastCard(q, chars) {
@@ -2408,8 +2454,8 @@ function renderContent(items) {
   return items.map((item, i) => {
     switch (item.t) {
       case 'img':
-        return `<figure class="session-img">
-          <img src="${esc(item.v)}" alt="" loading="lazy">
+        return `<figure class="session-img zoomable">
+          <img src="${esc(item.v)}" alt="插圖（點擊放大）" loading="lazy">
         </figure>`;
 
       case 'h1': {
