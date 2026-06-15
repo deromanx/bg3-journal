@@ -6,6 +6,7 @@ verify_data.py — 資料一致性驗證器（pipeline 最後關卡）
   A. 結構一致性：個人統計 vs 衍生來源（matchup 矩陣、awards、by_session 合計）
   B. 文案脫鉤：AI 生成的 prose（ai_intro / death_narrative / achievements）
      內嵌的累計數字，是否與真實統計一致。
+  C. 集數同步：最新集數的衍生資料是否都已生成、各 _note 集數字串是否過時。
 
 設計動機：achievements、死亡敘述等由 Gemini 生成的文字會把「9次MVP」「14次陣亡」
 這類累計數字寫死在句子裡。每次全量 rebuild 改變統計後，這些數字就過時；Gemini
@@ -186,6 +187,49 @@ def check_prose(cs, gt, warn):
     return issues
 
 
+# ── C. 集數同步檢查 ─────────────────────────────────────────────
+def check_session_sync():
+    """確認最新集數的衍生資料都已生成，且 _note 集數字串未過時。"""
+    issues = []
+    sessions = load("sessions.json", [])
+    real_ids = [s["id"] for s in sessions
+                if not s.get("placeholder") and s.get("content")]
+    if not real_ids:
+        return issues
+    n_sessions = len(real_ids)
+    latest = max(real_ids)
+
+    # C1. 最新集覆蓋：roast / awards 每集必有衍生資料；缺即代表對應腳本漏跑。
+    #     （praise / ff 某集可能合法零事件，故不檢查其最新集覆蓋）
+    roast = load("roast-stats.json", {})
+    roast_sessions = {h.get("session") for h in roast.get("highlights", [])}
+    if latest not in roast_sessions:
+        issues.append(f"靠北統計缺最新第 {latest} 集（roast-stats highlights 未含），"
+                      f"regen_roast_quotes.py 可能漏跑")
+
+    aw = load("awards.json", {})
+    if str(latest) not in aw and latest not in aw:
+        issues.append(f"獎項缺最新第 {latest} 集（awards.json 無此 key），gen_awards.py 可能漏跑")
+
+    # C2. 角色逐集處理進度 marker
+    for marker, script in [(".praised_processed.json", "count_praised.py"),
+                           (".combat_contrib_processed.json", "count_combat_contrib.py")]:
+        done = load(marker, [])
+        if isinstance(done, list) and latest not in done:
+            issues.append(f"{marker} 未含第 {latest} 集，{script} 未處理最新集")
+
+    # C3. 過時集數字串：掃描各 JSON 的 _note，比對「分析 N 集 / 共 N 集」
+    pat = re.compile(r"(?:分析|共)\s*(\d+)\s*集")
+    for fname in ["roast-stats.json", "praise-stats.json", "ff-stats.json",
+                  "milestones.json", "story.json"]:
+        d = load(fname, None)
+        note = d.get("_note", "") if isinstance(d, dict) else ""
+        for m in pat.finditer(note):
+            if int(m.group(1)) != n_sessions:
+                issues.append(f"{fname} _note 集數過時：「{m.group(0)}」應為 {n_sessions} 集")
+    return issues
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--warn", action="store_true", help="只警告不阻斷（exit 0）")
@@ -194,6 +238,7 @@ def main():
     cs, gt = ground_truth()
     structural = check_structural(cs, gt)
     prose = check_prose(cs, gt, args.warn)
+    sync = check_session_sync()
 
     print("═" * 56)
     print("資料一致性驗證")
@@ -215,7 +260,15 @@ def main():
     else:
         print("✓ 文案佔位符：ai_intro / death_narrative / achievements 無寫死的統計裸數字")
 
-    total = len(structural) + len(prose)
+    if sync:
+        print(f"\n⚠ 集數同步問題（{len(sync)}）：")
+        for s in sync:
+            print(f"  • {s}")
+        print("\n  → 最新集衍生資料漏生成時重跑對應腳本；_note 集數過時則手動更新字串")
+    else:
+        print("✓ 集數同步：最新集衍生資料齊全，各 _note 集數字串無過時")
+
+    total = len(structural) + len(prose) + len(sync)
     print()
     if total == 0:
         print("✅ 全部通過")
