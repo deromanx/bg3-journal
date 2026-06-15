@@ -828,7 +828,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   box-shadow: 0 24px 80px rgba(0,0,0,0.7);
   transform: scale(0.97);
   transition: transform 0.2s ease;
-  cursor: default;
+  cursor: zoom-out;
 }
 .lb-overlay.lb-open .lb-img {
   transform: scale(1);

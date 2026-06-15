@@ -1296,10 +1296,8 @@ function initLightbox() {
   el.innerHTML = `
     <button class="lb-close" aria-label="關閉 (Esc)">✕</button>
     <img class="lb-img" id="lb-img" alt="">`;
-  // 點背景或關閉鈕關閉；點圖片本身不關
-  el.addEventListener('click', e => {
-    if (e.target === el || e.target.classList.contains('lb-close')) closeLightbox();
-  });
+  // 點 overlay 任何地方（背景、圖片、關閉鈕）都關閉
+  el.addEventListener('click', () => closeLightbox());
   document.body.appendChild(el);
 
   document.addEventListener('click', e => {
@@ -1322,11 +1320,8 @@ function closeLightbox() {
   const overlay = document.getElementById('lb-overlay');
   if (!overlay) return;
   document.removeEventListener('keydown', _lbEsc);
-  overlay.classList.add('lb-closing');
-  overlay.addEventListener('transitionend', e => {
-    if (e.target !== overlay) return;
-    overlay.classList.remove('lb-open', 'lb-closing');
-  }, { once: true });
+  // 直接移除 lb-open，靠 .lb-overlay 既有的 opacity transition 淡出
+  overlay.classList.remove('lb-open');
 }
 
 function _lbEsc(e) { if (e.key === 'Escape') closeLightbox(); }
