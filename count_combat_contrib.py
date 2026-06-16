@@ -11,7 +11,7 @@ count_combat_contrib.py — Gemini 分析每集日誌，統計每人「關鍵戰
 import json, subprocess, re, argparse
 from pathlib import Path
 
-from common import BASE, DATA, load_json, save_json
+from common import BASE, DATA, load_json, save_json, content_fingerprint
 CHAR_NAMES = ["影心", "阿斯代倫", "曹", "卡拉克", "貓咕咕"]
 PROCESSED_FILE = DATA / ".combat_contrib_processed.json"
 
@@ -22,13 +22,17 @@ def session_to_text(session):
             lines.append(item["v"])
     return "\n".join(lines)
 
+# 處理標記改存「id → 內容指紋」：內容被回頭修改時指紋改變，會自動重跑該集。
+# 容錯：若讀到舊版 list 格式，視為「指紋未知」（值為 None）。
 def get_processed():
-    return set(load_json(PROCESSED_FILE, []))
+    raw = load_json(PROCESSED_FILE, {})
+    if isinstance(raw, list):
+        return {str(i): None for i in raw}
+    return {str(k): v for k, v in raw.items()}
 
-def mark_processed(sid):
-    ids = get_processed()
-    ids.add(sid)
-    save_json(PROCESSED_FILE, sorted(ids))
+def mark_processed(sid, fp, store):
+    store[str(sid)] = fp
+    save_json(PROCESSED_FILE, store)
 
 def gemini_count_contrib(text, sid):
     prompt = f"""你是一位分析桌上RPG跑團日誌的助手。請仔細閱讀以下跑團紀錄，統計每位角色的「關鍵戰鬥貢獻」次數。
@@ -90,22 +94,22 @@ def main():
 
     processed = get_processed()
 
+    def fp_of(s):
+        return content_fingerprint(s.get("content", []))
+
     if args.rewrite:
         sid = args.rewrite
-        for c in chars:
-            by_sess = c.setdefault("combat_contrib_by_session", {})
-            old = by_sess.pop(str(sid), 0)
-            c["combat_contrib"] = max(0, c.get("combat_contrib", 0) - old)
         to_process = [s for s in sessions if s["id"] == sid
                       and not s.get("placeholder") and s.get("content")]
         print(f"強制重跑第 {sid} 集\n")
     else:
+        # 指紋不符（新集或內容被回頭修改）才處理
         to_process = [
             s for s in sessions
             if s["id"] >= args.start_from
-            and s["id"] not in processed
             and not s.get("placeholder")
             and s.get("content")
+            and processed.get(str(s["id"])) != fp_of(s)
         ]
         print(f"待處理 {len(to_process)} 集\n")
 
@@ -118,6 +122,10 @@ def main():
             print("  ⚠ 失敗，跳過")
             continue
 
+        # 先清除本集舊貢獻（重跑時避免殘留），再依新結果重填
+        for c in chars:
+            c.get("combat_contrib_by_session", {}).pop(str(sid), None)
+
         contribs = result.get("contributions", [])
         total = 0
         for item in contribs:
@@ -126,20 +134,20 @@ def main():
             if name not in char_map or count <= 0:
                 continue
             c = char_map[name]
-            c.setdefault("combat_contrib", 0)
-            c.setdefault("combat_contrib_by_session", {})
-            c["combat_contrib"] += count
-            c["combat_contrib_by_session"][str(sid)] = count
+            c.setdefault("combat_contrib_by_session", {})[str(sid)] = count
             total += count
             examples = "、".join(item.get("examples", [])[:2])
             print(f"  {name} +{count}（{examples}）")
+
+        # 純量一律由 by_session 推導：idempotent，免疫重跑與 reset 失步
+        for c in chars:
+            c["combat_contrib"] = sum(c.get("combat_contrib_by_session", {}).values())
 
         if total == 0:
             print("  本集無關鍵貢獻記錄")
 
         save_json(DATA / "character-stats.json", char_stats)
-        if not args.rewrite:
-            mark_processed(sid)
+        mark_processed(sid, fp_of(session), processed)
         print(f"  ✓\n")
 
     print("── 最終統計 ──")

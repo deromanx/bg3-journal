@@ -10,7 +10,7 @@ count_praised.py — 讓 Gemini 分析每集日誌，統計每人在戰鬥中被
 import json, subprocess, re, argparse
 from pathlib import Path
 
-from common import BASE, DATA, load_json, save_json
+from common import BASE, DATA, load_json, save_json, content_fingerprint
 CHAR_NAMES = ["影心", "阿斯代倫", "曹", "卡拉克", "貓咕咕"]
 PROCESSED_FILE = DATA / ".praised_processed.json"
 
@@ -21,13 +21,17 @@ def session_to_text(session):
             lines.append(item["v"])
     return "\n".join(lines)
 
+# 處理標記改存「id → 內容指紋」：內容被回頭修改時指紋改變，會自動重跑該集。
+# 容錯：若讀到舊版 list 格式，視為「指紋未知」（值為 None），交由呼叫端決定。
 def get_processed():
-    return set(load_json(PROCESSED_FILE, []))
+    raw = load_json(PROCESSED_FILE, {})
+    if isinstance(raw, list):
+        return {str(i): None for i in raw}
+    return {str(k): v for k, v in raw.items()}
 
-def mark_processed(sid):
-    ids = get_processed()
-    ids.add(sid)
-    save_json(PROCESSED_FILE, sorted(ids))
+def mark_processed(sid, fp, store):
+    store[str(sid)] = fp
+    save_json(PROCESSED_FILE, store)
 
 def gemini_count_praised(text, sid):
     prompt = f"""你是一位分析桌上RPG跑團日誌的助手。請仔細閱讀以下跑團紀錄，統計每位玩家角色在**戰鬥場景中**被隊友稱讚的次數。
@@ -84,23 +88,22 @@ def main():
 
     processed = get_processed()
 
+    def fp_of(s):
+        return content_fingerprint(s.get("content", []))
+
     if args.rewrite:
-        # 清除該集的貢獻（從 praised_by_session 追蹤）
         sid = args.rewrite
-        for c in chars:
-            by_sess = c.setdefault("praised_by_session", {})
-            old = by_sess.pop(str(sid), 0)
-            c["praised"] = max(0, c.get("praised", 0) - old)
         to_process = [s for s in sessions if s["id"] == sid
                       and not s.get("placeholder") and s.get("content")]
         print(f"強制重跑第 {sid} 集\n")
     else:
+        # 指紋不符（新集或內容被回頭修改）才處理
         to_process = [
             s for s in sessions
             if s["id"] >= args.start_from
-            and s["id"] not in processed
             and not s.get("placeholder")
             and s.get("content")
+            and processed.get(str(s["id"])) != fp_of(s)
         ]
         print(f"待處理 {len(to_process)} 集\n")
 
@@ -113,6 +116,10 @@ def main():
             print("  ⚠ 失敗，跳過")
             continue
 
+        # 先清除本集舊貢獻（重跑時避免殘留），再依新結果重填
+        for c in chars:
+            c.get("praised_by_session", {}).pop(str(sid), None)
+
         praised_list = result.get("praised", [])
         total = 0
         for item in praised_list:
@@ -121,20 +128,20 @@ def main():
             if name not in char_map or count <= 0:
                 continue
             c = char_map[name]
-            c.setdefault("praised", 0)
-            c.setdefault("praised_by_session", {})
-            c["praised"] += count
-            c["praised_by_session"][str(sid)] = count
+            c.setdefault("praised_by_session", {})[str(sid)] = count
             total += count
             examples = "、".join(item.get("examples", [])[:2])
             print(f"  {name} +{count}（{examples}）")
+
+        # 純量一律由 by_session 推導：idempotent，免疫重跑與 reset 失步
+        for c in chars:
+            c["praised"] = sum(c.get("praised_by_session", {}).values())
 
         if not praised_list or total == 0:
             print("  本集無稱讚紀錄")
 
         save_json(DATA / "character-stats.json", char_stats)
-        if not args.rewrite:
-            mark_processed(sid)
+        mark_processed(sid, fp_of(session), processed)
         print(f"  ✓\n")
 
     # 最終輸出統計

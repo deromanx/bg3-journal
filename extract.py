@@ -26,6 +26,8 @@ GOOGLE_DRIVE = Path.home() / "Library/CloudStorage" \
 BASE_DIR   = Path(__file__).parent
 OUTPUT     = BASE_DIR / "data" / "sessions.json"
 IMAGES_DIR = BASE_DIR / "data" / "images"
+# id → 資料夾日期前綴的穩定映射；用來偵測資料夾插入/刪除/重排導致的 id 位移
+FOLDERS_MAP = BASE_DIR / "data" / ".session_folders.json"
 
 # ── 章節名 ────────────────────────────────────────────────────
 CHAPTERS = [
@@ -268,9 +270,11 @@ def main():
         return
 
     sessions = []
+    id_dates = {}   # id → 資料夾日期前綴（YYYYMMDD），用於位移偵測
     for idx, folder in enumerate(entries):
         date_iso, date_display, title = parse_folder(folder.name)
         chapter = CHAPTERS[idx] if idx < len(CHAPTERS) else f"第{idx+1}章"
+        id_dates[idx + 1] = folder.name[:8]
 
         has_pdf   = find_pdf(folder)
         docx_path = find_docx(folder) if has_pdf else None
@@ -297,8 +301,32 @@ def main():
             "placeholder": placeholder,
         })
 
+    # ── id 位移守衛：確認既有 id 仍對應同一集（日期前綴）──────────────
+    # 若中間插入/刪除/重排資料夾，id 會整批位移，導致 sessions-raw/N、
+    # data/images/N/、各 by_session 統計全部對到錯的內容且難以察覺。
+    # 此處在覆寫資料前比對，發現位移即中止並要求人工確認。
+    try:
+        stored_map = json.loads(FOLDERS_MAP.read_text("utf-8")) if FOLDERS_MAP.exists() else {}
+    except Exception:
+        stored_map = {}
+    conflicts = [
+        (sid, stored_map[str(sid)], d8)
+        for sid, d8 in id_dates.items()
+        if str(sid) in stored_map and stored_map[str(sid)] != d8
+    ]
+    if conflicts:
+        print("\n❌ 偵測到 session id 位移（資料夾插入／刪除／重排）：")
+        for sid, old, new in conflicts:
+            print(f"   第 {sid} 集：原日期 {old} → 現在 {new}")
+        print("   已中止，未覆寫任何資料。請確認資料夾順序，或若確為刻意調整，")
+        print(f"   手動修正／刪除 {FOLDERS_MAP.name} 後重跑（注意 sessions-raw/、images/ 需同步搬移）。")
+        raise SystemExit(1)
+
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     OUTPUT.write_text(json.dumps(sessions, ensure_ascii=False, indent=2), "utf-8")
+    # 更新 id → 日期映射（合併既有，納入新集）
+    stored_map.update({str(k): v for k, v in id_dates.items()})
+    FOLDERS_MAP.write_text(json.dumps(stored_map, ensure_ascii=False, indent=2), "utf-8")
 
     # ── Lazy-load 拆分：metadata + 各集內容 ───────────────────────────
     meta_only = [{k: v for k, v in s.items() if k != "content"} for s in sessions]

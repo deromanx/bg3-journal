@@ -15,7 +15,7 @@ update_stats.py — 分析新集數，同步更新統計 JSON
 import json, subprocess, sys, re, argparse
 from pathlib import Path
 
-from common import BASE, DATA, load_json, save_json
+from common import BASE, DATA, load_json, save_json, content_fingerprint
 SESSIONS_RAW_DIR = DATA / "sessions-raw"
 
 CHAR_NAMES = ["影心", "阿斯代倫", "曹", "卡拉克", "貓咕咕"]
@@ -25,8 +25,10 @@ CHAR_NAMES = ["影心", "阿斯代倫", "曹", "卡拉克", "貓咕咕"]
 def raw_path(sid):
     return SESSIONS_RAW_DIR / f"{sid}.json"
 
-def save_raw(sid, result):
+def save_raw(sid, result, fp=None):
     SESSIONS_RAW_DIR.mkdir(exist_ok=True)
+    if fp is not None:
+        result = {**result, "_fp": fp}   # 嵌入內容指紋，供下次偵測舊集是否被改動
     save_json(raw_path(sid), result)
 
 def load_raw(sid):
@@ -35,6 +37,17 @@ def load_raw(sid):
 
 def raw_exists(sid):
     return raw_path(sid).exists()
+
+def raw_fp(sid):
+    r = load_raw(sid)
+    return r.get("_fp") if isinstance(r, dict) else None
+
+def needs_extract(session):
+    """缺 sessions-raw，或內容指紋與既存 raw 不符（舊集被回頭修改）→ 需重新萃取。"""
+    sid = session["id"]
+    if not raw_exists(sid):
+        return True
+    return raw_fp(sid) != content_fingerprint(session.get("content", []))
 
 def session_to_text(session):
     lines = [f"集數：{session['chapter']} 《{session['title']}》"]
@@ -193,42 +206,8 @@ def update_milestones(milestones, result, sid, session):
 def as_list(v):
     return v if isinstance(v, list) else [v]
 
-def update_roast_stats(roast_stats, result, sid):
-    matrix     = roast_stats.get("matrix", [])
-    highlights = roast_stats.get("highlights", [])
-    quotes     = roast_stats.get("quotes", [])
-
-    for roast in result.get("roasts", []):
-        frm_raw = roast.get("from", "")
-        to_raw  = roast.get("to", "")
-        count   = roast.get("count", 1)
-        desc    = roast.get("desc", "")
-        frm_list = [n for n in as_list(frm_raw) if n in CHAR_NAMES]
-        to_list  = [n for n in as_list(to_raw)  if n in CHAR_NAMES]
-        if not frm_list or not to_list:
-            continue
-
-        for frm in frm_list:
-            for to in to_list:
-                existing = next((r for r in matrix if r["from"] == frm and r["to"] == to), None)
-                if existing:
-                    existing["count"] += count
-                else:
-                    matrix.append({"from": frm, "to": to, "count": count})
-
-        from_val = frm_list[0] if len(frm_list) == 1 else frm_list
-        to_val   = to_list[0]  if len(to_list)  == 1 else to_list
-        if desc:
-            quotes.append({"session": sid, "from": from_val, "to": to_val, "desc": desc})
-            frm_label = "、".join(frm_list)
-            to_label  = "、".join(to_list)
-            highlights.append({"session": sid, "desc": f"{frm_label}靠北{to_label}：{desc}"})
-
-    roast_stats["matrix"]     = matrix
-    roast_stats["highlights"] = highlights
-    roast_stats["quotes"]     = quotes
-    roast_stats["total"]      = sum(r["count"] for r in matrix)
-    return roast_stats
+# 註：原 update_roast_stats() 已移除——roast-stats.json 改由 regen_roast_quotes.py
+# 獨家管理（單一事實來源），避免與本檔重複寫入同一檔案互相覆蓋。
 
 # ── 故事生成 ────────────────────────────────────────────────
 def gemini_story(session, prev_chapters):
@@ -322,7 +301,7 @@ def reset_accumulated_stats(char_stats, awards, milestones, roast_stats):
         if v:
             awards[k] = v
     milestones.clear()
-    roast_stats.update({"matrix": [], "highlights": [], "quotes": [], "total": 0})
+    # roast_stats 不在此重置：由 regen_roast_quotes.py 獨家管理
     return char_stats, awards, milestones, roast_stats
 
 def rebuild_all_from_raw(sessions, char_stats, awards, milestones, roast_stats):
@@ -339,7 +318,7 @@ def rebuild_all_from_raw(sessions, char_stats, awards, milestones, roast_stats):
         char_stats  = update_character_stats(char_stats, result, sid)
         awards      = update_awards(awards, result, sid)
         milestones  = update_milestones(milestones, result, sid, session)
-        roast_stats = update_roast_stats(roast_stats, result, sid)
+        # roast 不在此重建：改由 regen_roast_quotes.py 為唯一事實來源
         count += 1
     print(f"  ✓ 從 {count} 集 sessions-raw/ 重建完成")
     return char_stats, awards, milestones, roast_stats
@@ -366,7 +345,8 @@ def main():
         save_json(DATA / "character-stats.json", char_stats)
         save_json(DATA / "awards.json",          awards)
         save_json(DATA / "milestones.json",      milestones)
-        save_json(DATA / "roast-stats.json",     roast_stats)
+        # roast-stats.json 由 regen_roast_quotes.py 獨家管理，update_stats 不再寫入
+        # （避免兩套系統重複寫同一檔、互相覆蓋）
 
     # ── --rebuild：從現有 sessions-raw/ 重建，不呼叫 Gemini
     if args.rebuild:
@@ -394,7 +374,7 @@ def main():
         to_extract = [target]
         print(f"🔄 重新萃取第 {args.reprocess} 集\n")
     else:
-        to_extract = [s for s in sessions if not raw_exists(s["id"])]
+        to_extract = [s for s in sessions if needs_extract(s)]
 
     if not to_extract:
         print("✓ 沒有新集數需要處理")
@@ -412,7 +392,7 @@ def main():
         if not result:
             print("  ⚠ 分析失敗，跳過\n")
             continue
-        save_raw(sid, result)
+        save_raw(sid, result, content_fingerprint(session.get("content", [])))
         newly_extracted.append(session)
         deaths = result.get("deaths", [])
         duels  = result.get("duels", [])

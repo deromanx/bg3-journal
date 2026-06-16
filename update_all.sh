@@ -20,15 +20,23 @@ run() { echo; echo "▶ $*"; "$@"; }
 # 1. 萃取最新 docx（圖片已存在會自動跳過）
 run python3 extract.py
 
-# 取得「最小新集數」：未有 sessions-raw 的最小 id；若全部已存在則取最大 id
-# 用 min 而非 max，確保一次新增多集時 roast/praise/ff 能從第一集新內容起跑
+# 取得「最小待更新集數」：未有 sessions-raw、或內容指紋與既存 raw 不符
+# （舊集被回頭修改）的最小 id；若全部都是最新則取最大 id。
+# 用 min 而非 max，確保新增多集或修改舊集時 roast/praise/ff 能從該集起跑。
 LATEST=$(python3 -c "
-import json; from pathlib import Path
+import json
+from pathlib import Path
+from common import content_fingerprint, load_json
 sess = json.load(open('data/sessions.json'))
-non_ph = [s['id'] for s in sess if not s.get('placeholder') and s.get('content')]
+non_ph = [s for s in sess if not s.get('placeholder') and s.get('content')]
 raw_dir = Path('data/sessions-raw')
-new_ids = [i for i in non_ph if not (raw_dir / f'{i}.json').exists()]
-print(min(new_ids) if new_ids else max(non_ph))
+def stale(s):
+    p = raw_dir / f\"{s['id']}.json\"
+    if not p.exists():
+        return True
+    return load_json(p, {}).get('_fp') != content_fingerprint(s['content'])
+ids = [s['id'] for s in non_ph if stale(s)]
+print(min(ids) if ids else max(s['id'] for s in non_ph))
 ")
 
 # 2. 統計、里程碑、故事（內建超時容錯）
