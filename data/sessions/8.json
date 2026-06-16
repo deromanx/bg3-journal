@@ -1,7 +1,9 @@
 [
   {
     "t": "img",
-    "v": "data/images/8/img_001.webp"
+    "v": "data/images/8/img_001.webp",
+    "w": 900,
+    "h": 396
   },
   {
     "t": "h2",
@@ -9,7 +11,9 @@
   },
   {
     "t": "img",
-    "v": "data/images/8/img_002.webp"
+    "v": "data/images/8/img_002.webp",
+    "w": 175,
+    "h": 393
   },
   {
     "t": "h2",
@@ -97,7 +101,9 @@
   },
   {
     "t": "img",
-    "v": "data/images/8/img_003.webp"
+    "v": "data/images/8/img_003.webp",
+    "w": 900,
+    "h": 527
   },
   {
     "t": "p",
@@ -125,7 +131,9 @@
   },
   {
     "t": "img",
-    "v": "data/images/8/img_004.webp"
+    "v": "data/images/8/img_004.webp",
+    "w": 437,
+    "h": 301
   },
   {
     "t": "p",
@@ -157,7 +165,9 @@
   },
   {
     "t": "img",
-    "v": "data/images/8/img_005.webp"
+    "v": "data/images/8/img_005.webp",
+    "w": 900,
+    "h": 511
   },
   {
     "t": "h2",
@@ -237,7 +247,9 @@
   },
   {
     "t": "img",
-    "v": "data/images/8/img_006.webp"
+    "v": "data/images/8/img_006.webp",
+    "w": 900,
+    "h": 506
   },
   {
     "t": "p",
@@ -273,7 +285,9 @@
   },
   {
     "t": "img",
-    "v": "data/images/8/img_007.webp"
+    "v": "data/images/8/img_007.webp",
+    "w": 384,
+    "h": 295
   },
   {
     "t": "h2",
@@ -305,7 +319,9 @@
   },
   {
     "t": "img",
-    "v": "data/images/8/img_008.webp"
+    "v": "data/images/8/img_008.webp",
+    "w": 405,
+    "h": 336
   },
   {
     "t": "p",

@@ -93,7 +93,9 @@
   },
   {
     "t": "img",
-    "v": "data/images/16/img_001.webp"
+    "v": "data/images/16/img_001.webp",
+    "w": 394,
+    "h": 445
   },
   {
     "t": "li",
@@ -105,7 +107,9 @@
   },
   {
     "t": "img",
-    "v": "data/images/16/img_002.webp"
+    "v": "data/images/16/img_002.webp",
+    "w": 719,
+    "h": 335
   },
   {
     "t": "li",
@@ -181,7 +185,9 @@
   },
   {
     "t": "img",
-    "v": "data/images/16/img_003.webp"
+    "v": "data/images/16/img_003.webp",
+    "w": 583,
+    "h": 691
   },
   {
     "t": "p",
@@ -205,7 +211,9 @@
   },
   {
     "t": "img",
-    "v": "data/images/16/img_004.webp"
+    "v": "data/images/16/img_004.webp",
+    "w": 427,
+    "h": 273
   },
   {
     "t": "p",
@@ -241,7 +249,9 @@
   },
   {
     "t": "img",
-    "v": "data/images/16/img_005.webp"
+    "v": "data/images/16/img_005.webp",
+    "w": 900,
+    "h": 444
   },
   {
     "t": "p",

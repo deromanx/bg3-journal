@@ -15,22 +15,12 @@ update_stats.py — 分析新集數，同步更新統計 JSON
 import json, subprocess, sys, re, argparse
 from pathlib import Path
 
-BASE = Path(__file__).parent
-DATA = BASE / "data"
+from common import BASE, DATA, load_json, save_json
 SESSIONS_RAW_DIR = DATA / "sessions-raw"
 
 CHAR_NAMES = ["影心", "阿斯代倫", "曹", "卡拉克", "貓咕咕"]
 
-
 # ── 工具函式 ────────────────────────────────────────────────────
-def load_json(path, default):
-    try:
-        return json.loads(path.read_text("utf-8"))
-    except Exception:
-        return default
-
-def save_json(path, data):
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), "utf-8")
 
 def raw_path(sid):
     return SESSIONS_RAW_DIR / f"{sid}.json"
@@ -52,7 +42,6 @@ def session_to_text(session):
         if item["t"] != "img":
             lines.append(item["v"])
     return "\n".join(lines)
-
 
 # ── Gemini 分析 ─────────────────────────────────────────────────
 def gemini_analyze(text):
@@ -113,7 +102,6 @@ def gemini_analyze(text):
     else:
         print(f"  ⚠ 找不到 JSON 結構，Gemini 原始回應：{output[:400]}")
     return None
-
 
 # ── 更新各 JSON ─────────────────────────────────────────────────
 def update_character_stats(char_stats, result, sid):
@@ -181,7 +169,6 @@ def update_character_stats(char_stats, result, sid):
     char_stats["matchups"] = matchups
     return char_stats
 
-
 def update_awards(awards, result, sid):
     a = result.get("awards", {})
     entry = {k: v for k, v in a.items() if v}
@@ -190,7 +177,6 @@ def update_awards(awards, result, sid):
         existing = awards.get(str(sid), {})
         awards[str(sid)] = {**existing, **entry}
     return awards
-
 
 def update_milestones(milestones, result, sid, session):
     for m in result.get("milestones", []):
@@ -203,7 +189,6 @@ def update_milestones(milestones, result, sid, session):
             "session_id": sid,
         })
     return milestones
-
 
 def as_list(v):
     return v if isinstance(v, list) else [v]
@@ -244,7 +229,6 @@ def update_roast_stats(roast_stats, result, sid):
     roast_stats["quotes"]     = quotes
     roast_stats["total"]      = sum(r["count"] for r in matrix)
     return roast_stats
-
 
 # ── 故事生成 ────────────────────────────────────────────────
 def gemini_story(session, prev_chapters):
@@ -299,7 +283,6 @@ def gemini_story(session, prev_chapters):
         print(f"  ⚠ 故事 JSON 解析失敗（第 {attempt}/2 次），原始回應：{output[:200]}")
     return None
 
-
 def update_story(story, session):
     chapters = story.get("chapters", [])
     sid = session["id"]
@@ -314,7 +297,6 @@ def update_story(story, session):
         })
         story["chapters"] = sorted(chapters, key=lambda c: c["session_id"])
     return story
-
 
 # ── 重建邏輯 ────────────────────────────────────────────────────
 def reset_accumulated_stats(char_stats, awards, milestones, roast_stats):
@@ -343,7 +325,6 @@ def reset_accumulated_stats(char_stats, awards, milestones, roast_stats):
     roast_stats.update({"matrix": [], "highlights": [], "quotes": [], "total": 0})
     return char_stats, awards, milestones, roast_stats
 
-
 def rebuild_all_from_raw(sessions, char_stats, awards, milestones, roast_stats):
     """從 sessions-raw/ 全量重算所有統計（不含故事）。"""
     char_stats, awards, milestones, roast_stats = reset_accumulated_stats(
@@ -362,7 +343,6 @@ def rebuild_all_from_raw(sessions, char_stats, awards, milestones, roast_stats):
         count += 1
     print(f"  ✓ 從 {count} 集 sessions-raw/ 重建完成")
     return char_stats, awards, milestones, roast_stats
-
 
 # ── 主程式 ─────────────────────────────────────────────────────
 def main():

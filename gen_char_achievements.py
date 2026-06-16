@@ -9,19 +9,8 @@ import json, subprocess, re
 from pathlib import Path
 from placeholders import GUIDE as PLACEHOLDER_GUIDE
 
-BASE = Path(__file__).parent
-DATA = BASE / "data"
+from common import BASE, DATA, load_json, save_json
 SESSIONS_RAW_DIR = DATA / "sessions-raw"
-
-
-def load_json(path, default):
-    try:
-        return json.loads(path.read_text("utf-8"))
-    except Exception:
-        return default
-
-def save_json(path, data):
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), "utf-8")
 
 def extract_json_arr(text):
     m = re.search(r'\[[\s\S]*\]', text)
@@ -31,7 +20,6 @@ def extract_json_arr(text):
         except json.JSONDecodeError:
             pass
     return None
-
 
 def build_char_context(c, sessions_meta, roast_stats, ff_stats, awards):
     lines = []
@@ -88,7 +76,6 @@ def build_char_context(c, sessions_meta, roast_stats, ff_stats, awards):
 
     return "\n".join(lines)
 
-
 def gemini_generate(char_name, context):
     prompt = f"""你是柏德之門3跑團日誌的文案撰寫員。根據以下角色資料，為這位角色設計 3 個「成就」徽章，以純JSON陣列回傳。
 
@@ -125,7 +112,6 @@ def gemini_generate(char_name, context):
         return None
     return arr
 
-
 def main():
     sessions_meta = load_json(DATA / "sessions-meta.json", [])
     char_stats    = load_json(DATA / "character-stats.json", {"characters": []})
@@ -159,7 +145,6 @@ def main():
         print()
 
     print("✅ 完成，已存入 character-stats.json")
-
 
 if __name__ == "__main__":
     main()

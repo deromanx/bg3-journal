@@ -10,20 +10,9 @@ count_praised.py — 讓 Gemini 分析每集日誌，統計每人在戰鬥中被
 import json, subprocess, re, argparse
 from pathlib import Path
 
-BASE = Path(__file__).parent
-DATA = BASE / "data"
+from common import BASE, DATA, load_json, save_json
 CHAR_NAMES = ["影心", "阿斯代倫", "曹", "卡拉克", "貓咕咕"]
 PROCESSED_FILE = DATA / ".praised_processed.json"
-
-
-def load_json(path, default):
-    try:
-        return json.loads(path.read_text("utf-8"))
-    except Exception:
-        return default
-
-def save_json(path, data):
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), "utf-8")
 
 def session_to_text(session):
     lines = [f"集數：{session['chapter']} 《{session['title']}》"]
@@ -39,7 +28,6 @@ def mark_processed(sid):
     ids = get_processed()
     ids.add(sid)
     save_json(PROCESSED_FILE, sorted(ids))
-
 
 def gemini_count_praised(text, sid):
     prompt = f"""你是一位分析桌上RPG跑團日誌的助手。請仔細閱讀以下跑團紀錄，統計每位玩家角色在**戰鬥場景中**被隊友稱讚的次數。
@@ -82,7 +70,6 @@ def gemini_count_praised(text, sid):
     else:
         print(f"  ⚠ 找不到 JSON，回應：{output[:300]}")
     return None
-
 
 def main():
     parser = argparse.ArgumentParser()
@@ -158,7 +145,6 @@ def main():
 
     save_json(DATA / "character-stats.json", char_stats)
     print("\n✓ 已儲存 character-stats.json")
-
 
 if __name__ == "__main__":
     main()

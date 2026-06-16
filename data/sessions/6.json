@@ -9,7 +9,9 @@
   },
   {
     "t": "img",
-    "v": "data/images/6/img_001.webp"
+    "v": "data/images/6/img_001.webp",
+    "w": 395,
+    "h": 390
   },
   {
     "t": "p",
@@ -45,7 +47,9 @@
   },
   {
     "t": "img",
-    "v": "data/images/6/img_002.webp"
+    "v": "data/images/6/img_002.webp",
+    "w": 103,
+    "h": 77
   },
   {
     "t": "p",
@@ -69,7 +73,9 @@
   },
   {
     "t": "img",
-    "v": "data/images/6/img_003.webp"
+    "v": "data/images/6/img_003.webp",
+    "w": 728,
+    "h": 510
   },
   {
     "t": "p",
@@ -89,11 +95,15 @@
   },
   {
     "t": "img",
-    "v": "data/images/6/img_004.webp"
+    "v": "data/images/6/img_004.webp",
+    "w": 900,
+    "h": 450
   },
   {
     "t": "img",
-    "v": "data/images/6/img_005.webp"
+    "v": "data/images/6/img_005.webp",
+    "w": 275,
+    "h": 174
   },
   {
     "t": "p",
@@ -121,7 +131,9 @@
   },
   {
     "t": "img",
-    "v": "data/images/6/img_006.webp"
+    "v": "data/images/6/img_006.webp",
+    "w": 771,
+    "h": 505
   },
   {
     "t": "h1",
@@ -149,7 +161,9 @@
   },
   {
     "t": "img",
-    "v": "data/images/6/img_007.webp"
+    "v": "data/images/6/img_007.webp",
+    "w": 436,
+    "h": 128
   },
   {
     "t": "p",
@@ -157,7 +171,9 @@
   },
   {
     "t": "img",
-    "v": "data/images/6/img_008.webp"
+    "v": "data/images/6/img_008.webp",
+    "w": 729,
+    "h": 343
   },
   {
     "t": "p",
@@ -173,7 +189,9 @@
   },
   {
     "t": "img",
-    "v": "data/images/6/img_009.webp"
+    "v": "data/images/6/img_009.webp",
+    "w": 900,
+    "h": 506
   },
   {
     "t": "p",
@@ -193,7 +211,9 @@
   },
   {
     "t": "img",
-    "v": "data/images/6/img_010.webp"
+    "v": "data/images/6/img_010.webp",
+    "w": 900,
+    "h": 526
   },
   {
     "t": "h1",
@@ -221,7 +241,9 @@
   },
   {
     "t": "img",
-    "v": "data/images/6/img_011.webp"
+    "v": "data/images/6/img_011.webp",
+    "w": 900,
+    "h": 427
   },
   {
     "t": "p",
@@ -269,7 +291,9 @@
   },
   {
     "t": "img",
-    "v": "data/images/6/img_012.webp"
+    "v": "data/images/6/img_012.webp",
+    "w": 727,
+    "h": 350
   },
   {
     "t": "h2",
@@ -309,6 +333,8 @@
   },
   {
     "t": "img",
-    "v": "data/images/6/img_013.webp"
+    "v": "data/images/6/img_013.webp",
+    "w": 900,
+    "h": 662
   }
 ]

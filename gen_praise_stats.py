@@ -9,19 +9,8 @@ gen_praise_stats.py — 用 Gemini 分析所有集數的稱讚事件（不限情
 import json, subprocess, re, argparse
 from pathlib import Path
 
-BASE = Path(__file__).parent
-DATA = BASE / "data"
+from common import BASE, DATA, load_json, save_json
 CHAR_NAMES = ["影心", "阿斯代倫", "曹", "卡拉克", "貓咕咕"]
-
-
-def load_json(path, default):
-    try:
-        return json.loads(path.read_text("utf-8"))
-    except Exception:
-        return default
-
-def save_json(path, data):
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), "utf-8")
 
 def as_list(v):
     return v if isinstance(v, list) else [v]
@@ -35,7 +24,6 @@ def session_to_text(session):
         if item["t"] != "img":
             lines.append(item["v"])
     return "\n".join(lines)
-
 
 def gemini_extract_praise(sid, text):
     prompt = f"""你是柏德之門3跑團日誌的分析員。從以下日誌中找出所有廣義的「稱讚/讚美/認可/感謝」事件，以純JSON陣列回傳（不加說明或markdown）。
@@ -90,7 +78,6 @@ def gemini_extract_praise(sid, text):
         print(f"  ⚠ 找不到 JSON 陣列，原始回應：{output[:400]}")
     return None
 
-
 def build_matrix_highlights(quotes):
     matrix = []
     highlights = []
@@ -110,7 +97,6 @@ def build_matrix_highlights(quotes):
         to_label  = "、".join(to_list)
         highlights.append({"session": sid, "desc": f"{frm_label}稱讚{to_label}：{desc}"})
     return matrix, highlights
-
 
 def main():
     parser = argparse.ArgumentParser()
@@ -178,7 +164,6 @@ def main():
     save_json(DATA / "praise-stats.json", praise_stats)
     print(f"\n總計 {len(new_quotes)} 條")
     print("Saved praise-stats.json")
-
 
 if __name__ == "__main__":
     main()

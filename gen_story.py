@@ -9,18 +9,7 @@ gen_story.py — 用 Gemini 為所有集數生成 GRRM 風格故事章節
 import json, subprocess, re, sys, argparse
 from pathlib import Path
 
-BASE = Path(__file__).parent
-DATA = BASE / "data"
-
-
-def load_json(path, default):
-    try:
-        return json.loads(path.read_text("utf-8"))
-    except Exception:
-        return default
-
-def save_json(path, data):
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), "utf-8")
+from common import BASE, DATA, load_json, save_json
 
 def session_to_text(session):
     lines = [f"集數：{session['chapter']} 《{session['title']}》"]
@@ -78,7 +67,6 @@ def gemini_story(session, prev_chapters):
         print(f"  ⚠ 找不到 JSON，回應：{output[:300]}")
     return None
 
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--from", dest="start_from", type=int, default=1)
@@ -124,7 +112,6 @@ def main():
         print(f"  S{sid}: 完成（{len(result['text'])} 字）")
 
     print(f"\n共 {len(story['chapters'])} 章，Saved story.json")
-
 
 if __name__ == "__main__":
     main()

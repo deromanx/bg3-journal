@@ -84,11 +84,17 @@ def classify(text: str, bold: bool = False) -> str:
 # ── 圖片存檔 ──────────────────────────────────────────────────
 IMG_MAX_W = 900   # 最大寬度（px），超過則縮小
 
-def save_image(blob: bytes, out_path: Path, ext: str) -> bool:
-    # 已存在則跳過解碼/縮放（只改文字重跑時不必重存全部圖片）。
+def save_image(blob: bytes, out_path: Path, ext: str):
+    # 回傳值：成功且能取得尺寸 → (w, h)；成功但無尺寸 → True；失敗 → False。
+    # 已存在則跳過解碼/縮放（只改文字重跑時不必重存全部圖片），但仍讀回尺寸。
     # 若某集圖片有更動，先刪掉 data/images/<id>/ 再重跑 extract.py。
-    if out_path.with_suffix(".webp").exists():
-        return True
+    webp = out_path.with_suffix(".webp")
+    if webp.exists():
+        try:
+            with PILImage.open(webp) as im:
+                return im.size
+        except Exception:
+            return True
     out_path.parent.mkdir(parents=True, exist_ok=True)
     try:
         if PILLOW:
@@ -97,12 +103,14 @@ def save_image(blob: bytes, out_path: Path, ext: str) -> bool:
                 img = img.convert("RGB")
             w, h = img.size
             if w > IMG_MAX_W:
-                img = img.resize((IMG_MAX_W, int(h * IMG_MAX_W / w)),
-                                 PILImage.LANCZOS)
-            img.save(out_path.with_suffix(".webp"), "WEBP", quality=75, method=6)
+                h = int(h * IMG_MAX_W / w)
+                w = IMG_MAX_W
+                img = img.resize((w, h), PILImage.LANCZOS)
+            img.save(webp, "WEBP", quality=75, method=6)
+            return (w, h)
         else:
             out_path.write_bytes(blob)
-        return True
+            return True
     except Exception as e:
         print(f"    ⚠ 圖片儲存失敗：{e}")
         return False
@@ -178,10 +186,14 @@ def extract_docx(docx_path: Path, session_id: int) -> list[dict]:
                     img_counter += 1
                     fname = f"img_{img_counter:03d}.webp"
                     out   = img_dir / fname
-                    if save_image(blob, out, ext):
-                        raw.append({"t": "img",
+                    dims = save_image(blob, out, ext)
+                    if dims:
+                        img_item = {"t": "img",
                                     "v": f"data/images/{session_id}/{fname}",
-                                    "left": 0})
+                                    "left": 0}
+                        if isinstance(dims, tuple):
+                            img_item["w"], img_item["h"] = dims
+                        raw.append(img_item)
                 except Exception as e:
                     print(f"    ⚠ 圖片關係錯誤：{e}")
 
@@ -217,7 +229,10 @@ def extract_docx(docx_path: Path, session_id: int) -> list[dict]:
         t = item["t"]
         if t == "h1" and item["left"] > 0:
             t = "h2"
-        items.append({"t": t, "v": item["v"]})
+        new_item = {"t": t, "v": item["v"]}
+        if "w" in item:
+            new_item["w"], new_item["h"] = item["w"], item["h"]
+        items.append(new_item)
 
     return items
 

@@ -9,19 +9,8 @@ gen_ff_stats.py — 用 Gemini 分析所有集數的友軍傷害事件
 import json, subprocess, re, argparse
 from pathlib import Path
 
-BASE = Path(__file__).parent
-DATA = BASE / "data"
+from common import BASE, DATA, load_json, save_json
 CHAR_NAMES = ["影心", "阿斯代倫", "曹", "卡拉克", "貓咕咕"]
-
-
-def load_json(path, default):
-    try:
-        return json.loads(path.read_text("utf-8"))
-    except Exception:
-        return default
-
-def save_json(path, data):
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), "utf-8")
 
 def validate_char(v):
     return v if v in CHAR_NAMES else None
@@ -32,7 +21,6 @@ def session_to_text(session):
         if item["t"] != "img":
             lines.append(item["v"])
     return "\n".join(lines)
-
 
 def gemini_extract_ff(sid, text):
     prompt = f"""你是柏德之門3跑團日誌的分析員。從以下日誌中找出所有「友軍傷害」事件，以純JSON陣列回傳（不加說明或markdown）。
@@ -84,7 +72,6 @@ def gemini_extract_ff(sid, text):
             return []
         print(f"  ⚠ 找不到 JSON 陣列，原始回應：{output[:400]}")
     return None
-
 
 def main():
     parser = argparse.ArgumentParser()
@@ -145,7 +132,6 @@ def main():
     save_json(DATA / "ff-stats.json", ff_stats)
     print(f"\n總計 {len(new_incidents)} 筆")
     print("Saved ff-stats.json")
-
 
 if __name__ == "__main__":
     main()

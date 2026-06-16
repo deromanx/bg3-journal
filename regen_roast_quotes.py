@@ -8,20 +8,9 @@ regen_roast_quotes.py — 重新用 Gemini 分析所有集數的靠北事件，�
 import json, subprocess, re, sys, argparse
 from pathlib import Path
 
-BASE = Path(__file__).parent
-DATA = BASE / "data"
+from common import BASE, DATA, load_json, save_json
 
 CHAR_NAMES = ["影心", "阿斯代倫", "曹", "卡拉克", "貓咕咕"]
-
-
-def load_json(path, default):
-    try:
-        return json.loads(path.read_text("utf-8"))
-    except Exception:
-        return default
-
-def save_json(path, data):
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), "utf-8")
 
 def as_list(v):
     return v if isinstance(v, list) else [v]
@@ -83,7 +72,6 @@ def gemini_extract_roasts(sid, text):
         print(f"  ⚠ 找不到 JSON 陣列，原始回應：{output[:400]}")
     return None
 
-
 def build_matrix_highlights(quotes):
     matrix = []
     highlights = []
@@ -103,7 +91,6 @@ def build_matrix_highlights(quotes):
         to_label  = "、".join(to_list)
         highlights.append({"session": sid, "desc": f"{frm_label}靠北{to_label}：{desc}"})
     return matrix, highlights
-
 
 def main():
     parser = argparse.ArgumentParser()
@@ -173,7 +160,6 @@ def main():
     roast_stats["total"]      = sum(m["count"] for m in matrix)
     save_json(DATA / "roast-stats.json", roast_stats)
     print("Saved roast-stats.json")
-
 
 if __name__ == "__main__":
     main()

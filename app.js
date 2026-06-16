@@ -2450,7 +2450,7 @@ function renderContent(items) {
     switch (item.t) {
       case 'img':
         return `<figure class="session-img zoomable">
-          <img src="${esc(item.v)}" alt="插圖（點擊放大）" loading="lazy">
+          <img src="${esc(item.v)}" alt="插圖（點擊放大）" loading="lazy"${item.w ? ` width="${item.w}" height="${item.h}"` : ''}>
         </figure>`;
 
       case 'h1': {

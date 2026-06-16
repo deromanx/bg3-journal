@@ -9,19 +9,8 @@ gen_awards.py — 為缺少戰報的集數補齊 MVP/金句/最慘時刻
 import json, subprocess, re, argparse
 from pathlib import Path
 
-BASE = Path(__file__).parent
-DATA = BASE / "data"
+from common import BASE, DATA, load_json, save_json
 CHAR_NAMES = ["影心", "阿斯代倫", "曹", "卡拉克", "貓咕咕"]
-
-
-def load_json(path, default):
-    try:
-        return json.loads(path.read_text("utf-8"))
-    except Exception:
-        return default
-
-def save_json(path, data):
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), "utf-8")
 
 def session_to_text(session):
     lines = [f"集數：{session['chapter']} 《{session['title']}》"]
@@ -29,7 +18,6 @@ def session_to_text(session):
         if item["t"] != "img":
             lines.append(item["v"])
     return "\n".join(lines)
-
 
 def gemini_awards(text, sid):
     prompt = f"""你是柏德之門3跑團日誌的分析員。仔細閱讀以下日誌，評選本集的戰報三項。
@@ -71,7 +59,6 @@ def gemini_awards(text, sid):
         print(f"  ⚠ 找不到 JSON，回應：{output[:300]}")
     return None
 
-
 def recompute_mvp_counts(awards, char_stats):
     char_map = {c["char"]: c for c in char_stats.get("characters", [])}
     for c in char_map.values():
@@ -80,7 +67,6 @@ def recompute_mvp_counts(awards, char_stats):
         mvp = entry.get("mvp", "")
         if mvp in char_map:
             char_map[mvp]["mvp_count"] = char_map[mvp].get("mvp_count", 0) + 1
-
 
 def main():
     parser = argparse.ArgumentParser()
@@ -126,7 +112,6 @@ def main():
         print(f"  {name}：{c.get('mvp_count', 0)} 次")
 
     print("\n✓ 已儲存 awards.json 與 character-stats.json")
-
 
 if __name__ == "__main__":
     main()

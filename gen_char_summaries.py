@@ -9,18 +9,7 @@ import json, subprocess, re
 from pathlib import Path
 from placeholders import GUIDE as PLACEHOLDER_GUIDE
 
-BASE = Path(__file__).parent
-DATA = BASE / "data"
-
-
-def load_json(path, default):
-    try:
-        return json.loads(path.read_text("utf-8"))
-    except Exception:
-        return default
-
-def save_json(path, data):
-    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), "utf-8")
+from common import BASE, DATA, load_json, save_json
 
 def extract_json_obj(text):
     m = re.search(r'\{[\s\S]*\}', text)
@@ -78,7 +67,6 @@ def build_char_context(c, sessions, roast_stats, praise_stats):
 
     return "\n".join(lines)
 
-
 def gemini_generate(char_name, context):
     prompt = f"""你是柏德之門3跑團日誌的文案撰寫員。根據以下角色資料，為這位角色撰寫兩段文字，以純JSON回傳。
 
@@ -110,7 +98,6 @@ def gemini_generate(char_name, context):
         print(f"  ⚠ JSON 解析失敗，原始回應：{result.stdout[:300]}")
         return None
     return obj
-
 
 def main():
     sessions    = load_json(DATA / "sessions.json", [])
@@ -145,7 +132,6 @@ def main():
         save_json(DATA / "character-stats.json", char_stats)
 
     print(f"\n✅ 完成，已存入 character-stats.json")
-
 
 if __name__ == "__main__":
     main()
