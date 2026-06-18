@@ -37,6 +37,7 @@ let currentView   = 'journal';
 let _ignoreHash   = false;
 let _statsRendered = false;
 const _contentCache = {};
+const _contentPromises = {};   // 同集內容的 in-flight fetch，避免重複請求
 
 // ── 資料載入（首屏只抓必要檔，其餘分頁切換時延遲載入）────────
 const DATA_SOURCES = {
@@ -251,7 +252,9 @@ function loadSession(id) {
   view.classList.add('hidden');
   requestAnimationFrame(() => {
     view.classList.remove('hidden');
-    view.scrollTop = 0;
+    // 換集一律瞬間回頂；behavior:'instant' 覆蓋 CSS scroll-behavior:smooth，
+    // 避免滑過新內容才到頂的卡頓（smooth 仍保留給頁內跳轉）
+    view.scrollTo({ top: 0, behavior: 'instant' });
     updateProgress();
   });
 
@@ -268,11 +271,22 @@ function loadSession(id) {
     body.innerHTML = renderContent(_contentCache[id]);
   } else {
     body.innerHTML = '<p style="text-align:center;color:var(--ink-light);opacity:.4;margin-top:80px;font-style:italic">✦ 載入中… ✦</p>';
-    fetch(`data/sessions/${id}.json`)
-      .then(r => r.json())
+    // 同集去重：多次點擊只發一次請求
+    _contentPromises[id] ||= fetch(`data/sessions/${id}.json`)
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      });
+    _contentPromises[id]
       .then(content => {
         _contentCache[id] = content;
         if (currentId === id) body.innerHTML = renderContent(content);
+      })
+      .catch(() => {
+        delete _contentPromises[id];   // 失敗後允許重試
+        if (currentId === id) {
+          body.innerHTML = '<p style="text-align:center;color:var(--crimson-lt);opacity:.7;margin-top:80px;font-style:italic">⚠ 無法載入本集內容，請稍後重試</p>';
+        }
       });
   }
 
