@@ -1951,16 +1951,25 @@ async function _qmRenderBlob(kind, q) {
   H += 16 + 1 + 14 + 16;     // 底部分隔線 + 浮水印
   H += P;                    // 下邊距
 
+  // 正方形畫布：邊長取「內容高度」與寬度較大者，內容置中
+  const contentH = Math.round(H);
+  const side = Math.max(W, contentH);
+  const OX = (side - W) / 2;
+  const OY = (side - contentH) / 2;
+
   const SCALE = 2;
   const cv = document.createElement('canvas');
-  cv.width = W * SCALE; cv.height = Math.round(H) * SCALE;
+  cv.width = side * SCALE; cv.height = side * SCALE;
   const ctx = cv.getContext('2d');
   ctx.scale(SCALE, SCALE);
   ctx.textBaseline = 'alphabetic';
 
-  // 背景與邊框
-  ctx.fillStyle = '#f6efdd'; ctx.fillRect(0, 0, W, H);
-  ctx.strokeStyle = '#d9c89b'; ctx.lineWidth = 2; ctx.strokeRect(1, 1, W - 2, H - 2);
+  // 正方形背景與外框
+  ctx.fillStyle = '#f6efdd'; ctx.fillRect(0, 0, side, side);
+  ctx.strokeStyle = '#d9c89b'; ctx.lineWidth = 2; ctx.strokeRect(1, 1, side - 2, side - 2);
+
+  // 內容置中於正方形畫布
+  ctx.translate(OX, OY);
 
   let y = P;
   // 標題
