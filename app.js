@@ -1127,7 +1127,6 @@ function applyRoastGrid() {
   const totalPages = Math.max(1, Math.ceil(total / ROAST_PAGE_SIZE));
   _roastPage = Math.min(Math.max(_roastPage, 1), totalPages);
 
-  const chars = charStats.characters || [];
   const start = (_roastPage - 1) * ROAST_PAGE_SIZE;
   const pageQuotes = quotes.slice(start, start + ROAST_PAGE_SIZE);
 
@@ -1140,7 +1139,7 @@ function applyRoastGrid() {
       ? `<div class="rq-empty">（${_roastPairFilter
           ? esc(_roastPairFilter.from) + ' → ' + esc(_roastPairFilter.to) + ' 無靠北紀錄'
           : '無符合語錄'}）</div>`
-      : pageQuotes.map(q => renderRoastCard(q, chars)).join('');
+      : pageQuotes.map(q => renderQuoteCard(q, 'roast')).join('');
   }
 
   const pager = document.getElementById('rq-pager');
@@ -1231,79 +1230,90 @@ function filterRoastByPair(from, to) {
   document.getElementById('rq-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-// ── 靠北 Modal ────────────────────────────────────────────
-function _rmInit() {
-  if (document.getElementById('rm-overlay')) return;
+// ── 語錄 Modal（靠北 / 稱讚共用，差異由 QUOTE_MODAL 設定驅動）────
+// pfx 對應兩套各自的 CSS 主題（rm- 深色靠北 / pm- 羊皮紙稱讚），
+// 結構與行為完全相同，只在標籤、箭頭、資料來源不同。
+const QUOTE_MODAL = {
+  roast:  { pfx: 'rm', arrow: '→', fromLabel: '靠北方',  toLabel: '被靠對象',   getAll: () => _roastAll() },
+  praise: { pfx: 'pm', arrow: '✦', fromLabel: '稱讚方', toLabel: '被稱讚對象', getAll: () => _praiseAll() },
+};
+const _qmCurrent      = { roast: null, praise: null };
+const _qmEscHandlers  = {
+  roast:  e => { if (e.key === 'Escape') closeQuoteModal('roast'); },
+  praise: e => { if (e.key === 'Escape') closeQuoteModal('praise'); },
+};
+
+function _quoteModalInit(kind) {
+  const { pfx } = QUOTE_MODAL[kind];
+  if (document.getElementById(`${pfx}-overlay`)) return;
   const el = document.createElement('div');
-  el.id = 'rm-overlay';
-  el.className = 'rm-overlay';
+  el.id = `${pfx}-overlay`;
+  el.className = `${pfx}-overlay`;
   el.innerHTML = `
-    <div class="rm-dialog" id="rm-dialog">
-      <button class="rm-close" onclick="closeRoastModal()" title="關閉 (Esc)">✕</button>
-      <div class="rm-header" id="rm-header"></div>
-      <div class="rm-quote" id="rm-quote"></div>
-      <div class="rm-divider"></div>
-      <div class="rm-desc" id="rm-desc"></div>
+    <div class="${pfx}-dialog" id="${pfx}-dialog">
+      <button class="${pfx}-close" onclick="closeQuoteModal('${kind}')" title="關閉 (Esc)">✕</button>
+      <div class="${pfx}-header" id="${pfx}-header"></div>
+      <div class="${pfx}-quote" id="${pfx}-quote"></div>
+      <div class="${pfx}-divider"></div>
+      <div class="${pfx}-desc" id="${pfx}-desc"></div>
       <div class="qm-actions">
-        <button class="qm-copy" onclick="copyQuoteImage('roast')" title="複製成圖片，方便分享">📋 複製圖片</button>
+        <button class="qm-copy" onclick="copyQuoteImage('${kind}')" title="複製成圖片，方便分享">📋 複製圖片</button>
       </div>
     </div>`;
-  el.addEventListener('click', e => { if (e.target === el) closeRoastModal(); });
+  el.addEventListener('click', e => { if (e.target === el) closeQuoteModal(kind); });
   document.body.appendChild(el);
 }
 
-let _rmCurrent = null;
-function openRoastModal(q) {
-  _rmInit();
-  _rmCurrent = q;
-  const overlay = document.getElementById('rm-overlay');
-  const froms   = asArr(q.from);
-  const tos     = asArr(q.to);
-  const sRef    = sessions.find(s => s.id === q.session);
+function openQuoteModal(kind, q) {
+  _quoteModalInit(kind);
+  _qmCurrent[kind] = q;
+  const { pfx, arrow, fromLabel, toLabel } = QUOTE_MODAL[kind];
+  const overlay = document.getElementById(`${pfx}-overlay`);
+  const froms = asArr(q.from), tos = asArr(q.to);
+  const sRef  = sessions.find(s => s.id === q.session);
 
   const charBlock = (chars, label) => {
     const avatars = chars.map(c => `
-      <div class="rm-av av-${esc(c)}">
+      <div class="${pfx}-av av-${esc(c)}">
         <img src="data/images/avatars/${esc(c)}.webp" alt="${esc(c)}"
              loading="lazy" decoding="async" onerror="this.style.display='none'">
       </div>`).join('');
     const names = chars.map(c => `<span>${esc(c)}</span>`).join('、');
     return `
-      <div class="rm-char-block">
-        <div class="rm-char-label">${label}</div>
-        <div class="rm-av-group">${avatars}</div>
-        <div class="rm-char-names">${names}</div>
+      <div class="${pfx}-char-block">
+        <div class="${pfx}-char-label">${label}</div>
+        <div class="${pfx}-av-group">${avatars}</div>
+        <div class="${pfx}-char-names">${names}</div>
       </div>`;
   };
 
   const epTitle = sRef ? `第 ${q.session} 集・${sRef.title}` : `第 ${q.session} 集`;
-  document.getElementById('rm-header').innerHTML = `
-    <div class="rm-actors-row">
-      ${charBlock(froms, '靠北方')}
-      <span class="rm-arrow">→</span>
-      ${charBlock(tos, '被靠對象')}
+  document.getElementById(`${pfx}-header`).innerHTML = `
+    <div class="${pfx}-actors-row">
+      ${charBlock(froms, fromLabel)}
+      <span class="${pfx}-arrow">${arrow}</span>
+      ${charBlock(tos, toLabel)}
     </div>
-    <div class="rm-ep-title">${esc(epTitle)}</div>`;
+    <div class="${pfx}-ep-title">${esc(epTitle)}</div>`;
 
-  document.getElementById('rm-quote').textContent = q.quote ? `「${q.quote}」` : '';
-  document.getElementById('rm-desc').textContent   = q.desc || '';
+  document.getElementById(`${pfx}-quote`).textContent = q.quote ? `「${q.quote}」` : '';
+  document.getElementById(`${pfx}-desc`).textContent  = q.desc || '';
 
-  overlay.classList.add('rm-open');
-  document.addEventListener('keydown', _rmEsc);
+  overlay.classList.add(`${pfx}-open`);
+  document.addEventListener('keydown', _qmEscHandlers[kind]);
 }
 
-function closeRoastModal() {
-  const overlay = document.getElementById('rm-overlay');
+function closeQuoteModal(kind) {
+  const { pfx } = QUOTE_MODAL[kind];
+  const overlay = document.getElementById(`${pfx}-overlay`);
   if (!overlay) return;
-  document.removeEventListener('keydown', _rmEsc);
-  overlay.classList.add('rm-closing');
+  document.removeEventListener('keydown', _qmEscHandlers[kind]);
+  overlay.classList.add(`${pfx}-closing`);
   overlay.addEventListener('transitionend', (e) => {
     if (e.target !== overlay) return;
-    overlay.classList.remove('rm-open', 'rm-closing');
+    overlay.classList.remove(`${pfx}-open`, `${pfx}-closing`);
   }, { once: true });
 }
-
-function _rmEsc(e) { if (e.key === 'Escape') closeRoastModal(); }
 
 // ── 插圖燈箱 lightbox ─────────────────────────────────────
 // 事件委派：點 session 內文插圖即放大檢視。一個監聽器涵蓋所有
@@ -1346,25 +1356,33 @@ function closeLightbox() {
 function _lbEsc(e) { if (e.key === 'Escape') closeLightbox(); }
 
 // ── 靠北卡片渲染 ──────────────────────────────────────────
-function renderRoastCard(q, chars) {
-  const src = char => `data/images/avatars/${esc(char)}.webp`;
+// 靠北 / 稱讚共用卡片。差異：箭頭、資料索引、稱讚卡額外 class、
+// 靠北金句加「」而稱讚不加（沿用原本兩者的視覺差異）。
+function renderQuoteCard(q, kind) {
+  const { arrow } = QUOTE_MODAL[kind];
+  const isPraise = kind === 'praise';
   const avatar = char => `<div class="rq-av av-${esc(char)}" data-tip="${esc(char)}">
-          <img src="${src(char)}" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+          <img src="data/images/avatars/${esc(char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
         </div>`;
   const froms = asArr(q.from);
   const tos   = asArr(q.to);
   const sRef  = sessions.find(s => s.id === q.session);
   const cardTip = sRef ? `第 ${q.session} 集《${sRef.title}》` : `S${q.session}`;
+  const idx = isPraise ? q._pidx : q._idx;
+  const accessor = isPraise ? '_praiseAll' : '_roastAll';
+  const quoteHtml = q.quote
+    ? `<div class="rq-quote">${isPraise ? esc(q.quote) : `「${esc(q.quote)}」`}</div>`
+    : '';
   return `
-    <div class="roast-quote-card" data-tip="${esc(cardTip)}"
-         onclick="openRoastModal(_roastAll()[${q._idx}])">
+    <div class="roast-quote-card${isPraise ? ' praise-quote-card' : ''}" data-tip="${esc(cardTip)}"
+         onclick="openQuoteModal('${kind}', ${accessor}()[${idx}])">
       <div class="rq-actors">
         <div class="rq-av-group">${froms.map(avatar).join('')}</div>
-        <span class="rq-arrow">→</span>
+        <span class="rq-arrow">${arrow}</span>
         <div class="rq-av-group">${tos.map(avatar).join('')}</div>
         <span class="rq-ep">S${q.session}</span>
       </div>
-      ${q.quote ? `<div class="rq-quote">「${esc(q.quote)}」</div>` : ''}
+      ${quoteHtml}
       <div class="rq-text">${esc(q.desc)}</div>
     </div>`;
 }
@@ -1386,7 +1404,7 @@ function renderRoastQuotes() {
 
   _roastFiltered = null;
   _roastPage     = 1;
-  const firstPage  = _sortedQuotes(quotes).slice(0, ROAST_PAGE_SIZE).map(q => renderRoastCard(q, chars)).join('');
+  const firstPage  = _sortedQuotes(quotes).slice(0, ROAST_PAGE_SIZE).map(q => renderQuoteCard(q, 'roast')).join('');
   const totalPages = Math.ceil(quotes.length / ROAST_PAGE_SIZE);
   const initPager  = totalPages > 1 ? `
     <div class="rq-pager" id="rq-pager">
@@ -1754,7 +1772,6 @@ function applyPraiseGrid() {
   const totalPages = Math.max(1, Math.ceil(total / ROAST_PAGE_SIZE));
   _praisePage = Math.min(Math.max(_praisePage, 1), totalPages);
 
-  const chars = charStats.characters || [];
   const start = (_praisePage - 1) * ROAST_PAGE_SIZE;
   const pageQuotes = quotes.slice(start, start + ROAST_PAGE_SIZE);
 
@@ -1765,7 +1782,7 @@ function applyPraiseGrid() {
   if (grid) {
     grid.innerHTML = total === 0
       ? `<div class="rq-empty">（無符合語錄）</div>`
-      : pageQuotes.map(q => renderPraiseCard(q, chars)).join('');
+      : pageQuotes.map(q => renderQuoteCard(q, 'praise')).join('');
   }
 
   const pager = document.getElementById('pq-pager');
@@ -1819,78 +1836,7 @@ function filterPraiseQuotes(charName) {
   applyPraiseGrid();
 }
 
-function _pmInit() {
-  if (document.getElementById('pm-overlay')) return;
-  const el = document.createElement('div');
-  el.id = 'pm-overlay';
-  el.className = 'pm-overlay';
-  el.innerHTML = `
-    <div class="pm-dialog" id="pm-dialog">
-      <button class="pm-close" onclick="closePraiseModal()" title="關閉 (Esc)">✕</button>
-      <div class="pm-header" id="pm-header"></div>
-      <div class="pm-quote" id="pm-quote"></div>
-      <div class="pm-divider"></div>
-      <div class="pm-desc" id="pm-desc"></div>
-      <div class="qm-actions">
-        <button class="qm-copy" onclick="copyQuoteImage('praise')" title="複製成圖片，方便分享">📋 複製圖片</button>
-      </div>
-    </div>`;
-  el.addEventListener('click', e => { if (e.target === el) closePraiseModal(); });
-  document.body.appendChild(el);
-}
-
-let _pmCurrent = null;
-function openPraiseModal(q) {
-  _pmInit();
-  _pmCurrent = q;
-  const overlay = document.getElementById('pm-overlay');
-  const froms   = asArr(q.from);
-  const tos     = asArr(q.to);
-  const sRef    = sessions.find(s => s.id === q.session);
-
-  const charBlock = (chars, label) => {
-    const avatars = chars.map(c => `
-      <div class="pm-av av-${esc(c)}">
-        <img src="data/images/avatars/${esc(c)}.webp" alt="${esc(c)}"
-             loading="lazy" decoding="async" onerror="this.style.display='none'">
-      </div>`).join('');
-    const names = chars.map(c => `<span>${esc(c)}</span>`).join('、');
-    return `
-      <div class="pm-char-block">
-        <div class="pm-char-label">${label}</div>
-        <div class="pm-av-group">${avatars}</div>
-        <div class="pm-char-names">${names}</div>
-      </div>`;
-  };
-
-  const epTitle = sRef ? `第 ${q.session} 集・${sRef.title}` : `第 ${q.session} 集`;
-  document.getElementById('pm-header').innerHTML = `
-    <div class="pm-actors-row">
-      ${charBlock(froms, '稱讚方')}
-      <span class="pm-arrow">✦</span>
-      ${charBlock(tos, '被稱讚對象')}
-    </div>
-    <div class="pm-ep-title">${esc(epTitle)}</div>`;
-
-  document.getElementById('pm-quote').textContent = q.quote ? `「${q.quote}」` : '';
-  document.getElementById('pm-desc').textContent   = q.desc || '';
-
-  overlay.classList.add('pm-open');
-  document.addEventListener('keydown', _pmEsc);
-}
-
-function closePraiseModal() {
-  const overlay = document.getElementById('pm-overlay');
-  if (!overlay) return;
-  document.removeEventListener('keydown', _pmEsc);
-  overlay.classList.add('pm-closing');
-  overlay.addEventListener('transitionend', (e) => {
-    if (e.target !== overlay) return;
-    overlay.classList.remove('pm-open', 'pm-closing');
-  }, { once: true });
-}
-
-function _pmEsc(e) { if (e.key === 'Escape') closePraiseModal(); }
+// 稱讚 modal 的開關邏輯已與靠北合併至 openQuoteModal / closeQuoteModal（kind='praise'）。
 
 // ── 語錄複製成圖片（純 Canvas，無外部依賴） ────────────────
 // 將放大檢視的語錄卡片繪製成 PNG 並寫入剪貼簿；不支援時退回下載。
@@ -1900,7 +1846,7 @@ function _qmLoadImg(src) {
   const p = new Promise((res, rej) => {
     const im = new Image();
     im.onload = () => res(im);
-    im.onerror = rej;
+    im.onerror = (e) => { delete _qmImgCache[src]; rej(e); }; // 失敗不留快取，下次可重試
     im.src = src; // 同源，不會污染 canvas
   });
   _qmImgCache[src] = p;
@@ -1926,7 +1872,7 @@ async function _qmRenderBlob(kind, q) {
   const froms = asArr(q.from), tos = asArr(q.to);
   const sRef  = sessions.find(s => s.id === q.session);
   const epTitle = sRef ? `第 ${q.session} 集・${sRef.title}` : `第 ${q.session} 集`;
-  const heading = isPraise ? '✦ 稱讚語錄' : '靠北語錄';
+  const heading = isPraise ? '✦ 稱讚語錄' : '📜 靠北語錄';
   const arrow   = isPraise ? '✦' : '→';
   const quote   = q.quote ? `「${q.quote}」` : '';
   const desc    = q.desc || '';
@@ -2052,50 +1998,44 @@ async function _qmRenderBlob(kind, q) {
 }
 
 async function copyQuoteImage(kind) {
-  const q = kind === 'praise' ? _pmCurrent : _rmCurrent;
+  const q = _qmCurrent[kind];
   if (!q) return;
-  const btn = document.querySelector(kind === 'praise' ? '#pm-overlay .qm-copy' : '#rm-overlay .qm-copy');
+  const { pfx } = QUOTE_MODAL[kind];
+  const btn  = document.querySelector(`#${pfx}-overlay .qm-copy`);
   const orig = btn ? btn.textContent : '';
+  const reset = () => { if (btn) setTimeout(() => { btn.disabled = false; btn.textContent = orig; }, 1800); };
   if (btn) { btn.disabled = true; btn.textContent = '產生中…'; }
-  let blob;
-  try { blob = await _qmRenderBlob(kind, q); }
-  catch (_) { if (btn) { btn.textContent = '✗ 失敗'; setTimeout(() => { btn.disabled = false; btn.textContent = orig; }, 1800); } return; }
+
+  // 單次渲染：不 await，保住使用者手勢（Safari 需在手勢當下呼叫 clipboard.write），
+  // 把 blob 的 Promise 直接交給 ClipboardItem；同一個 promise 供失敗時的下載後備重用。
+  const blobP = _qmRenderBlob(kind, q).then(b => {
+    if (!b) throw new Error('blob 產生失敗');
+    return b;
+  });
+
+  // 首選：複製到剪貼簿
+  if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blobP })]);
+      if (btn) btn.textContent = '✓ 已複製';
+      reset();
+      return;
+    } catch (_) { /* 落到下載後備 */ }
+  }
+
+  // 後備：下載 PNG（行動瀏覽器或不支援剪貼簿圖片時）
   try {
-    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
-    if (btn) btn.textContent = '✓ 已複製';
-  } catch (_) {
-    // 不支援剪貼簿圖片（多見於行動瀏覽器）→ 退回下載
+    const blob = await blobP;
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = `語錄-S${q.session}.png`;
     document.body.appendChild(a); a.click(); a.remove();
     URL.revokeObjectURL(url);
     if (btn) btn.textContent = '✓ 已下載';
+  } catch (_) {
+    if (btn) btn.textContent = '✗ 失敗';
   }
-  if (btn) setTimeout(() => { btn.disabled = false; btn.textContent = orig; }, 1800);
-}
-
-function renderPraiseCard(q, chars) {
-  const src = char => `data/images/avatars/${esc(char)}.webp`;
-  const avatar = char => `<div class="rq-av av-${esc(char)}" data-tip="${esc(char)}">
-          <img src="${src(char)}" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
-        </div>`;
-  const froms = asArr(q.from);
-  const tos   = asArr(q.to);
-  const sRef  = sessions.find(s => s.id === q.session);
-  const cardTip = sRef ? `第 ${q.session} 集《${sRef.title}》` : `S${q.session}`;
-  return `
-    <div class="roast-quote-card praise-quote-card" data-tip="${esc(cardTip)}"
-         onclick="openPraiseModal(_praiseAll()[${q._pidx}])">
-      <div class="rq-actors">
-        <div class="rq-av-group">${froms.map(avatar).join('')}</div>
-        <span class="rq-arrow">✦</span>
-        <div class="rq-av-group">${tos.map(avatar).join('')}</div>
-        <span class="rq-ep">S${q.session}</span>
-      </div>
-      ${q.quote ? `<div class="rq-quote">${esc(q.quote)}</div>` : ''}
-      <div class="rq-text">${esc(q.desc)}</div>
-    </div>`;
+  reset();
 }
 
 function renderPraiseQuotes() {
@@ -2115,7 +2055,7 @@ function renderPraiseQuotes() {
 
   _praiseFiltered = null;
   _praisePage     = 1;
-  const firstPage  = _sortedPraiseQuotes(quotes).slice(0, ROAST_PAGE_SIZE).map(q => renderPraiseCard(q, chars)).join('');
+  const firstPage  = _sortedPraiseQuotes(quotes).slice(0, ROAST_PAGE_SIZE).map(q => renderQuoteCard(q, 'praise')).join('');
   const totalPages = Math.ceil(quotes.length / ROAST_PAGE_SIZE);
   const initPager  = totalPages > 1 ? `
     <div class="rq-pager" id="pq-pager">
