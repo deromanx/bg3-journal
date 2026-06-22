@@ -12,7 +12,7 @@ from pathlib import Path
 from docx import Document
 from docx.oxml.ns import qn
 from lxml import etree
-from name_fixes import NAME_FIXES
+from name_fixes import fix_text
 
 try:
     from PIL import Image as PILImage
@@ -53,9 +53,7 @@ META_PATTERNS = [
 
 def clean(text: str) -> str:
     t = text.translate(_BAD_CHARS).strip()
-    for wrong, right in NAME_FIXES.items():
-        t = t.replace(wrong, right)
-    return t
+    return fix_text(t)
 
 def is_meta(text: str) -> bool:
     return any(re.search(p, text) for p in META_PATTERNS)

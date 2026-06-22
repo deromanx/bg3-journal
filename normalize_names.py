@@ -19,7 +19,10 @@ DATA = Path(__file__).parent / "data"
 
 def main():
     changed = 0
-    for path in sorted(DATA.glob("*.json")):
+    # 遞迴掃描，涵蓋 data/sessions/（網站逐集讀取）與 data/sessions-raw/（統計事實來源），
+    # 而非只有 data/ 頂層。dotfile（如 .praised_processed.json）不被 rglob("*.json") 匹配，
+    # 保留其指紋內容不被誤改。
+    for path in sorted(DATA.rglob("*.json")):
         try:
             data = json.loads(path.read_text("utf-8"))
         except Exception as e:
