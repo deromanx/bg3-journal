@@ -8,7 +8,9 @@
     "content": [
       {
         "t": "img",
-        "v": "data/images/1/img_001.webp"
+        "v": "data/images/1/img_001.webp",
+        "w": 900,
+        "h": 501
       },
       {
         "t": "p",
@@ -80,7 +82,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/1/img_002.webp"
+        "v": "data/images/1/img_002.webp",
+        "w": 900,
+        "h": 499
       },
       {
         "t": "h2",
@@ -112,7 +116,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/1/img_003.webp"
+        "v": "data/images/1/img_003.webp",
+        "w": 900,
+        "h": 503
       },
       {
         "t": "p",
@@ -128,11 +134,15 @@
       },
       {
         "t": "img",
-        "v": "data/images/1/img_004.webp"
+        "v": "data/images/1/img_004.webp",
+        "w": 900,
+        "h": 776
       },
       {
         "t": "img",
-        "v": "data/images/1/img_005.webp"
+        "v": "data/images/1/img_005.webp",
+        "w": 900,
+        "h": 502
       },
       {
         "t": "h2",
@@ -164,7 +174,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/1/img_006.webp"
+        "v": "data/images/1/img_006.webp",
+        "w": 264,
+        "h": 359
       },
       {
         "t": "li",
@@ -180,7 +192,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/1/img_007.webp"
+        "v": "data/images/1/img_007.webp",
+        "w": 900,
+        "h": 503
       },
       {
         "t": "p",
@@ -200,7 +214,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/1/img_008.webp"
+        "v": "data/images/1/img_008.webp",
+        "w": 890,
+        "h": 817
       },
       {
         "t": "p",
@@ -232,11 +248,15 @@
       },
       {
         "t": "img",
-        "v": "data/images/1/img_009.webp"
+        "v": "data/images/1/img_009.webp",
+        "w": 888,
+        "h": 806
       },
       {
         "t": "img",
-        "v": "data/images/1/img_010.webp"
+        "v": "data/images/1/img_010.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "li",
@@ -244,7 +264,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/1/img_011.webp"
+        "v": "data/images/1/img_011.webp",
+        "w": 900,
+        "h": 501
       },
       {
         "t": "h2",
@@ -272,11 +294,15 @@
       },
       {
         "t": "img",
-        "v": "data/images/1/img_012.webp"
+        "v": "data/images/1/img_012.webp",
+        "w": 900,
+        "h": 503
       },
       {
         "t": "img",
-        "v": "data/images/1/img_013.webp"
+        "v": "data/images/1/img_013.webp",
+        "w": 900,
+        "h": 505
       },
       {
         "t": "h2",
@@ -300,11 +326,15 @@
       },
       {
         "t": "img",
-        "v": "data/images/1/img_014.webp"
+        "v": "data/images/1/img_014.webp",
+        "w": 900,
+        "h": 504
       },
       {
         "t": "img",
-        "v": "data/images/1/img_015.webp"
+        "v": "data/images/1/img_015.webp",
+        "w": 900,
+        "h": 501
       },
       {
         "t": "li",
@@ -312,7 +342,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/1/img_016.webp"
+        "v": "data/images/1/img_016.webp",
+        "w": 900,
+        "h": 498
       },
       {
         "t": "h2",
@@ -358,7 +390,9 @@
     "content": [
       {
         "t": "img",
-        "v": "data/images/2/img_001.webp"
+        "v": "data/images/2/img_001.webp",
+        "w": 900,
+        "h": 505
       },
       {
         "t": "p",
@@ -422,7 +456,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/2/img_002.webp"
+        "v": "data/images/2/img_002.webp",
+        "w": 900,
+        "h": 503
       },
       {
         "t": "h2",
@@ -474,7 +510,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/2/img_003.webp"
+        "v": "data/images/2/img_003.webp",
+        "w": 900,
+        "h": 501
       },
       {
         "t": "p",
@@ -486,7 +524,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/2/img_004.webp"
+        "v": "data/images/2/img_004.webp",
+        "w": 900,
+        "h": 504
       },
       {
         "t": "h2",
@@ -502,7 +542,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/2/img_005.webp"
+        "v": "data/images/2/img_005.webp",
+        "w": 900,
+        "h": 510
       },
       {
         "t": "p",
@@ -518,7 +560,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/2/img_006.webp"
+        "v": "data/images/2/img_006.webp",
+        "w": 900,
+        "h": 501
       },
       {
         "t": "p",
@@ -538,7 +582,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/2/img_007.webp"
+        "v": "data/images/2/img_007.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "p",
@@ -550,7 +596,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/2/img_008.webp"
+        "v": "data/images/2/img_008.webp",
+        "w": 900,
+        "h": 503
       },
       {
         "t": "p",
@@ -566,7 +614,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/2/img_009.webp"
+        "v": "data/images/2/img_009.webp",
+        "w": 900,
+        "h": 504
       },
       {
         "t": "h2",
@@ -610,11 +660,15 @@
       },
       {
         "t": "img",
-        "v": "data/images/2/img_010.webp"
+        "v": "data/images/2/img_010.webp",
+        "w": 900,
+        "h": 502
       },
       {
         "t": "img",
-        "v": "data/images/2/img_011.webp"
+        "v": "data/images/2/img_011.webp",
+        "w": 900,
+        "h": 500
       },
       {
         "t": "h2",
@@ -638,11 +692,15 @@
       },
       {
         "t": "img",
-        "v": "data/images/2/img_012.webp"
+        "v": "data/images/2/img_012.webp",
+        "w": 900,
+        "h": 498
       },
       {
         "t": "img",
-        "v": "data/images/2/img_013.webp"
+        "v": "data/images/2/img_013.webp",
+        "w": 900,
+        "h": 502
       },
       {
         "t": "h2",
@@ -678,7 +736,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/2/img_014.webp"
+        "v": "data/images/2/img_014.webp",
+        "w": 900,
+        "h": 501
       },
       {
         "t": "p",
@@ -686,7 +746,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/2/img_015.webp"
+        "v": "data/images/2/img_015.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "p",
@@ -764,7 +826,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/3/img_001.webp"
+        "v": "data/images/3/img_001.webp",
+        "w": 900,
+        "h": 501
       },
       {
         "t": "p",
@@ -812,11 +876,15 @@
       },
       {
         "t": "img",
-        "v": "data/images/3/img_002.webp"
+        "v": "data/images/3/img_002.webp",
+        "w": 900,
+        "h": 500
       },
       {
         "t": "img",
-        "v": "data/images/3/img_003.webp"
+        "v": "data/images/3/img_003.webp",
+        "w": 900,
+        "h": 501
       },
       {
         "t": "p",
@@ -824,7 +892,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/3/img_004.webp"
+        "v": "data/images/3/img_004.webp",
+        "w": 900,
+        "h": 501
       },
       {
         "t": "h2",
@@ -888,7 +958,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/3/img_005.webp"
+        "v": "data/images/3/img_005.webp",
+        "w": 900,
+        "h": 501
       },
       {
         "t": "p",
@@ -968,7 +1040,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/3/img_006.webp"
+        "v": "data/images/3/img_006.webp",
+        "w": 900,
+        "h": 500
       },
       {
         "t": "p",
@@ -1000,7 +1074,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/3/img_007.webp"
+        "v": "data/images/3/img_007.webp",
+        "w": 900,
+        "h": 505
       },
       {
         "t": "p",
@@ -1012,7 +1088,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/3/img_008.webp"
+        "v": "data/images/3/img_008.webp",
+        "w": 900,
+        "h": 501
       },
       {
         "t": "p",
@@ -1036,7 +1114,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/3/img_009.webp"
+        "v": "data/images/3/img_009.webp",
+        "w": 900,
+        "h": 503
       },
       {
         "t": "li",
@@ -1056,7 +1136,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/3/img_010.webp"
+        "v": "data/images/3/img_010.webp",
+        "w": 900,
+        "h": 500
       },
       {
         "t": "p",
@@ -1064,7 +1146,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/3/img_011.webp"
+        "v": "data/images/3/img_011.webp",
+        "w": 900,
+        "h": 502
       },
       {
         "t": "p",
@@ -1076,7 +1160,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/3/img_012.webp"
+        "v": "data/images/3/img_012.webp",
+        "w": 900,
+        "h": 502
       },
       {
         "t": "p",
@@ -1096,7 +1182,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/3/img_013.webp"
+        "v": "data/images/3/img_013.webp",
+        "w": 900,
+        "h": 501
       },
       {
         "t": "li",
@@ -1112,7 +1200,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/3/img_014.webp"
+        "v": "data/images/3/img_014.webp",
+        "w": 900,
+        "h": 502
       },
       {
         "t": "p",
@@ -1124,7 +1214,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/3/img_015.webp"
+        "v": "data/images/3/img_015.webp",
+        "w": 900,
+        "h": 499
       },
       {
         "t": "h2",
@@ -1172,7 +1264,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/3/img_016.webp"
+        "v": "data/images/3/img_016.webp",
+        "w": 900,
+        "h": 502
       },
       {
         "t": "li",
@@ -1196,7 +1290,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/3/img_017.webp"
+        "v": "data/images/3/img_017.webp",
+        "w": 889,
+        "h": 801
       },
       {
         "t": "p",
@@ -1212,7 +1308,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/3/img_018.webp"
+        "v": "data/images/3/img_018.webp",
+        "w": 900,
+        "h": 500
       },
       {
         "t": "p",
@@ -1244,7 +1342,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/3/img_019.webp"
+        "v": "data/images/3/img_019.webp",
+        "w": 900,
+        "h": 507
       }
     ],
     "placeholder": false
@@ -1258,7 +1358,9 @@
     "content": [
       {
         "t": "img",
-        "v": "data/images/4/img_001.webp"
+        "v": "data/images/4/img_001.webp",
+        "w": 885,
+        "h": 504
       },
       {
         "t": "p",
@@ -1270,7 +1372,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/4/img_002.webp"
+        "v": "data/images/4/img_002.webp",
+        "w": 715,
+        "h": 444
       },
       {
         "t": "p",
@@ -1282,7 +1386,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/4/img_003.webp"
+        "v": "data/images/4/img_003.webp",
+        "w": 724,
+        "h": 396
       },
       {
         "t": "p",
@@ -1294,11 +1400,15 @@
       },
       {
         "t": "img",
-        "v": "data/images/4/img_004.webp"
+        "v": "data/images/4/img_004.webp",
+        "w": 629,
+        "h": 536
       },
       {
         "t": "img",
-        "v": "data/images/4/img_005.webp"
+        "v": "data/images/4/img_005.webp",
+        "w": 885,
+        "h": 487
       },
       {
         "t": "h1",
@@ -1334,7 +1444,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/4/img_006.webp"
+        "v": "data/images/4/img_006.webp",
+        "w": 697,
+        "h": 429
       },
       {
         "t": "p",
@@ -1374,11 +1486,15 @@
       },
       {
         "t": "img",
-        "v": "data/images/4/img_007.webp"
+        "v": "data/images/4/img_007.webp",
+        "w": 900,
+        "h": 272
       },
       {
         "t": "img",
-        "v": "data/images/4/img_008.webp"
+        "v": "data/images/4/img_008.webp",
+        "w": 582,
+        "h": 514
       },
       {
         "t": "li",
@@ -1426,7 +1542,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/4/img_009.webp"
+        "v": "data/images/4/img_009.webp",
+        "w": 519,
+        "h": 286
       },
       {
         "t": "li",
@@ -1450,7 +1568,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/4/img_010.webp"
+        "v": "data/images/4/img_010.webp",
+        "w": 900,
+        "h": 378
       },
       {
         "t": "h1",
@@ -1482,7 +1602,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/4/img_011.webp"
+        "v": "data/images/4/img_011.webp",
+        "w": 883,
+        "h": 493
       },
       {
         "t": "li",
@@ -1494,7 +1616,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/4/img_012.webp"
+        "v": "data/images/4/img_012.webp",
+        "w": 900,
+        "h": 503
       },
       {
         "t": "h2",
@@ -1506,7 +1630,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/4/img_013.webp"
+        "v": "data/images/4/img_013.webp",
+        "w": 502,
+        "h": 325
       },
       {
         "t": "h1",
@@ -1518,7 +1644,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/4/img_014.webp"
+        "v": "data/images/4/img_014.webp",
+        "w": 827,
+        "h": 462
       },
       {
         "t": "li",
@@ -1550,7 +1678,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/4/img_015.webp"
+        "v": "data/images/4/img_015.webp",
+        "w": 821,
+        "h": 453
       },
       {
         "t": "p",
@@ -1572,7 +1702,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/5/img_001.webp"
+        "v": "data/images/5/img_001.webp",
+        "w": 752,
+        "h": 423
       },
       {
         "t": "h2",
@@ -1632,11 +1764,15 @@
       },
       {
         "t": "img",
-        "v": "data/images/5/img_002.webp"
+        "v": "data/images/5/img_002.webp",
+        "w": 859,
+        "h": 667
       },
       {
         "t": "img",
-        "v": "data/images/5/img_003.webp"
+        "v": "data/images/5/img_003.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "p",
@@ -1664,11 +1800,15 @@
       },
       {
         "t": "img",
-        "v": "data/images/5/img_004.webp"
+        "v": "data/images/5/img_004.webp",
+        "w": 877,
+        "h": 674
       },
       {
         "t": "img",
-        "v": "data/images/5/img_005.webp"
+        "v": "data/images/5/img_005.webp",
+        "w": 900,
+        "h": 446
       },
       {
         "t": "p",
@@ -1676,7 +1816,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/5/img_006.webp"
+        "v": "data/images/5/img_006.webp",
+        "w": 900,
+        "h": 471
       },
       {
         "t": "p",
@@ -1688,7 +1830,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/5/img_007.webp"
+        "v": "data/images/5/img_007.webp",
+        "w": 900,
+        "h": 674
       },
       {
         "t": "h2",
@@ -1712,7 +1856,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/5/img_008.webp"
+        "v": "data/images/5/img_008.webp",
+        "w": 668,
+        "h": 441
       },
       {
         "t": "p",
@@ -1736,11 +1882,15 @@
       },
       {
         "t": "img",
-        "v": "data/images/5/img_009.webp"
+        "v": "data/images/5/img_009.webp",
+        "w": 750,
+        "h": 552
       },
       {
         "t": "img",
-        "v": "data/images/5/img_010.webp"
+        "v": "data/images/5/img_010.webp",
+        "w": 712,
+        "h": 564
       },
       {
         "t": "h2",
@@ -1748,7 +1898,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/5/img_011.webp"
+        "v": "data/images/5/img_011.webp",
+        "w": 900,
+        "h": 627
       },
       {
         "t": "p",
@@ -1784,11 +1936,15 @@
       },
       {
         "t": "img",
-        "v": "data/images/5/img_012.webp"
+        "v": "data/images/5/img_012.webp",
+        "w": 900,
+        "h": 504
       },
       {
         "t": "img",
-        "v": "data/images/5/img_013.webp"
+        "v": "data/images/5/img_013.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "p",
@@ -1820,7 +1976,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/5/img_014.webp"
+        "v": "data/images/5/img_014.webp",
+        "w": 900,
+        "h": 437
       },
       {
         "t": "p",
@@ -1828,7 +1986,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/5/img_015.webp"
+        "v": "data/images/5/img_015.webp",
+        "w": 646,
+        "h": 437
       },
       {
         "t": "p",
@@ -1880,7 +2040,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/5/img_016.webp"
+        "v": "data/images/5/img_016.webp",
+        "w": 900,
+        "h": 284
       },
       {
         "t": "h1",
@@ -1922,7 +2084,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/6/img_001.webp"
+        "v": "data/images/6/img_001.webp",
+        "w": 395,
+        "h": 390
       },
       {
         "t": "p",
@@ -1958,7 +2122,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/6/img_002.webp"
+        "v": "data/images/6/img_002.webp",
+        "w": 103,
+        "h": 77
       },
       {
         "t": "p",
@@ -1982,7 +2148,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/6/img_003.webp"
+        "v": "data/images/6/img_003.webp",
+        "w": 728,
+        "h": 510
       },
       {
         "t": "p",
@@ -2002,11 +2170,15 @@
       },
       {
         "t": "img",
-        "v": "data/images/6/img_004.webp"
+        "v": "data/images/6/img_004.webp",
+        "w": 900,
+        "h": 450
       },
       {
         "t": "img",
-        "v": "data/images/6/img_005.webp"
+        "v": "data/images/6/img_005.webp",
+        "w": 275,
+        "h": 174
       },
       {
         "t": "p",
@@ -2034,7 +2206,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/6/img_006.webp"
+        "v": "data/images/6/img_006.webp",
+        "w": 771,
+        "h": 505
       },
       {
         "t": "h1",
@@ -2062,7 +2236,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/6/img_007.webp"
+        "v": "data/images/6/img_007.webp",
+        "w": 436,
+        "h": 128
       },
       {
         "t": "p",
@@ -2070,7 +2246,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/6/img_008.webp"
+        "v": "data/images/6/img_008.webp",
+        "w": 729,
+        "h": 343
       },
       {
         "t": "p",
@@ -2086,7 +2264,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/6/img_009.webp"
+        "v": "data/images/6/img_009.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "p",
@@ -2106,7 +2286,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/6/img_010.webp"
+        "v": "data/images/6/img_010.webp",
+        "w": 900,
+        "h": 526
       },
       {
         "t": "h1",
@@ -2134,7 +2316,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/6/img_011.webp"
+        "v": "data/images/6/img_011.webp",
+        "w": 900,
+        "h": 427
       },
       {
         "t": "p",
@@ -2182,7 +2366,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/6/img_012.webp"
+        "v": "data/images/6/img_012.webp",
+        "w": 727,
+        "h": 350
       },
       {
         "t": "h2",
@@ -2222,7 +2408,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/6/img_013.webp"
+        "v": "data/images/6/img_013.webp",
+        "w": 900,
+        "h": 662
       }
     ],
     "placeholder": false
@@ -2260,7 +2448,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/7/img_001.webp"
+        "v": "data/images/7/img_001.webp",
+        "w": 273,
+        "h": 225
       },
       {
         "t": "p",
@@ -2292,7 +2482,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/7/img_002.webp"
+        "v": "data/images/7/img_002.webp",
+        "w": 454,
+        "h": 329
       },
       {
         "t": "p",
@@ -2316,7 +2508,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/7/img_003.webp"
+        "v": "data/images/7/img_003.webp",
+        "w": 703,
+        "h": 370
       },
       {
         "t": "p",
@@ -2368,7 +2562,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/7/img_004.webp"
+        "v": "data/images/7/img_004.webp",
+        "w": 715,
+        "h": 409
       },
       {
         "t": "p",
@@ -2400,7 +2596,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/7/img_005.webp"
+        "v": "data/images/7/img_005.webp",
+        "w": 675,
+        "h": 364
       },
       {
         "t": "p",
@@ -2428,7 +2626,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/7/img_006.webp"
+        "v": "data/images/7/img_006.webp",
+        "w": 675,
+        "h": 364
       },
       {
         "t": "p",
@@ -2436,7 +2636,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/7/img_007.webp"
+        "v": "data/images/7/img_007.webp",
+        "w": 812,
+        "h": 413
       },
       {
         "t": "h2",
@@ -2482,7 +2684,9 @@
     "content": [
       {
         "t": "img",
-        "v": "data/images/8/img_001.webp"
+        "v": "data/images/8/img_001.webp",
+        "w": 900,
+        "h": 396
       },
       {
         "t": "h2",
@@ -2490,7 +2694,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/8/img_002.webp"
+        "v": "data/images/8/img_002.webp",
+        "w": 175,
+        "h": 393
       },
       {
         "t": "h2",
@@ -2578,7 +2784,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/8/img_003.webp"
+        "v": "data/images/8/img_003.webp",
+        "w": 900,
+        "h": 527
       },
       {
         "t": "p",
@@ -2606,7 +2814,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/8/img_004.webp"
+        "v": "data/images/8/img_004.webp",
+        "w": 437,
+        "h": 301
       },
       {
         "t": "p",
@@ -2638,7 +2848,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/8/img_005.webp"
+        "v": "data/images/8/img_005.webp",
+        "w": 900,
+        "h": 511
       },
       {
         "t": "h2",
@@ -2718,7 +2930,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/8/img_006.webp"
+        "v": "data/images/8/img_006.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "p",
@@ -2754,7 +2968,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/8/img_007.webp"
+        "v": "data/images/8/img_007.webp",
+        "w": 384,
+        "h": 295
       },
       {
         "t": "h2",
@@ -2786,7 +3002,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/8/img_008.webp"
+        "v": "data/images/8/img_008.webp",
+        "w": 405,
+        "h": 336
       },
       {
         "t": "p",
@@ -2832,7 +3050,9 @@
     "content": [
       {
         "t": "img",
-        "v": "data/images/9/img_001.webp"
+        "v": "data/images/9/img_001.webp",
+        "w": 900,
+        "h": 498
       },
       {
         "t": "h1",
@@ -2856,7 +3076,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/9/img_002.webp"
+        "v": "data/images/9/img_002.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "li",
@@ -2872,7 +3094,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/9/img_003.webp"
+        "v": "data/images/9/img_003.webp",
+        "w": 730,
+        "h": 431
       },
       {
         "t": "li",
@@ -2944,7 +3168,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/9/img_004.webp"
+        "v": "data/images/9/img_004.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "h2",
@@ -3036,11 +3262,15 @@
       },
       {
         "t": "img",
-        "v": "data/images/9/img_005.webp"
+        "v": "data/images/9/img_005.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "img",
-        "v": "data/images/9/img_006.webp"
+        "v": "data/images/9/img_006.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "h2",
@@ -3060,7 +3290,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/9/img_007.webp"
+        "v": "data/images/9/img_007.webp",
+        "w": 497,
+        "h": 382
       },
       {
         "t": "h2",
@@ -3100,7 +3332,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/9/img_008.webp"
+        "v": "data/images/9/img_008.webp",
+        "w": 900,
+        "h": 407
       },
       {
         "t": "h2",
@@ -3116,7 +3350,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/9/img_009.webp"
+        "v": "data/images/9/img_009.webp",
+        "w": 862,
+        "h": 485
       },
       {
         "t": "p",
@@ -3184,7 +3420,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/9/img_010.webp"
+        "v": "data/images/9/img_010.webp",
+        "w": 603,
+        "h": 548
       },
       {
         "t": "p",
@@ -3222,11 +3460,15 @@
       },
       {
         "t": "img",
-        "v": "data/images/10/img_001.webp"
+        "v": "data/images/10/img_001.webp",
+        "w": 900,
+        "h": 508
       },
       {
         "t": "img",
-        "v": "data/images/10/img_002.webp"
+        "v": "data/images/10/img_002.webp",
+        "w": 237,
+        "h": 238
       },
       {
         "t": "p",
@@ -3262,11 +3504,15 @@
       },
       {
         "t": "img",
-        "v": "data/images/10/img_003.webp"
+        "v": "data/images/10/img_003.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "img",
-        "v": "data/images/10/img_004.webp"
+        "v": "data/images/10/img_004.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "h2",
@@ -3286,11 +3532,15 @@
       },
       {
         "t": "img",
-        "v": "data/images/10/img_005.webp"
+        "v": "data/images/10/img_005.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "img",
-        "v": "data/images/10/img_006.webp"
+        "v": "data/images/10/img_006.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "h2",
@@ -3314,7 +3564,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/10/img_007.webp"
+        "v": "data/images/10/img_007.webp",
+        "w": 900,
+        "h": 742
       },
       {
         "t": "p",
@@ -3342,7 +3594,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/10/img_008.webp"
+        "v": "data/images/10/img_008.webp",
+        "w": 900,
+        "h": 502
       },
       {
         "t": "h2",
@@ -3350,7 +3604,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/10/img_009.webp"
+        "v": "data/images/10/img_009.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "p",
@@ -3402,7 +3658,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/10/img_010.webp"
+        "v": "data/images/10/img_010.webp",
+        "w": 900,
+        "h": 501
       },
       {
         "t": "h2",
@@ -3426,7 +3684,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/10/img_011.webp"
+        "v": "data/images/10/img_011.webp",
+        "w": 900,
+        "h": 452
       },
       {
         "t": "p",
@@ -3454,7 +3714,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/10/img_012.webp"
+        "v": "data/images/10/img_012.webp",
+        "w": 565,
+        "h": 469
       },
       {
         "t": "ai",
@@ -3470,7 +3732,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/10/img_013.webp"
+        "v": "data/images/10/img_013.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "h1",
@@ -3490,7 +3754,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/10/img_014.webp"
+        "v": "data/images/10/img_014.webp",
+        "w": 244,
+        "h": 239
       },
       {
         "t": "h2",
@@ -3510,7 +3776,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/10/img_015.webp"
+        "v": "data/images/10/img_015.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "p",
@@ -3530,7 +3798,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/10/img_016.webp"
+        "v": "data/images/10/img_016.webp",
+        "w": 900,
+        "h": 526
       },
       {
         "t": "p",
@@ -3576,11 +3846,15 @@
       },
       {
         "t": "img",
-        "v": "data/images/11/img_001.webp"
+        "v": "data/images/11/img_001.webp",
+        "w": 298,
+        "h": 333
       },
       {
         "t": "img",
-        "v": "data/images/11/img_002.webp"
+        "v": "data/images/11/img_002.webp",
+        "w": 264,
+        "h": 329
       },
       {
         "t": "h1",
@@ -3644,7 +3918,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/11/img_003.webp"
+        "v": "data/images/11/img_003.webp",
+        "w": 494,
+        "h": 545
       },
       {
         "t": "p",
@@ -3736,7 +4012,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/11/img_004.webp"
+        "v": "data/images/11/img_004.webp",
+        "w": 678,
+        "h": 379
       },
       {
         "t": "h1",
@@ -3744,7 +4022,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/11/img_005.webp"
+        "v": "data/images/11/img_005.webp",
+        "w": 853,
+        "h": 476
       },
       {
         "t": "h1",
@@ -3776,11 +4056,15 @@
       },
       {
         "t": "img",
-        "v": "data/images/11/img_006.webp"
+        "v": "data/images/11/img_006.webp",
+        "w": 900,
+        "h": 505
       },
       {
         "t": "img",
-        "v": "data/images/11/img_007.webp"
+        "v": "data/images/11/img_007.webp",
+        "w": 900,
+        "h": 502
       },
       {
         "t": "h1",
@@ -3800,7 +4084,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/11/img_008.webp"
+        "v": "data/images/11/img_008.webp",
+        "w": 769,
+        "h": 448
       },
       {
         "t": "li",
@@ -3836,7 +4122,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/11/img_009.webp"
+        "v": "data/images/11/img_009.webp",
+        "w": 698,
+        "h": 510
       },
       {
         "t": "li",
@@ -3938,7 +4226,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/12/img_001.webp"
+        "v": "data/images/12/img_001.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "li",
@@ -4010,7 +4300,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/12/img_002.webp"
+        "v": "data/images/12/img_002.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "h2",
@@ -4034,11 +4326,15 @@
       },
       {
         "t": "img",
-        "v": "data/images/12/img_003.webp"
+        "v": "data/images/12/img_003.webp",
+        "w": 900,
+        "h": 566
       },
       {
         "t": "img",
-        "v": "data/images/12/img_004.webp"
+        "v": "data/images/12/img_004.webp",
+        "w": 832,
+        "h": 702
       },
       {
         "t": "h1",
@@ -4046,7 +4342,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/12/img_005.webp"
+        "v": "data/images/12/img_005.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "h2",
@@ -4078,7 +4376,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/12/img_006.webp"
+        "v": "data/images/12/img_006.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "li",
@@ -4122,7 +4422,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/12/img_007.webp"
+        "v": "data/images/12/img_007.webp",
+        "w": 657,
+        "h": 595
       },
       {
         "t": "h2",
@@ -4336,7 +4638,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/13/img_001.webp"
+        "v": "data/images/13/img_001.webp",
+        "w": 900,
+        "h": 381
       },
       {
         "t": "h2",
@@ -4344,7 +4648,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/13/img_002.webp"
+        "v": "data/images/13/img_002.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "li",
@@ -4380,7 +4686,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/13/img_003.webp"
+        "v": "data/images/13/img_003.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "li",
@@ -4412,7 +4720,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/13/img_004.webp"
+        "v": "data/images/13/img_004.webp",
+        "w": 900,
+        "h": 429
       },
       {
         "t": "h2",
@@ -4420,7 +4730,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/13/img_005.webp"
+        "v": "data/images/13/img_005.webp",
+        "w": 568,
+        "h": 390
       },
       {
         "t": "li",
@@ -4484,7 +4796,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/13/img_006.webp"
+        "v": "data/images/13/img_006.webp",
+        "w": 900,
+        "h": 556
       }
     ],
     "placeholder": false
@@ -4518,7 +4832,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/14/img_001.webp"
+        "v": "data/images/14/img_001.webp",
+        "w": 248,
+        "h": 248
       },
       {
         "t": "li",
@@ -4530,7 +4846,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/14/img_002.webp"
+        "v": "data/images/14/img_002.webp",
+        "w": 480,
+        "h": 231
       },
       {
         "t": "li",
@@ -4702,7 +5020,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/14/img_003.webp"
+        "v": "data/images/14/img_003.webp",
+        "w": 192,
+        "h": 214
       },
       {
         "t": "li",
@@ -4718,11 +5038,15 @@
       },
       {
         "t": "img",
-        "v": "data/images/14/img_004.webp"
+        "v": "data/images/14/img_004.webp",
+        "w": 900,
+        "h": 503
       },
       {
         "t": "img",
-        "v": "data/images/14/img_005.webp"
+        "v": "data/images/14/img_005.webp",
+        "w": 900,
+        "h": 510
       },
       {
         "t": "h2",
@@ -4730,7 +5054,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/14/img_006.webp"
+        "v": "data/images/14/img_006.webp",
+        "w": 277,
+        "h": 72
       },
       {
         "t": "li",
@@ -4742,7 +5068,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/14/img_007.webp"
+        "v": "data/images/14/img_007.webp",
+        "w": 269,
+        "h": 252
       },
       {
         "t": "li",
@@ -4810,7 +5138,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/14/img_008.webp"
+        "v": "data/images/14/img_008.webp",
+        "w": 454,
+        "h": 285
       },
       {
         "t": "li",
@@ -4850,7 +5180,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/14/img_009.webp"
+        "v": "data/images/14/img_009.webp",
+        "w": 524,
+        "h": 303
       },
       {
         "t": "p",
@@ -4862,7 +5194,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/14/img_010.webp"
+        "v": "data/images/14/img_010.webp",
+        "w": 264,
+        "h": 271
       },
       {
         "t": "p",
@@ -4916,7 +5250,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/15/img_001.webp"
+        "v": "data/images/15/img_001.webp",
+        "w": 534,
+        "h": 510
       },
       {
         "t": "p",
@@ -4980,7 +5316,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/15/img_002.webp"
+        "v": "data/images/15/img_002.webp",
+        "w": 734,
+        "h": 547
       },
       {
         "t": "li",
@@ -5052,15 +5390,21 @@
       },
       {
         "t": "img",
-        "v": "data/images/15/img_003.webp"
+        "v": "data/images/15/img_003.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "img",
-        "v": "data/images/15/img_004.webp"
+        "v": "data/images/15/img_004.webp",
+        "w": 458,
+        "h": 304
       },
       {
         "t": "img",
-        "v": "data/images/15/img_005.webp"
+        "v": "data/images/15/img_005.webp",
+        "w": 239,
+        "h": 210
       },
       {
         "t": "p",
@@ -5072,7 +5416,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/15/img_006.webp"
+        "v": "data/images/15/img_006.webp",
+        "w": 241,
+        "h": 205
       },
       {
         "t": "p",
@@ -5092,7 +5438,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/15/img_007.webp"
+        "v": "data/images/15/img_007.webp",
+        "w": 325,
+        "h": 338
       },
       {
         "t": "p",
@@ -5116,7 +5464,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/15/img_008.webp"
+        "v": "data/images/15/img_008.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "p",
@@ -5152,7 +5502,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/15/img_009.webp"
+        "v": "data/images/15/img_009.webp",
+        "w": 383,
+        "h": 459
       },
       {
         "t": "p",
@@ -5176,7 +5528,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/15/img_010.webp"
+        "v": "data/images/15/img_010.webp",
+        "w": 561,
+        "h": 364
       },
       {
         "t": "p",
@@ -5280,7 +5634,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/15/img_011.webp"
+        "v": "data/images/15/img_011.webp",
+        "w": 900,
+        "h": 504
       },
       {
         "t": "li",
@@ -5300,7 +5656,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/15/img_012.webp"
+        "v": "data/images/15/img_012.webp",
+        "w": 900,
+        "h": 506
       },
       {
         "t": "li",
@@ -5494,7 +5852,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/16/img_001.webp"
+        "v": "data/images/16/img_001.webp",
+        "w": 394,
+        "h": 445
       },
       {
         "t": "li",
@@ -5506,7 +5866,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/16/img_002.webp"
+        "v": "data/images/16/img_002.webp",
+        "w": 719,
+        "h": 335
       },
       {
         "t": "li",
@@ -5582,7 +5944,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/16/img_003.webp"
+        "v": "data/images/16/img_003.webp",
+        "w": 583,
+        "h": 691
       },
       {
         "t": "p",
@@ -5606,7 +5970,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/16/img_004.webp"
+        "v": "data/images/16/img_004.webp",
+        "w": 427,
+        "h": 273
       },
       {
         "t": "p",
@@ -5642,7 +6008,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/16/img_005.webp"
+        "v": "data/images/16/img_005.webp",
+        "w": 900,
+        "h": 444
       },
       {
         "t": "p",
@@ -5728,7 +6096,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/17/img_001.webp"
+        "v": "data/images/17/img_001.webp",
+        "w": 374,
+        "h": 629
       },
       {
         "t": "li",
@@ -5828,7 +6198,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/17/img_002.webp"
+        "v": "data/images/17/img_002.webp",
+        "w": 900,
+        "h": 386
       },
       {
         "t": "h1",
@@ -5904,7 +6276,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/17/img_003.webp"
+        "v": "data/images/17/img_003.webp",
+        "w": 900,
+        "h": 501
       },
       {
         "t": "li",
@@ -5956,7 +6330,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/17/img_004.webp"
+        "v": "data/images/17/img_004.webp",
+        "w": 900,
+        "h": 195
       },
       {
         "t": "li",
@@ -6044,7 +6420,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/17/img_005.webp"
+        "v": "data/images/17/img_005.webp",
+        "w": 630,
+        "h": 406
       },
       {
         "t": "p",
@@ -6064,7 +6442,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/17/img_006.webp"
+        "v": "data/images/17/img_006.webp",
+        "w": 537,
+        "h": 225
       }
     ],
     "placeholder": false
@@ -6078,7 +6458,9 @@
     "content": [
       {
         "t": "img",
-        "v": "data/images/18/img_001.webp"
+        "v": "data/images/18/img_001.webp",
+        "w": 900,
+        "h": 502
       },
       {
         "t": "h1",
@@ -6098,7 +6480,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/18/img_002.webp"
+        "v": "data/images/18/img_002.webp",
+        "w": 112,
+        "h": 129
       },
       {
         "t": "li",
@@ -6218,7 +6602,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/18/img_003.webp"
+        "v": "data/images/18/img_003.webp",
+        "w": 306,
+        "h": 368
       },
       {
         "t": "ai",
@@ -6242,7 +6628,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/18/img_004.webp"
+        "v": "data/images/18/img_004.webp",
+        "w": 371,
+        "h": 479
       },
       {
         "t": "h2",
@@ -6302,7 +6690,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/18/img_005.webp"
+        "v": "data/images/18/img_005.webp",
+        "w": 897,
+        "h": 502
       },
       {
         "t": "li",
@@ -6382,7 +6772,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/18/img_006.webp"
+        "v": "data/images/18/img_006.webp",
+        "w": 713,
+        "h": 280
       },
       {
         "t": "p",
@@ -6414,7 +6806,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/18/img_007.webp"
+        "v": "data/images/18/img_007.webp",
+        "w": 900,
+        "h": 436
       },
       {
         "t": "p",
@@ -6522,7 +6916,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/18/img_008.webp"
+        "v": "data/images/18/img_008.webp",
+        "w": 900,
+        "h": 502
       },
       {
         "t": "h2",
@@ -6564,7 +6960,9 @@
     "content": [
       {
         "t": "img",
-        "v": "data/images/19/img_001.webp"
+        "v": "data/images/19/img_001.webp",
+        "w": 900,
+        "h": 495
       },
       {
         "t": "h1",
@@ -6604,7 +7002,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/19/img_002.webp"
+        "v": "data/images/19/img_002.webp",
+        "w": 588,
+        "h": 534
       },
       {
         "t": "p",
@@ -6628,7 +7028,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/19/img_003.webp"
+        "v": "data/images/19/img_003.webp",
+        "w": 470,
+        "h": 174
       },
       {
         "t": "p",
@@ -6692,7 +7094,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/19/img_004.webp"
+        "v": "data/images/19/img_004.webp",
+        "w": 625,
+        "h": 549
       },
       {
         "t": "h2",
@@ -6748,7 +7152,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/19/img_005.webp"
+        "v": "data/images/19/img_005.webp",
+        "w": 841,
+        "h": 531
       },
       {
         "t": "h2",
@@ -6784,7 +7190,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/19/img_006.webp"
+        "v": "data/images/19/img_006.webp",
+        "w": 838,
+        "h": 422
       },
       {
         "t": "h1",
@@ -6824,7 +7232,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/19/img_007.webp"
+        "v": "data/images/19/img_007.webp",
+        "w": 900,
+        "h": 278
       },
       {
         "t": "h2",
@@ -6844,7 +7254,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/19/img_008.webp"
+        "v": "data/images/19/img_008.webp",
+        "w": 807,
+        "h": 749
       },
       {
         "t": "li",
@@ -6856,7 +7268,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/19/img_009.webp"
+        "v": "data/images/19/img_009.webp",
+        "w": 835,
+        "h": 436
       },
       {
         "t": "h1",
@@ -6960,7 +7374,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/19/img_010.webp"
+        "v": "data/images/19/img_010.webp",
+        "w": 592,
+        "h": 721
       },
       {
         "t": "h2",
@@ -7034,7 +7450,9 @@
     "content": [
       {
         "t": "img",
-        "v": "data/images/20/img_001.webp"
+        "v": "data/images/20/img_001.webp",
+        "w": 900,
+        "h": 289
       },
       {
         "t": "h1",
@@ -7194,7 +7612,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/20/img_002.webp"
+        "v": "data/images/20/img_002.webp",
+        "w": 583,
+        "h": 453
       },
       {
         "t": "h2",
@@ -7230,7 +7650,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/20/img_003.webp"
+        "v": "data/images/20/img_003.webp",
+        "w": 890,
+        "h": 525
       },
       {
         "t": "h2",
@@ -7326,7 +7748,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/20/img_004.webp"
+        "v": "data/images/20/img_004.webp",
+        "w": 602,
+        "h": 408
       },
       {
         "t": "li",
@@ -7438,7 +7862,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/20/img_005.webp"
+        "v": "data/images/20/img_005.webp",
+        "w": 492,
+        "h": 399
       },
       {
         "t": "li",
@@ -7506,7 +7932,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/20/img_006.webp"
+        "v": "data/images/20/img_006.webp",
+        "w": 284,
+        "h": 411
       },
       {
         "t": "h1",
@@ -7622,7 +8050,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/20/img_007.webp"
+        "v": "data/images/20/img_007.webp",
+        "w": 762,
+        "h": 410
       },
       {
         "t": "h2",
@@ -7646,7 +8076,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/20/img_008.webp"
+        "v": "data/images/20/img_008.webp",
+        "w": 900,
+        "h": 83
       },
       {
         "t": "li",
@@ -7682,7 +8114,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/20/img_009.webp"
+        "v": "data/images/20/img_009.webp",
+        "w": 406,
+        "h": 416
       },
       {
         "t": "h1",
@@ -7750,7 +8184,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/20/img_010.webp"
+        "v": "data/images/20/img_010.webp",
+        "w": 730,
+        "h": 404
       },
       {
         "t": "h2",
@@ -7766,7 +8202,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/20/img_011.webp"
+        "v": "data/images/20/img_011.webp",
+        "w": 900,
+        "h": 290
       },
       {
         "t": "li",
@@ -7802,7 +8240,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/20/img_012.webp"
+        "v": "data/images/20/img_012.webp",
+        "w": 453,
+        "h": 300
       },
       {
         "t": "h2",
@@ -7852,7 +8292,9 @@
     "content": [
       {
         "t": "img",
-        "v": "data/images/21/img_001.webp"
+        "v": "data/images/21/img_001.webp",
+        "w": 482,
+        "h": 277
       },
       {
         "t": "h1",
@@ -7908,7 +8350,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/21/img_002.webp"
+        "v": "data/images/21/img_002.webp",
+        "w": 625,
+        "h": 648
       },
       {
         "t": "h2",
@@ -8168,7 +8612,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/21/img_003.webp"
+        "v": "data/images/21/img_003.webp",
+        "w": 613,
+        "h": 456
       },
       {
         "t": "li",
@@ -8192,7 +8638,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/21/img_004.webp"
+        "v": "data/images/21/img_004.webp",
+        "w": 409,
+        "h": 417
       },
       {
         "t": "h1",
@@ -8356,7 +8804,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/21/img_005.webp"
+        "v": "data/images/21/img_005.webp",
+        "w": 274,
+        "h": 185
       },
       {
         "t": "h1",
@@ -8420,7 +8870,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/21/img_006.webp"
+        "v": "data/images/21/img_006.webp",
+        "w": 161,
+        "h": 211
       },
       {
         "t": "li",
@@ -8484,7 +8936,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/21/img_007.webp"
+        "v": "data/images/21/img_007.webp",
+        "w": 427,
+        "h": 250
       },
       {
         "t": "h2",
@@ -8512,7 +8966,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/21/img_008.webp"
+        "v": "data/images/21/img_008.webp",
+        "w": 900,
+        "h": 490
       },
       {
         "t": "h2",
@@ -8616,7 +9072,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/21/img_009.webp"
+        "v": "data/images/21/img_009.webp",
+        "w": 815,
+        "h": 309
       },
       {
         "t": "h2",
@@ -8636,7 +9094,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/21/img_010.webp"
+        "v": "data/images/21/img_010.webp",
+        "w": 832,
+        "h": 457
       },
       {
         "t": "p",
@@ -8654,7 +9114,9 @@
     "content": [
       {
         "t": "img",
-        "v": "data/images/22/img_001.webp"
+        "v": "data/images/22/img_001.webp",
+        "w": 900,
+        "h": 502
       },
       {
         "t": "h1",
@@ -8730,7 +9192,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/22/img_002.webp"
+        "v": "data/images/22/img_002.webp",
+        "w": 669,
+        "h": 804
       },
       {
         "t": "h2",
@@ -8834,7 +9298,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/22/img_003.webp"
+        "v": "data/images/22/img_003.webp",
+        "w": 408,
+        "h": 229
       },
       {
         "t": "li",
@@ -9050,7 +9516,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/22/img_004.webp"
+        "v": "data/images/22/img_004.webp",
+        "w": 900,
+        "h": 383
       },
       {
         "t": "h2",
@@ -9194,7 +9662,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/22/img_005.webp"
+        "v": "data/images/22/img_005.webp",
+        "w": 446,
+        "h": 395
       },
       {
         "t": "h2",
@@ -9246,7 +9716,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/22/img_006.webp"
+        "v": "data/images/22/img_006.webp",
+        "w": 900,
+        "h": 390
       },
       {
         "t": "h1",
@@ -9290,7 +9762,9 @@
       },
       {
         "t": "img",
-        "v": "data/images/22/img_007.webp"
+        "v": "data/images/22/img_007.webp",
+        "w": 900,
+        "h": 500
       },
       {
         "t": "p",
@@ -9311,6 +9785,616 @@
       {
         "t": "p",
         "v": "打完走道的小頭，隊伍往南方的門裡走去。在裡面遇到了一心求死的切割者Chop和被關起來的我們us。向隊伍這樣的好心人肯定是願意幫他達成願望的，於是隊伍和Chop及他身邊的小頭們都進入戰鬥，戰鬥伊始生出了三隻Chop和更多的小頭。隊伍終於受不了這小怪也要打個大半天的情況，決定再下週跑團前先把這個反人類的增生Mod給調弱。"
+      }
+    ],
+    "placeholder": false
+  },
+  {
+    "id": 23,
+    "chapter": "第二十三章",
+    "date": "2026-06-18",
+    "dateDisplay": "2026 年 6 月 18 日",
+    "title": "大軍壓境、老弱婦孺、世界的塞子",
+    "content": [
+      {
+        "t": "img",
+        "v": "data/images/23/img_001.webp",
+        "w": 900,
+        "h": 411
+      },
+      {
+        "t": "h1",
+        "v": "場邊閒聊"
+      },
+      {
+        "t": "h2",
+        "v": "集結困難"
+      },
+      {
+        "t": "li",
+        "v": "眾人光是集合就經歷了一番波折。卡拉克今天很晚才回家無法上線，角色由影心控制。獲得全隊力量最強的卡拉克，手賤影心發展出新的手賤遊戲：抓隊有砸隊友。先是阿斯代倫被抓來砸在曹身上，砸一次不夠要砸第二次，貓咕咕也被抓來砸曹。一番操作下，還沒開始冒險貓咕咕跟曹就已經要死了。"
+      },
+      {
+        "t": "li",
+        "v": "影心：「卡拉克好強喔！我以後要用卡拉克。」"
+      },
+      {
+        "t": "li",
+        "v": "更慘的是曹的無限大蒜壞掉了，在這無法回營長休的地方，不能回血簡直要命。曹只好用那一千零一招：重啟遊戲。"
+      },
+      {
+        "t": "li",
+        "v": "曹：「你這樣一摔，我甚麼東西都沒辦法動。」"
+      },
+      {
+        "t": "li",
+        "v": "影心：「幹，又怪我就對了。」"
+      },
+      {
+        "t": "li",
+        "v": "阿斯代倫：「你不要搞他不就沒事了嗎？」"
+      },
+      {
+        "t": "li",
+        "v": "曹：「你好好的，不要對隊友造成傷害就沒事了。」"
+      },
+      {
+        "t": "li",
+        "v": "影心：「遲早有人會對你造成傷害，幫你做好準備。」"
+      },
+      {
+        "t": "li",
+        "v": "曹無故卡住，反覆重連都無法解決，只好讓主機阿斯代倫重啟遊戲，但這依然沒有解決問題。"
+      },
+      {
+        "t": "li",
+        "v": "阿斯代倫：「啊為什麼曹又不見了？」"
+      },
+      {
+        "t": "li",
+        "v": "曹：「直接跳game啦(氣)。」"
+      },
+      {
+        "t": "li",
+        "v": "影心：「你不要再怪我摔你了。」"
+      },
+      {
+        "t": "li",
+        "v": "曹：「摔之前都好好的啊！」"
+      },
+      {
+        "t": "li",
+        "v": "阿斯代倫：「曹你有點脆弱。」"
+      },
+      {
+        "t": "li",
+        "v": "影心：「卡拉克摔一下就壞了。」"
+      },
+      {
+        "t": "li",
+        "v": "曹：「我這電腦可能不太喜歡被公主抱。」"
+      },
+      {
+        "t": "li",
+        "v": "這點插曲是不會阻止影心手賤的腳步的，等待期間他依然想著把在把隊友抓起來摔。"
+      },
+      {
+        "t": "li",
+        "v": "影心：「你現在還沒加入，我先摔應該不會怎麼樣。」"
+      },
+      {
+        "t": "li",
+        "v": "曹：「幹，不要把人摔到死門裡面好不好(氣)？」"
+      },
+      {
+        "t": "li",
+        "v": "阿斯代倫連忙阻止才沒讓慘劇發生。"
+      },
+      {
+        "t": "li",
+        "v": "阿斯代倫：「不要在他加入的時候搞他，免得他又怪到你身上。」"
+      },
+      {
+        "t": "li",
+        "v": "再次連上，曹的大蒜終於可用。"
+      },
+      {
+        "t": "h2",
+        "v": "職場軼事"
+      },
+      {
+        "t": "li",
+        "v": "連線的空檔卻意外引出了一段足以讓人社死的異國見聞。曹分享了他在日本工作時的荒謬故事：一對台灣遊客因以為在場全是日本人，聽不懂中文，在大庭廣眾下毫無保留地探討手指撥弄與無法高潮的私密細節。曹本著知識共享的精神，將對話原封不動地翻譯給了他的日本同事。這種尷尬到腳趾摳地的氛圍，精準地為本次探險奠定了某種放飛自我的荒誕基調。"
+      },
+      {
+        "t": "h2",
+        "v": "快樂消失"
+      },
+      {
+        "t": "li",
+        "v": "隔天是國定假日端午節，隊伍眾人都有假期，只有在日本工作的曹沒有假。"
+      },
+      {
+        "t": "li",
+        "v": "影心：「放假就是爽。」"
+      },
+      {
+        "t": "li",
+        "v": "阿斯代倫：「曹沒有假可以放。」"
+      },
+      {
+        "t": "li",
+        "v": "影心：「喔對，曹沒有端午節。可憐吶。」"
+      },
+      {
+        "t": "li",
+        "v": "曹：「我明天也放假阿。」"
+      },
+      {
+        "t": "li",
+        "v": "影心：「說的也是。我的快樂消失。」"
+      },
+      {
+        "t": "h2",
+        "v": "領袖選拔：誰是倒楣鬼"
+      },
+      {
+        "t": "li",
+        "v": "在一個充斥著混亂中立者的團隊中，領導權從來不是榮耀，而是一紙隨時可能被祭獻的免責聲明。根據這支隊伍的優良傳統，誰的骰運最爛，誰就得接下隊長的燙手山芋。於是這場名為選拔、實為抓交替的儀式開始了。在一番慘不忍睹的擲骰較量後，影心與貓咕咕一度平手，最終在眾人的幸災樂禍中，領導權塵埃落定，由擲到3的影心成功拿下。"
+      },
+      {
+        "t": "h1",
+        "v": "四處碰壁"
+      },
+      {
+        "t": "h2",
+        "v": "被抑制的殺心"
+      },
+      {
+        "t": "li",
+        "v": "由於上次沒存到檔，誤殺了us之後只能從剛下來這個自動存檔的地方開始。"
+      },
+      {
+        "t": "li",
+        "v": "曹顯然按耐不住心中澎湃的殺意，在踏入新區域不到五秒就拉弓瞄準這些噬腦怪，提議把路邊看起來還算友善的噬腦怪通通宰了。"
+      },
+      {
+        "t": "li",
+        "v": "曹：「這些經驗值。」"
+      },
+      {
+        "t": "li",
+        "v": "影心：「我是覺得這些腦袋其實挺友善。」"
+      },
+      {
+        "t": "li",
+        "v": "阿斯代倫：「隊長決定。可以先闖一闖，看他不爽再打。」"
+      },
+      {
+        "t": "li",
+        "v": "曹：「我已經看他不爽了。」"
+      },
+      {
+        "t": "h2",
+        "v": "死靈大軍"
+      },
+      {
+        "t": "li",
+        "v": "所幸剛敲定的隊長無視曹的殺戮邀請，徑直往前探索，進入黯蝕實驗室，門開就一堆怪。"
+      },
+      {
+        "t": "li",
+        "v": "貓咕咕：「他們看起來……還好吧？」"
+      },
+      {
+        "t": "li",
+        "v": "影心：「他們看起來很廢，血都很少。」"
+      },
+      {
+        "t": "li",
+        "v": "但一往前走進入戰鬥，這些”看起來還好吧”的怪迅速被MOD增生成24隻，其中還有死亡牧者。隊伍猶豫了半天，決定要打一次看看，但當他們靠近前線時，又有怪物增生，直接變成40幾隻，駐列變成荒謬的+24，甚至懷疑這個MOD重複觸發。隊伍決定讀檔MOD再來，試圖在另一條平行時空中找回失落的智商。"
+      },
+      {
+        "t": "li",
+        "v": "曹：「為什麼又生了啊？一生二，二生三是不是？」"
+      },
+      {
+        "t": "img",
+        "v": "data/images/23/img_002.webp",
+        "w": 900,
+        "h": 89
+      },
+      {
+        "t": "h2",
+        "v": "失能地獄"
+      },
+      {
+        "t": "li",
+        "v": "讀檔重來，影心這次換了個方向探索，進入奪心魔蝌蚪植入中心。他們在這裡意外撞見老熟人賽夫洛也正在被轉化成奪心魔。隊伍用蟲子威能釋放莢艙中的賽夫洛Zevlor及焰拳，未料有些人心智不堅，以被轉化為奪心魔。莢艙開啟解救的不只賽夫勒，也是把轉化為奪心魔的NPC釋放出來，滿地亂爬的噬腦怪也加入戰局。"
+      },
+      {
+        "t": "li",
+        "v": "戰鬥一觸即發，現場瞬間淪為精神控制的修羅場。"
+      },
+      {
+        "t": "li",
+        "v": "曹對奪心魔射了兩箭，兩箭都沒命中，反被魅惑。貓咕咕的命中率時有時無，但對方的魅惑倒是回回都中。沒玩過投擲蠻的影心不知該怎麼打，還要靠阿斯代倫技術指導，但阿斯代倫不知投擲既能的名稱，兩人雞同鴨講了好一會兒才能正常投擲。"
+      },
+      {
+        "t": "li",
+        "v": "編輯卡拉克困惑：阿斯代倫怎麼沒跟影心說要放魯莽攻擊，也沒跟他說一打有兩斧？"
+      },
+      {
+        "t": "li",
+        "v": "好在這混亂場面沒持續太久，曹第三箭暴擊，換上命中率高的裝備，直接送一隻奪心魔上路。影心也很快電死一隻，戰局看起來一片大好之時，曹不停唸叨著帶電的水。"
+      },
+      {
+        "t": "li",
+        "v": "貓咕：「使出一個什麼大招？」"
+      },
+      {
+        "t": "li",
+        "v": "影心：「我等著看……矮幹甚麼屁都沒有，就只是end round而已。」"
+      },
+      {
+        "t": "li",
+        "v": "賽夫洛一個遠距離跳躍，跳到噬腦怪前使出熾焰斬。這時他身邊的貓咕咕雖然魅惑的豁免檢定未通過，但魅惑卻因為賽夫洛有守護靈光的關係解開了。"
+      },
+      {
+        "t": "li",
+        "v": "阿斯代倫：「哇，真正的聖騎士。」"
+      },
+      {
+        "t": "li",
+        "v": "然而好景不常，奪心魔展現了恐怖的心靈控制力，一個大範圍法術催眠圖紋下來，除了免疫催眠的卡拉克之外，全員豁免檢定大翻車，無一倖免被催眠。而且這催眠還沒完沒了，每個奪心魔都要催眠一次，搞得隊伍不停在魅惑、催眠、震懾與失能間來回。"
+      },
+      {
+        "t": "li",
+        "v": "這裡出現了極具張力的對比：我們的英雄們集體陷入失能與昏睡的尷尬循環，而賽夫勒，這位曾被族人唾棄、被指責因恐懼而拋棄軍隊的廢物，在此刻卻展現了真聖騎士的風采。他的守護靈光成為了隊伍最後的防線，多次解開隊員的魅惑與催眠。其他焰拳更有鋼鐵意志，沒一個被催眠，各個都跟奪心魔貼臉硬剛。"
+      },
+      {
+        "t": "li",
+        "v": "影心：「我們只能靠這些NPC了。」"
+      },
+      {
+        "t": "li",
+        "v": "AI點評：在硬核副本裡，NPC的光環有時比玩家的計畫更可靠。當NPC的戰鬥力遠超玩家時，那種戲劇效果往往既令人羞愧又充滿快感。"
+      },
+      {
+        "t": "li",
+        "v": "下一秒，貓咕咕被打出防死結界倒在地上掙扎。隊伍果斷選擇了跑團最神聖的戰術——讀檔。"
+      },
+      {
+        "t": "li",
+        "v": "曹：「你還覺得腦袋不要先清嗎？」"
+      },
+      {
+        "t": "li",
+        "v": "影心：「我不知道放出來直接開戰，我以為腦袋很Nice……」"
+      },
+      {
+        "t": "img",
+        "v": "data/images/23/img_003.webp",
+        "w": 701,
+        "h": 571
+      },
+      {
+        "t": "h1",
+        "v": "又可以玩了"
+      },
+      {
+        "t": "h2",
+        "v": "重拾信心"
+      },
+      {
+        "t": "li",
+        "v": "眾人讀檔重來，又換了個地方前進。這次去了上次最後去的停屍房，在裡面遇到那一心求死的切割者chop，和一旁被鎖起的變異小腦怪us。"
+      },
+      {
+        "t": "li",
+        "v": "隊伍把切割者和小腦怪打死，這次MOD跳出的怪物數量就正常很多了。隊伍在前兩戰被打擊的信心在這裡都找回來了。"
+      },
+      {
+        "t": "li",
+        "v": "從屍體傷上拿到鑰匙，影心還不敢開門，說這被關起來的us很邪門，怕他出來咬大家，不過他只是像小寵物那樣跟著隊伍。"
+      },
+      {
+        "t": "li",
+        "v": "除了鑰匙，隊伍還撿到一把短劍Kundane和一個飾環。相較於飾環，能給裝備者每回合多一額外攻擊次數的短劍更能引起對伍的注意。阿斯代倫興致勃勃的裝上，以為會多一動作，結果只是多一打數，失望至極。"
+      },
+      {
+        "t": "h2",
+        "v": "天將黃金"
+      },
+      {
+        "t": "li",
+        "v": "對無用互動的迷戀總能緩解緊張感，曹跟貓咕咕說有個邪門的按鈕，問她要不要來按，她毫不猶豫地按下了。本以為會開啟隱藏寶箱，結果沒有隱藏寶藏，也沒有密道，只觸發了廢物排放系統——一坨血液從天而降，精準無誤地淋在阿斯代倫身上。"
+      },
+      {
+        "t": "li",
+        "v": "阿斯代倫：「我潑了一坨屎下來，幹媽還弄到我身上，操。」"
+      },
+      {
+        "t": "li",
+        "v": "貓咕咕：「你也要去”洗澡”嗎？」"
+      },
+      {
+        "t": "li",
+        "v": "影心：「幫我洗一下。」"
+      },
+      {
+        "t": "li",
+        "v": "貓咕：「不要動，進去一點……」"
+      },
+      {
+        "t": "li",
+        "v": "影心：「哦……清潔溜溜。」"
+      },
+      {
+        "t": "li",
+        "v": "這場原本肅殺的地下遠征，瞬間變成了一群傳奇英雄在排水管道下輪流淋屎。"
+      },
+      {
+        "t": "li",
+        "v": "AI點評：英雄的自尊，在此刻與那坨污垢一起被沖進了排水溝。"
+      },
+      {
+        "t": "img",
+        "v": "data/images/23/img_004.webp",
+        "w": 814,
+        "h": 593
+      },
+      {
+        "t": "h1",
+        "v": "死亡牧者無限復活地獄"
+      },
+      {
+        "t": "p",
+        "v": "屎淋完了，隊伍繼續推進，打開旁邊的一扇通門，門通往黯蝕實驗室，迎接他們的自然就是一開始那群亡靈大軍。面對30來隻怪，隊伍的策略一如既往的單純：卡拉克衝進去弄死死亡牧者，其餘隊員守住門。"
+      },
+      {
+        "t": "p",
+        "v": "理想很美好，現實是死亡牧者位置實在太深，隊伍只能先打門口附近的小怪。不過隊伍此時卻覺得還能操作，死亡牧者雖會互相施放復活術讓戰況陷入無限迴圈，但只要戰鬥不要太拖沓，死亡牧者也沒甚麼可怕。"
+      },
+      {
+        "t": "p",
+        "v": "曹在門口丟了加速胞子，貓咕咕、曹一回合一隻。影心砸出六環造水術覆蓋全場，打算一次性讓戰場上所有的怪物集體陷入潮濕狀態，但在阿斯代倫的勸說下放棄，改用三環造水術把門口附近的怪物（和隊友）弄濕，然後開電將潮濕的亡靈大軍電得外焦內嫩，其中更有一隻是死亡牧者。"
+      },
+      {
+        "t": "p",
+        "v": "不過很快，門口怪物堆聚，四隻死亡牧者不斷召怪，還有貓咕咕攻擊時擾動出的火元素。卡拉克雖已被無盡殭屍海淹沒，但前線依然失守，飛天恐魔飛過卡拉克，打死因爛肉不能補血而退到門後的阿斯代倫。走過來的怪也沒好到哪，沾上隊伍的加速胞子對隊伍一通亂抓。而那四隻死亡牧者只死了一隻，另一隻緩慢靠近要附活，另外兩隻遠在深處根本打不到。"
+      },
+      {
+        "t": "img",
+        "v": "data/images/23/img_005.webp",
+        "w": 420,
+        "h": 310
+      },
+      {
+        "t": "p",
+        "v": "即便如此，隊伍還沒放棄，死亡牧者會為復活死亡牧者往前。曹抓住機會，為打死亡牧者深入敵營，打死一隻後躲進後面的小洞裡。直到他打死的那隻死亡牧者被後面的死亡牧者復活，隨後影心後知後覺的發現自己進入斷專注後的麻痺，無法輸出，團隊再次迎來滅團危機，才悲憤讀檔。"
+      },
+      {
+        "t": "p",
+        "v": "影心：「哇靠，死亡牧者復活死亡牧者，曹做白工。」"
+      },
+      {
+        "t": "h1",
+        "v": "世界的塞子"
+      },
+      {
+        "t": "p",
+        "v": "經歷兩次挫敗，眾人決定改變戰術，執行終極防守反擊。戰前全員喝下嗜血靈藥，並在門後排出一排睡袋嚴防死守，隊伍輸出完後躲回睡袋後，加速孢子放睡袋後面以免敵方吃到。至於死亡牧者，隊伍覺得他們自然會往前，只要一往前隊伍一回合就能把他們弄死。"
+      },
+      {
+        "t": "p",
+        "v": "擺好陣勢，戰鬥打響！隊伍展現了教科書等級的地形封鎖戰，依計畫攻擊後躲回睡袋後面。第一回合順順利利，沒扣到血也沒負面狀態。"
+      },
+      {
+        "t": "p",
+        "v": "睡袋陣法果然猛，殭屍往前之後就卡在睡袋前面無助哀叫，飛天恐魔也必須要飛才能繞過睡袋陣。對此，一部分殭屍也不跟隊伍正面對決，而是開疾走打算繞後。不過地形複雜，他們要從後面來那也是五回合後的事了。飛天恐魔飛過卡拉克和睡袋，直面門後的影心、貓咕咕和曹。"
+      },
+      {
+        "t": "p",
+        "v": "影心：「幹我們後面都是老弱婦孺他在那邊……」"
+      },
+      {
+        "t": "p",
+        "v": "身為老弱婦孺的影心有石膚術和鏡像術，飛天恐魔還真的打不到他。但隊伍的命中率問題也在此時暴露無遺。飛進來的恐魔，曹一回合沒中過一發，貓咕咕跟影心命中率也大概就一半。"
+      },
+      {
+        "t": "p",
+        "v": "曹：「我打不中。」"
+      },
+      {
+        "t": "p",
+        "v": "影心：「不是阿，這兩隻雷打不動，到底是怎樣？」"
+      },
+      {
+        "t": "p",
+        "v": "貓咕咕：「這個30%這個可以。」"
+      },
+      {
+        "t": "img",
+        "v": "data/images/23/img_006.webp",
+        "w": 588,
+        "h": 625
+      },
+      {
+        "t": "p",
+        "v": "卡拉克一路往前去打深處的死亡牧者，順便吸引砲火。"
+      },
+      {
+        "t": "p",
+        "v": "影心：「怎麼突然覺得卡拉克攻擊沒那麼高？是我的錯覺？」"
+      },
+      {
+        "t": "p",
+        "v": "編輯卡拉克表示：不是錯覺。死亡牧者比較坦，又沒開魯莽攻擊、少丟一斧的關係。"
+      },
+      {
+        "t": "p",
+        "v": "卡拉克在睡袋外吸引砲火之後，滿場殭屍突然有了主心骨，紛紛放棄繞後，折返往卡拉克那裏走去，只剩一隻已經走到一半的堅持繞後。"
+      },
+      {
+        "t": "p",
+        "v": "這時卡拉克終於回家了，發現他的角色精準卡在狹窄的門口，用被打五下後免疫傷害的無敵機制，化身斯巴達三百壯士，被十幾隻圍住，甚至擋下了所有試圖跳躍過門的食屍鬼。"
+      },
+      {
+        "t": "p",
+        "v": "卡拉克：「你們現在發生甚麼事了？」"
+      },
+      {
+        "t": "p",
+        "v": "影心：「你等一下加進來，你會發現你站在最前面，一夫當關，萬夫莫敵。」"
+      },
+      {
+        "t": "p",
+        "v": "曹：「卡拉克真的一夫當關欸！他們要跳過卡拉克被卡拉克擋下來。」"
+      },
+      {
+        "t": "p",
+        "v": "影心：「卡拉克發揮了這個世界的塞子的這個功能。你千萬不要移動，那位置已經是萬中選一。」"
+      },
+      {
+        "t": "p",
+        "v": "卡拉克：「這已經是你們讀檔後的最優解是吧。」"
+      },
+      {
+        "t": "p",
+        "v": "影心：「對阿，卡拉克一人卡30人。」"
+      },
+      {
+        "t": "p",
+        "v": "曹：「殭屍你過來啊！」"
+      },
+      {
+        "t": "p",
+        "v": "卡拉克：「來了來了，在打我了啊。」"
+      },
+      {
+        "t": "p",
+        "v": "影心：「曹你叫那麼大聲也不會打你。」"
+      },
+      {
+        "t": "img",
+        "v": "data/images/23/img_007.webp",
+        "w": 900,
+        "h": 596
+      },
+      {
+        "t": "p",
+        "v": "卡拉克繼續擋在門口，後方影心想要召雷，但擔心打到被怪海包圍的卡拉克，殊不知卡拉克毫不在意。"
+      },
+      {
+        "t": "p",
+        "v": "卡拉克：「好啊，沒差。身為卡拉克沒有甚麼擋不住的。」"
+      },
+      {
+        "t": "p",
+        "v": "曹：「不用阿，卡拉克無敵。(突破盲點)」"
+      },
+      {
+        "t": "p",
+        "v": "影心：「哦，我以為他只有刀槍不入而已，他是整個是天下無敵就對了。」"
+      },
+      {
+        "t": "p",
+        "v": "打到這時隊伍終於意識到各自的戰鬥定位：卡拉克無敵坦克，影心、貓咕咕、曹遠程輸出，而阿斯代倫……是補師。他每上前攻擊一下就可以幫全隊補血，補量甚至比身為牧師的影心還多。"
+      },
+      {
+        "t": "p",
+        "v": "繞後的殭屍終於來了。"
+      },
+      {
+        "t": "p",
+        "v": "阿斯代倫：「他怎麼繞的啊？這麼大一圈！」"
+      },
+      {
+        "t": "p",
+        "v": "卡拉克：「小跑步啊。」"
+      },
+      {
+        "t": "p",
+        "v": "影心才剛說這應該不成氣候，馬上被打臉，一隻成功，陸陸續續又有幾隻要繞後，而曹被首先抵達的大殭屍推一下剩半血。"
+      },
+      {
+        "t": "p",
+        "v": "影心：「幹，怎麼這麼痛啊，推你一下60幾滴。」"
+      },
+      {
+        "t": "p",
+        "v": "曹：「我有鈍擊易傷。」"
+      },
+      {
+        "t": "p",
+        "v": "卡拉克：「你是玻璃做的嗎？又是構裝生物又是玻璃製的到底是怎樣(笑)？」"
+      },
+      {
+        "t": "p",
+        "v": "曹：「我這…真的是玻璃大砲。」"
+      },
+      {
+        "t": "p",
+        "v": "卡拉克：「不會啊，你血量這麼多。玻璃大砲連血量都不可以有的，你知道嗎？」"
+      },
+      {
+        "t": "p",
+        "v": "在門後大(ㄨˊ)顯(ㄐㄧㄣˋ)神(ㄇㄟˊ)威(ㄓㄨㄥˋ)下，隊伍緩慢清場推進前線，隨著最後一隻帶有朦朧術的死亡牧者倒下，這場耗時數小時、充滿血淚的史詩級堵門戰役終於畫下句點。"
+      },
+      {
+        "t": "p",
+        "v": "戰後清掃戰場時，隊伍意外撿到了共鳴石與能夠提供短休效果的藥水，為今晚的冒險畫下完美句點。"
+      },
+      {
+        "t": "h2",
+        "v": "戰後閒聊"
+      },
+      {
+        "t": "h2",
+        "v": "又討論了七龍珠"
+      },
+      {
+        "t": "li",
+        "v": "《七龍珠》中天津飯以新氣功砲壓制賽魯的經典設定。眾人熱烈爭論這招是否為一個殺神Bug，甚至討論起悟空若學會此招，是否連破壞神都能秒殺。在這種宅力爆發的幹話支援下，最後一隻死神終於倒下。"
+      },
+      {
+        "t": "h2",
+        "v": "口含尼古丁"
+      },
+      {
+        "t": "li",
+        "v": "曹表示今天買菸時獲得一張口含尼古丁的兌換卷，他換完試了之後覺得太可怕了。身為前藥廠員工的影心，分享了他體驗公司出的戒菸口含錠的恐怖體驗。因為黏膜吸收速度極快，使體內尼古丁含量暴增。"
+      },
+      {
+        "t": "li",
+        "v": "影心：「我就拿來試，我跟同事嚼完之後都去廁所暴吐。含量太高了。」"
+      },
+      {
+        "t": "h2",
+        "v": "啾啾下巴"
+      },
+      {
+        "t": "li",
+        "v": "貓咕咕：「我咬東西的時候我的下巴會發出啾啾聲。」"
+      },
+      {
+        "t": "li",
+        "v": "卡拉克：「啾啾聲？什麼意思？」"
+      },
+      {
+        "t": "li",
+        "v": "貓咕咕：「牙科說這個啾啾聲我應該是要跟他共處了。」"
+      },
+      {
+        "t": "li",
+        "v": "眾人接著化身為業餘牙科顧問，討論起顳顎關節炎、咬合板的製作，以及桃園某間專門處理此類症狀的知名診所。"
+      },
+      {
+        "t": "img",
+        "v": "data/images/23/img_008.webp",
+        "w": 708,
+        "h": 611
       }
     ],
     "placeholder": false
