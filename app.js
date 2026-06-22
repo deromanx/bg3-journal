@@ -1244,13 +1244,18 @@ function _rmInit() {
       <div class="rm-quote" id="rm-quote"></div>
       <div class="rm-divider"></div>
       <div class="rm-desc" id="rm-desc"></div>
+      <div class="qm-actions">
+        <button class="qm-copy" onclick="copyQuoteImage('roast')" title="複製成圖片，方便分享">📋 複製圖片</button>
+      </div>
     </div>`;
   el.addEventListener('click', e => { if (e.target === el) closeRoastModal(); });
   document.body.appendChild(el);
 }
 
+let _rmCurrent = null;
 function openRoastModal(q) {
   _rmInit();
+  _rmCurrent = q;
   const overlay = document.getElementById('rm-overlay');
   const froms   = asArr(q.from);
   const tos     = asArr(q.to);
@@ -1826,13 +1831,18 @@ function _pmInit() {
       <div class="pm-quote" id="pm-quote"></div>
       <div class="pm-divider"></div>
       <div class="pm-desc" id="pm-desc"></div>
+      <div class="qm-actions">
+        <button class="qm-copy" onclick="copyQuoteImage('praise')" title="複製成圖片，方便分享">📋 複製圖片</button>
+      </div>
     </div>`;
   el.addEventListener('click', e => { if (e.target === el) closePraiseModal(); });
   document.body.appendChild(el);
 }
 
+let _pmCurrent = null;
 function openPraiseModal(q) {
   _pmInit();
+  _pmCurrent = q;
   const overlay = document.getElementById('pm-overlay');
   const froms   = asArr(q.from);
   const tos     = asArr(q.to);
@@ -1881,6 +1891,174 @@ function closePraiseModal() {
 }
 
 function _pmEsc(e) { if (e.key === 'Escape') closePraiseModal(); }
+
+// ── 語錄複製成圖片（純 Canvas，無外部依賴） ────────────────
+// 將放大檢視的語錄卡片繪製成 PNG 並寫入剪貼簿；不支援時退回下載。
+const _qmImgCache = {};
+function _qmLoadImg(src) {
+  if (_qmImgCache[src]) return _qmImgCache[src];
+  const p = new Promise((res, rej) => {
+    const im = new Image();
+    im.onload = () => res(im);
+    im.onerror = rej;
+    im.src = src; // 同源，不會污染 canvas
+  });
+  _qmImgCache[src] = p;
+  return p;
+}
+
+function _qmWrap(ctx, text, maxW) {
+  const lines = [];
+  let line = '';
+  for (const ch of String(text || '')) {
+    if (ch === '\n') { lines.push(line); line = ''; continue; }
+    if (ctx.measureText(line + ch).width > maxW && line) { lines.push(line); line = ch; }
+    else line += ch;
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+async function _qmRenderBlob(kind, q) {
+  const isPraise = kind === 'praise';
+  const accent   = isPraise ? '#2f6aa6' : '#a6492f';
+  const FONT     = '"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif';
+  const froms = asArr(q.from), tos = asArr(q.to);
+  const sRef  = sessions.find(s => s.id === q.session);
+  const epTitle = sRef ? `第 ${q.session} 集・${sRef.title}` : `第 ${q.session} 集`;
+  const heading = isPraise ? '✦ 稱讚語錄' : '靠北語錄';
+  const arrow   = isPraise ? '✦' : '→';
+  const quote   = q.quote ? `「${q.quote}」` : '';
+  const desc    = q.desc || '';
+
+  const P = 32, W = 640, innerW = W - 2 * P, AV = 60, AVR = AV / 2;
+  const m = document.createElement('canvas').getContext('2d');
+
+  // 預先換行以計算高度
+  m.font = `bold 21px ${FONT}`;
+  const quoteLines = quote ? _qmWrap(m, quote, innerW) : [];
+  m.font = `15px ${FONT}`;
+  const descLines = desc ? _qmWrap(m, desc, innerW) : [];
+
+  let H = P;                 // 上邊距
+  H += 28;                   // 標題
+  H += 22;                   // 集數
+  H += 16;                   // gap
+  H += AV + 8 + 20;          // 頭像列 + 名字
+  H += 16 + 1 + 16;          // 分隔線
+  if (quoteLines.length) H += quoteLines.length * 30 + 14;
+  H += descLines.length * 25;
+  H += 16 + 1 + 14 + 16;     // 底部分隔線 + 浮水印
+  H += P;                    // 下邊距
+
+  const SCALE = 2;
+  const cv = document.createElement('canvas');
+  cv.width = W * SCALE; cv.height = Math.round(H) * SCALE;
+  const ctx = cv.getContext('2d');
+  ctx.scale(SCALE, SCALE);
+  ctx.textBaseline = 'alphabetic';
+
+  // 背景與邊框
+  ctx.fillStyle = '#f6efdd'; ctx.fillRect(0, 0, W, H);
+  ctx.strokeStyle = '#d9c89b'; ctx.lineWidth = 2; ctx.strokeRect(1, 1, W - 2, H - 2);
+
+  let y = P;
+  // 標題
+  ctx.fillStyle = accent; ctx.font = `bold 21px ${FONT}`; ctx.textAlign = 'left';
+  ctx.fillText(heading, P, y + 21); y += 28;
+  // 集數
+  ctx.fillStyle = '#8a7d63'; ctx.font = `14px ${FONT}`;
+  ctx.fillText(epTitle, P, y + 14); y += 22 + 16;
+
+  // 頭像列（from → to）
+  const groupW = (chars) => {
+    const aw = chars.length * AV + (chars.length - 1) * 8;
+    ctx.font = `15px ${FONT}`;
+    const nw = ctx.measureText(chars.join('、')).width;
+    return Math.max(aw, nw);
+  };
+  const fromW = groupW(froms), toW = groupW(tos);
+  ctx.font = `24px ${FONT}`; const arrowW = ctx.measureText(arrow).width;
+  const totalW = fromW + 16 + arrowW + 16 + toW;
+  let x = (W - totalW) / 2;
+  const avCY = y + AVR;
+
+  const drawGroup = async (chars, gx, gw) => {
+    const aw = chars.length * AV + (chars.length - 1) * 8;
+    let ax = gx + (gw - aw) / 2 + AVR;
+    for (const c of chars) {
+      try {
+        const img = await _qmLoadImg(`data/images/avatars/${c}.webp`);
+        ctx.save();
+        ctx.beginPath(); ctx.arc(ax, avCY, AVR, 0, Math.PI * 2); ctx.clip();
+        const s = Math.max(AV / img.width, AV / img.height);
+        const dw = img.width * s, dh = img.height * s;
+        ctx.drawImage(img, ax - dw / 2, avCY - dh / 2, dw, dh);
+        ctx.restore();
+      } catch (_) {
+        ctx.fillStyle = '#cdbf99'; ctx.beginPath(); ctx.arc(ax, avCY, AVR, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.beginPath(); ctx.arc(ax, avCY, AVR, 0, Math.PI * 2);
+      ctx.lineWidth = 2; ctx.strokeStyle = accent; ctx.stroke();
+      ax += AV + 8;
+    }
+    ctx.fillStyle = '#3a3226'; ctx.font = `15px ${FONT}`; ctx.textAlign = 'center';
+    ctx.fillText(chars.join('、'), gx + gw / 2, avCY + AVR + 16);
+  };
+
+  await drawGroup(froms, x, fromW);
+  ctx.fillStyle = accent; ctx.font = `24px ${FONT}`; ctx.textAlign = 'center';
+  ctx.fillText(arrow, x + fromW + 16 + arrowW / 2, avCY + 8);
+  await drawGroup(tos, x + fromW + 16 + arrowW + 16, toW);
+  y += AV + 8 + 20 + 16;
+
+  // 分隔線
+  ctx.strokeStyle = '#e2d6b4'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(P, y); ctx.lineTo(W - P, y); ctx.stroke(); y += 1 + 16;
+
+  // 金句
+  if (quoteLines.length) {
+    ctx.fillStyle = accent; ctx.font = `bold 21px ${FONT}`; ctx.textAlign = 'center';
+    for (const ln of quoteLines) { ctx.fillText(ln, W / 2, y + 21); y += 30; }
+    y += 14;
+  }
+  // 描述
+  ctx.fillStyle = '#3a3226'; ctx.font = `15px ${FONT}`; ctx.textAlign = 'left';
+  for (const ln of descLines) { ctx.fillText(ln, P, y + 15); y += 25; }
+
+  // 底部浮水印
+  y += 16;
+  ctx.strokeStyle = '#e2d6b4'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(P, y); ctx.lineTo(W - P, y); ctx.stroke(); y += 1 + 14;
+  ctx.fillStyle = '#8a7d63'; ctx.font = `12px ${FONT}`; ctx.textAlign = 'center';
+  ctx.fillText('柏德之門 3 跑團日誌', W / 2, y + 12);
+
+  return await new Promise(res => cv.toBlob(res, 'image/png'));
+}
+
+async function copyQuoteImage(kind) {
+  const q = kind === 'praise' ? _pmCurrent : _rmCurrent;
+  if (!q) return;
+  const btn = document.querySelector(kind === 'praise' ? '#pm-overlay .qm-copy' : '#rm-overlay .qm-copy');
+  const orig = btn ? btn.textContent : '';
+  if (btn) { btn.disabled = true; btn.textContent = '產生中…'; }
+  let blob;
+  try { blob = await _qmRenderBlob(kind, q); }
+  catch (_) { if (btn) { btn.textContent = '✗ 失敗'; setTimeout(() => { btn.disabled = false; btn.textContent = orig; }, 1800); } return; }
+  try {
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+    if (btn) btn.textContent = '✓ 已複製';
+  } catch (_) {
+    // 不支援剪貼簿圖片（多見於行動瀏覽器）→ 退回下載
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `語錄-S${q.session}.png`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    if (btn) btn.textContent = '✓ 已下載';
+  }
+  if (btn) setTimeout(() => { btn.disabled = false; btn.textContent = orig; }, 1800);
+}
 
 function renderPraiseCard(q, chars) {
   const src = char => `data/images/avatars/${esc(char)}.webp`;

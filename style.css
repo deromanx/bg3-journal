@@ -4282,6 +4282,43 @@ a:focus-visible {
   transform: translateY(8px);
 }
 
+/* ── 語錄複製成圖片按鈕（兩種 modal 共用結構，配色隨主題） ── */
+.qm-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+.qm-copy {
+  font-size: 13px;
+  padding: 7px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  background: transparent;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, opacity 0.15s;
+  white-space: nowrap;
+}
+.qm-copy:disabled { cursor: default; opacity: 0.75; }
+/* 靠北：深色主題 */
+.rm-dialog .qm-copy {
+  border: 1px solid var(--gold-border);
+  color: var(--gold);
+}
+.rm-dialog .qm-copy:not(:disabled):hover {
+  background: var(--crimson);
+  border-color: var(--crimson);
+  color: #fff;
+}
+/* 稱讚：羊皮紙主題 */
+.pm-dialog .qm-copy {
+  border: 1px solid rgba(var(--gold-deep-rgb),0.45);
+  color: var(--gold-deep);
+}
+.pm-dialog .qm-copy:not(:disabled):hover {
+  background: var(--gold-deep);
+  border-color: var(--gold-deep);
+  color: #fffbf2;
+}
+
 /* ── 稱讚 Modal（羊皮紙暖色，與靠北深色完全不同）──────────────── */
 .pm-overlay {
   position: fixed;
