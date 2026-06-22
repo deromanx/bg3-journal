@@ -1931,25 +1931,31 @@ async function _qmRenderBlob(kind, q) {
   const quote   = q.quote ? `「${q.quote}」` : '';
   const desc    = q.desc || '';
 
-  const P = 32, W = 640, innerW = W - 2 * P, AV = 60, AVR = AV / 2;
-  const m = document.createElement('canvas').getContext('2d');
+  // 版面常數（高度計算與繪製共用，避免錯位）
+  const P = 46, W = 680, innerW = W - 2 * P;
+  const AV = 92, AVR = AV / 2, AVGAP = 12, ARROW_GAP = 20;
+  const ADV_TITLE = 40, ADV_EP = 30, GAP_EP = 24;
+  const BLOCK_AV = AV + 16 + 28, GAP_AV = 26;      // 頭像 + 名字
+  const LH_Q = 48, GAP_Q = 24;                     // 金句行高 / 後距
+  const LH_D = 36;                                 // 描述行高
+  const GAP_DIV = 26, GAP_FOOT_TOP = 28, GAP_FOOT_BTM = 22, WM_H = 18;
 
+  const m = document.createElement('canvas').getContext('2d');
   // 預先換行以計算高度
-  m.font = `bold 21px ${FONT}`;
+  m.font = `bold 33px ${FONT}`;
   const quoteLines = quote ? _qmWrap(m, quote, innerW) : [];
-  m.font = `15px ${FONT}`;
+  m.font = `21px ${FONT}`;
   const descLines = desc ? _qmWrap(m, desc, innerW) : [];
 
-  let H = P;                 // 上邊距
-  H += 28;                   // 標題
-  H += 22;                   // 集數
-  H += 16;                   // gap
-  H += AV + 8 + 20;          // 頭像列 + 名字
-  H += 16 + 1 + 16;          // 分隔線
-  if (quoteLines.length) H += quoteLines.length * 30 + 14;
-  H += descLines.length * 25;
-  H += 16 + 1 + 14 + 16;     // 底部分隔線 + 浮水印
-  H += P;                    // 下邊距
+  let H = P;                          // 上邊距
+  H += ADV_TITLE;                     // 標題
+  H += ADV_EP + GAP_EP;              // 集數
+  H += BLOCK_AV + GAP_AV;           // 頭像列 + 名字
+  H += 1 + GAP_DIV;                  // 分隔線
+  if (quoteLines.length) H += quoteLines.length * LH_Q + GAP_Q;
+  H += descLines.length * LH_D;     // 描述
+  H += GAP_FOOT_TOP + 1 + GAP_FOOT_BTM + WM_H;  // 底部分隔線 + 浮水印
+  H += P;                            // 下邊距
 
   // 正方形畫布：邊長取「內容高度」與寬度較大者，內容置中
   const contentH = Math.round(H);
@@ -1973,27 +1979,27 @@ async function _qmRenderBlob(kind, q) {
 
   let y = P;
   // 標題
-  ctx.fillStyle = accent; ctx.font = `bold 21px ${FONT}`; ctx.textAlign = 'left';
-  ctx.fillText(heading, P, y + 21); y += 28;
+  ctx.fillStyle = accent; ctx.font = `bold 27px ${FONT}`; ctx.textAlign = 'left';
+  ctx.fillText(heading, P, y + 26); y += ADV_TITLE;
   // 集數
-  ctx.fillStyle = '#8a7d63'; ctx.font = `14px ${FONT}`;
-  ctx.fillText(epTitle, P, y + 14); y += 22 + 16;
+  ctx.fillStyle = '#8a7d63'; ctx.font = `18px ${FONT}`;
+  ctx.fillText(epTitle, P, y + 18); y += ADV_EP + GAP_EP;
 
   // 頭像列（from → to）
   const groupW = (chars) => {
-    const aw = chars.length * AV + (chars.length - 1) * 8;
-    ctx.font = `15px ${FONT}`;
+    const aw = chars.length * AV + (chars.length - 1) * AVGAP;
+    ctx.font = `19px ${FONT}`;
     const nw = ctx.measureText(chars.join('、')).width;
     return Math.max(aw, nw);
   };
   const fromW = groupW(froms), toW = groupW(tos);
-  ctx.font = `24px ${FONT}`; const arrowW = ctx.measureText(arrow).width;
-  const totalW = fromW + 16 + arrowW + 16 + toW;
+  ctx.font = `32px ${FONT}`; const arrowW = ctx.measureText(arrow).width;
+  const totalW = fromW + ARROW_GAP + arrowW + ARROW_GAP + toW;
   let x = (W - totalW) / 2;
   const avCY = y + AVR;
 
   const drawGroup = async (chars, gx, gw) => {
-    const aw = chars.length * AV + (chars.length - 1) * 8;
+    const aw = chars.length * AV + (chars.length - 1) * AVGAP;
     let ax = gx + (gw - aw) / 2 + AVR;
     for (const c of chars) {
       try {
@@ -2008,39 +2014,39 @@ async function _qmRenderBlob(kind, q) {
         ctx.fillStyle = '#cdbf99'; ctx.beginPath(); ctx.arc(ax, avCY, AVR, 0, Math.PI * 2); ctx.fill();
       }
       ctx.beginPath(); ctx.arc(ax, avCY, AVR, 0, Math.PI * 2);
-      ctx.lineWidth = 2; ctx.strokeStyle = accent; ctx.stroke();
-      ax += AV + 8;
+      ctx.lineWidth = 2.5; ctx.strokeStyle = accent; ctx.stroke();
+      ax += AV + AVGAP;
     }
-    ctx.fillStyle = '#3a3226'; ctx.font = `15px ${FONT}`; ctx.textAlign = 'center';
-    ctx.fillText(chars.join('、'), gx + gw / 2, avCY + AVR + 16);
+    ctx.fillStyle = '#3a3226'; ctx.font = `19px ${FONT}`; ctx.textAlign = 'center';
+    ctx.fillText(chars.join('、'), gx + gw / 2, avCY + AVR + 24);
   };
 
   await drawGroup(froms, x, fromW);
-  ctx.fillStyle = accent; ctx.font = `24px ${FONT}`; ctx.textAlign = 'center';
-  ctx.fillText(arrow, x + fromW + 16 + arrowW / 2, avCY + 8);
-  await drawGroup(tos, x + fromW + 16 + arrowW + 16, toW);
-  y += AV + 8 + 20 + 16;
+  ctx.fillStyle = accent; ctx.font = `32px ${FONT}`; ctx.textAlign = 'center';
+  ctx.fillText(arrow, x + fromW + ARROW_GAP + arrowW / 2, avCY + 11);
+  await drawGroup(tos, x + fromW + ARROW_GAP + arrowW + ARROW_GAP, toW);
+  y += BLOCK_AV + GAP_AV;
 
   // 分隔線
   ctx.strokeStyle = '#e2d6b4'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(P, y); ctx.lineTo(W - P, y); ctx.stroke(); y += 1 + 16;
+  ctx.beginPath(); ctx.moveTo(P, y); ctx.lineTo(W - P, y); ctx.stroke(); y += 1 + GAP_DIV;
 
   // 金句
   if (quoteLines.length) {
-    ctx.fillStyle = accent; ctx.font = `bold 21px ${FONT}`; ctx.textAlign = 'center';
-    for (const ln of quoteLines) { ctx.fillText(ln, W / 2, y + 21); y += 30; }
-    y += 14;
+    ctx.fillStyle = accent; ctx.font = `bold 33px ${FONT}`; ctx.textAlign = 'center';
+    for (const ln of quoteLines) { ctx.fillText(ln, W / 2, y + 32); y += LH_Q; }
+    y += GAP_Q;
   }
   // 描述
-  ctx.fillStyle = '#3a3226'; ctx.font = `15px ${FONT}`; ctx.textAlign = 'left';
-  for (const ln of descLines) { ctx.fillText(ln, P, y + 15); y += 25; }
+  ctx.fillStyle = '#3a3226'; ctx.font = `21px ${FONT}`; ctx.textAlign = 'left';
+  for (const ln of descLines) { ctx.fillText(ln, P, y + 21); y += LH_D; }
 
   // 底部浮水印
-  y += 16;
+  y += GAP_FOOT_TOP;
   ctx.strokeStyle = '#e2d6b4'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(P, y); ctx.lineTo(W - P, y); ctx.stroke(); y += 1 + 14;
-  ctx.fillStyle = '#8a7d63'; ctx.font = `12px ${FONT}`; ctx.textAlign = 'center';
-  ctx.fillText('柏德之門 3 跑團日誌', W / 2, y + 12);
+  ctx.beginPath(); ctx.moveTo(P, y); ctx.lineTo(W - P, y); ctx.stroke(); y += 1 + GAP_FOOT_BTM;
+  ctx.fillStyle = '#8a7d63'; ctx.font = `15px ${FONT}`; ctx.textAlign = 'center';
+  ctx.fillText('柏德之門 3 跑團日誌', W / 2, y + 15);
 
   return await new Promise(res => cv.toBlob(res, 'image/png'));
 }
