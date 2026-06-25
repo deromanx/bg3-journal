@@ -25,6 +25,10 @@ const VIEW_IDS = ['welcome', 'session-view', 'hero-band',
 let sessions      = [];
 let milestones    = [];
 let awards        = {};
+
+// sessions 倒序（最新在前）記憶化：sessions 載入後固定，多處重用免重複 slice/reverse。
+let _revSessions = null;
+const reversedSessions = () => (_revSessions ||= sessions.slice().reverse());
 let charStats     = { characters: [] };
 let roastStats    = { matrix: [], highlights: [] };
 let praiseStats   = { matrix: [], highlights: [] };
@@ -71,8 +75,14 @@ function loadData(...keys) {
       const s = DATA_SOURCES[k];
       _dataPromises[k] = fetch(s.url)
         .then(r => r.json())
-        .catch(() => s.fallback)
-        .then(d => { s.assign(d); return d; });
+        .then(d => { s.assign(d); return d; })
+        .catch(() => {
+          // 失敗：套用 fallback 供本次渲染，但清掉快取，讓下次呼叫能重試
+          // （與 _contentPromises 的重試行為一致）
+          s.assign(s.fallback);
+          delete _dataPromises[k];
+          return s.fallback;
+        });
     }
     return _dataPromises[k];
   }));
@@ -85,9 +95,10 @@ Promise.all([
 ])
 .then(([sessionsData]) => {
   sessions = sessionsData;
+  _revSessions = null;   // 重設記憶化（防 sessions 再指派時殘留舊序）
   renderSidebar();
   // 填入首頁最新集標題
-  const _latest = sessions.slice().reverse().find(s => !s.placeholder);
+  const _latest = reversedSessions().find(s => !s.placeholder);
   const _latestEl = document.getElementById('welcome-latest');
   if (_latestEl && _latest) _latestEl.textContent = `最新・第 ${_latest.id} 集《${_latest.title}》`;
   restoreFromHash();
@@ -138,7 +149,7 @@ function restoreFromHash() {
   if (h === '#story')      { showView('story');      return; }
   if (h === '#home')       { goHome(); return; }
   // 預設：載入最新集
-  const first = sessions.slice().reverse().find(s => !s.placeholder) || sessions[sessions.length - 1];
+  const first = reversedSessions().find(s => !s.placeholder) || sessions[sessions.length - 1];
   if (first) loadSession(first.id);
 }
 
@@ -215,7 +226,7 @@ function markSessionRead(id) {
 function renderSidebar() {
   const list = document.getElementById('session-list');
   const readSet = getReadSet();
-  list.innerHTML = sessions.slice().reverse().map(s => `
+  list.innerHTML = reversedSessions().map(s => `
     <li class="session-item${s.placeholder ? ' placeholder' : ''}${readSet.has(s.id) ? ' read' : ''}"
         data-id="${s.id}"
         onclick="loadSession(${s.id})"
@@ -1096,18 +1107,21 @@ function _roastAll() {
   return roastStats.quotes || roastStats.highlights || [];
 }
 
+// 配對 key 與「每種配對出現次數」表（靠北/稱讚共用）。
+const _pairKey    = r => asArr(r.from).join(',') + '→' + asArr(r.to).join(',');
+const _pairCounts = all => {
+  const pc = {};
+  all.forEach(r => { const k = _pairKey(r); pc[k] = (pc[k] || 0) + 1; });
+  return pc;
+};
+
 function _sortedQuotes(quotes) {
   const q = quotes.slice();
   if (_roastSort === 'asc') return q.sort((a, b) => a.session - b.session);
   if (_roastSort === 'hot') {
-    const all = _roastAll();
-    const pc = {};
-    all.forEach(r => {
-      const k = asArr(r.from).join(',') + '→' + asArr(r.to).join(',');
-      pc[k] = (pc[k] || 0) + 1;
-    });
-    const key = r => asArr(r.from).join(',') + '→' + asArr(r.to).join(',');
-    return q.sort((a, b) => (pc[key(b)] - pc[key(a)]) || (b.session - a.session));
+    // 配對次數於資料載入後固定，快取於 roastStats 避免每次排序/翻頁重算
+    const pc = (roastStats._pc ||= _pairCounts(_roastAll()));
+    return q.sort((a, b) => (pc[_pairKey(b)] - pc[_pairKey(a)]) || (b.session - a.session));
   }
   return q.sort((a, b) => b.session - a.session);
 }
@@ -1745,14 +1759,8 @@ function _sortedPraiseQuotes(quotes) {
   const q = quotes.slice();
   if (_praiseSort === 'asc') return q.sort((a, b) => a.session - b.session);
   if (_praiseSort === 'hot') {
-    const all = _praiseAll();
-    const pc = {};
-    all.forEach(r => {
-      const k = asArr(r.from).join(',') + '→' + asArr(r.to).join(',');
-      pc[k] = (pc[k] || 0) + 1;
-    });
-    const key = r => asArr(r.from).join(',') + '→' + asArr(r.to).join(',');
-    return q.sort((a, b) => (pc[key(b)] - pc[key(a)]) || (b.session - a.session));
+    const pc = (praiseStats._pc ||= _pairCounts(_praiseAll()));
+    return q.sort((a, b) => (pc[_pairKey(b)] - pc[_pairKey(a)]) || (b.session - a.session));
   }
   return q.sort((a, b) => b.session - a.session);
 }
@@ -2654,11 +2662,14 @@ function esc(s) {
 // AI 生成的 prose（ai_intro / death_narrative / achievements）把累計統計
 // 寫成 {deaths} 等佔位符；渲染時即時由真實資料替換，數字永遠同步、不脫鉤。
 // 佔位符語彙須與 verify_data.py 的 PLACEHOLDERS 保持一致。
+// 衍生統計：資料載入後即為靜態，故快取於角色物件（_nums）避免每次注入都重算。
+// 僅在角色/統計頁渲染時呼叫，此時 roastStats / ffStats 已載入。
 function computeCharNumbers(c) {
+  if (c._nums) return c._nums;
   const matrix    = roastStats.matrix || [];
   const incidents = ffStats.incidents || [];
   const d = c.duels || {};
-  return {
+  return (c._nums = {
     deaths:     c.deaths || 0,
     downed:     c.downed || 0,
     wins:       d.wins || 0,
@@ -2669,7 +2680,7 @@ function computeCharNumbers(c) {
     ff_victim:  incidents.filter(i => i.victim === c.char).length,
     roast_from: matrix.filter(r => r.from === c.char).reduce((s, r) => s + r.count, 0),
     roast_to:   matrix.filter(r => r.to   === c.char).reduce((s, r) => s + r.count, 0),
-  };
+  });
 }
 
 // 先注入數字、再 HTML 跳脫（佔位符替換為整數，安全）
