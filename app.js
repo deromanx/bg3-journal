@@ -544,14 +544,31 @@ function computeBaseStats() {
 }
 
 // ══════════════════════════════════════════════════════════
-// 死亡時間軸 / 死法圖鑑：角色 × 集數矩陣，格內骷髏，hover 看死因
+// 共用：把集數映射到固定寬度軌道上的 x%（兩端內縮，避免圓點被切）
+// ══════════════════════════════════════════════════════════
+function swimSessionAxis() {
+  const sids = sessions.filter(s => !s.placeholder).map(s => s.id).sort((a, b) => a - b);
+  const first = sids[0], last = sids[sids.length - 1];
+  const span = Math.max(1, last - first);
+  const xOf = sid => 3 + (sid - first) / span * 94;   // 內縮到 3%–97%
+  // 座標軸刻度：最多取 6 個平均分佈的集數
+  const n = Math.min(sids.length, 6);
+  const tickSids = [...new Set(
+    Array.from({ length: n }, (_, i) => sids[Math.round(i * (sids.length - 1) / (n - 1 || 1))])
+  )];
+  const axis = tickSids.map(sid =>
+    `<span class="swim-tick" style="left:${xOf(sid).toFixed(2)}%">S${sid}</span>`).join('');
+  return { sids, xOf, axisHtml: axis };
+}
+
+// ══════════════════════════════════════════════════════════
+// 死亡時間軸：每位角色一條泳道，緋紅圓點＝陣亡（點大小隨當集死亡數），點擊看死因
+// 以百分比定位，集數再多也不會撐寬，只會變密。
 // ══════════════════════════════════════════════════════════
 function renderDeathTimeline(chars) {
-  // 完成集數（排除 placeholder），依 id 升序作為時間軸欄位
-  const sids = sessions.filter(s => !s.placeholder).map(s => s.id).sort((a, b) => a - b);
+  const { sids, xOf, axisHtml } = swimSessionAxis();
   if (!sids.length) return '';
 
-  // 每位角色：session → [死因]；同時累計每集總死亡數（找最血腥的一集）
   const perSessionTotal = {};
   const rows = chars.map(c => {
     const bySession = {};
@@ -567,39 +584,32 @@ function renderDeathTimeline(chars) {
 
   const totalDeaths = rows.reduce((s, r) => s + Object.values(r.bySession).reduce((a, v) => a + v.length, 0), 0);
   if (!totalDeaths) return '';
-  const maxPerSession = Math.max(1, ...Object.values(perSessionTotal));
-  // 最血腥的一集
   let deadliest = null;
   for (const sid of sids) {
     const n = perSessionTotal[sid] || 0;
     if (!deadliest || n > deadliest.n) deadliest = { sid, n };
   }
-  // 最耐命（死最少，且至少上場）
   const safest = rows.slice().sort((a, b) => a.deaths - b.deaths)[0];
 
-  const headCells = sids.map(sid => {
-    const n = perSessionTotal[sid] || 0;
-    const heat = n / maxPerSession;
-    return `<div class="dtl-cell dtl-hcell${n ? ' has-heat' : ''}" style="--heat:${heat.toFixed(3)}"
-                 ${n ? `data-tip="第${sid}集 · ${n} 死"` : ''}>${sid}</div>`;
-  }).join('');
-
-  const bodyRows = rows.map(r => {
-    const cells = sids.map(sid => {
-      const causes = r.bySession[sid];
-      if (!causes || !causes.length) return `<div class="dtl-cell"></div>`;
-      const tip = `第${sid}集\n` + causes.map(x => '☠ ' + x).join('\n');
-      const cap = `<span class="dtl-cap-who">${esc(r.char)}</span><span class="dtl-cap-sid">S${sid}</span>` +
+  const lanes = rows.map(r => {
+    const dots = Object.entries(r.bySession).map(([sid, causes]) => {
+      const s = +sid;
+      const tip = `第${s}集\n` + causes.map(x => '☠ ' + x).join('\n');
+      const cap = `<span class="dtl-cap-who">${esc(r.char)}</span><span class="dtl-cap-sid">S${s}</span>` +
                   causes.map(x => `<span class="dtl-cap-cause">☠ ${esc(x)}</span>`).join('');
-      const mark = causes.length > 1 ? `💀<span class="dtl-x">×${causes.length}</span>` : '💀';
-      return `<div class="dtl-cell dtl-death" data-tip="${esc(tip)}" data-cap="${esc(cap)}" onclick="showDeathCause(this)">${mark}</div>`;
+      const multi = causes.length > 1;
+      return `<button class="swim-dot${multi ? ' swim-dot-multi' : ''}" style="left:${xOf(s).toFixed(2)}%"
+                 data-tip="${esc(tip)}" data-cap="${esc(cap)}" onclick="showDeathCause(this)"
+                 aria-label="第${s}集陣亡">${multi ? `<span class="swim-dn">${causes.length}</span>` : ''}</button>`;
     }).join('');
-    return `<div class="dtl-row">
-        <div class="dtl-name">
-          <span class="dtl-av av-${esc(r.char)}"><img src="data/images/avatars/${esc(r.char)}.webp" alt="" loading="lazy" onerror="this.style.display='none'"></span>
-          <span class="dtl-nm">${esc(r.char)}</span>
-          <span class="dtl-dn">${r.deaths}</span>
-        </div>${cells}</div>`;
+    return `<div class="swim-lane">
+        <div class="swim-name">
+          <span class="swim-av av-${esc(r.char)}"><img src="data/images/avatars/${esc(r.char)}.webp" alt="" loading="lazy" onerror="this.style.display='none'"></span>
+          <span class="swim-nm">${esc(r.char)}</span>
+          <span class="swim-badge" title="累計陣亡">${r.deaths}</span>
+        </div>
+        <div class="swim-track"><span class="swim-rail"></span>${dots}</div>
+      </div>`;
   }).join('');
 
   return `
@@ -610,25 +620,20 @@ function renderDeathTimeline(chars) {
         最血腥 <strong>S${deadliest.sid}</strong>（${deadliest.n} 死） ·
         最耐命 <strong>${esc(safest.char)}</strong>（${safest.deaths} 死）
       </div>
-      <div class="dtl-scroll">
-        <div class="dtl">
-          <div class="dtl-row dtl-head">
-            <div class="dtl-name dtl-corner">集數 →</div>${headCells}
-          </div>
-          ${bodyRows}
-        </div>
+      <div class="swim">
+        <div class="swim-lane swim-axis-row"><span class="swim-name"></span><div class="swim-track">${axisHtml}</div></div>
+        ${lanes}
       </div>
-      <div class="dtl-caption" id="dtl-caption"><span class="dtl-cap-hint">👆 點擊骷髏，這裡顯示死因</span></div>
-      <div class="dtl-hint">☠ 骷髏＝該集陣亡，右上數字為當集死亡數；表頭越紅代表該集越血腥</div>
+      <div class="dtl-caption" id="dtl-caption"><span class="dtl-cap-hint">👆 點圓點看死因，圓點越大＝該集死越多次</span></div>
     </div>`;
 }
 
-// 點擊死亡格：在下方 caption 顯示死因（觸控裝置沒有 hover tooltip，靠這個）
+// 點擊死亡圓點：在下方 caption 顯示死因（觸控裝置沒有 hover tooltip，靠這個）
 function showDeathCause(el) {
   const cap = document.getElementById('dtl-caption');
   if (!cap) return;
   cap.innerHTML = el.dataset.cap || '';
-  cap.closest('.stats-section')?.querySelectorAll('.dtl-death.dtl-sel')
+  cap.closest('.stats-section')?.querySelectorAll('.swim-dot.dtl-sel')
     .forEach(x => x.classList.remove('dtl-sel'));
   el.classList.add('dtl-sel');
 }
@@ -1583,41 +1588,39 @@ function renderGrowthGrid(chars) {
     { key: 'mvp',    label: 'MVP 獲選', data: mvpMap,    palette: 'gold'   },
   ];
 
-  function cellClass(val, palette) {
-    if (!val) return `gc-cell gc-0`;
-    if (val >= 4) return `gc-cell gc-3 gc-${palette}`;
-    if (val >= 2) return `gc-cell gc-2 gc-${palette}`;
-    return `gc-cell gc-1 gc-${palette}`;
-  }
+  const { xOf, axisHtml } = swimSessionAxis();
 
-  function buildGrid(metric) {
-    const rows = CHAR_ORDER.map(char => {
-      const cells = sids.map(sid => {
-        const val = metric.data[char]?.[sid] || 0;
-        return `<div class="${cellClass(val, metric.palette)}" title="S${sid} ${char}：${val}"></div>`;
+  // 每個指標一塊泳道面板：每位角色一條 SVG 長條 sparkline（viewBox 隨集數縮放，填滿寬度）
+  function buildPanel(metric) {
+    const N = Math.max(1, sids.length);
+    const maxV = Math.max(1, ...CHAR_ORDER.flatMap(ch => sids.map(sid => metric.data[ch]?.[sid] || 0)));
+    const lanes = CHAR_ORDER.map(char => {
+      const vals = sids.map(sid => metric.data[char]?.[sid] || 0);
+      const total = vals.reduce((a, b) => a + b, 0);
+      const bars = vals.map((v, i) => {
+        if (!v) return '';
+        const h = Math.max(6, v / maxV * 100);   // 最低 6%，讓 1 次也看得到
+        return `<rect x="${(i + 0.12).toFixed(2)}" y="${(100 - h).toFixed(1)}" width="0.76" height="${h.toFixed(1)}" rx="0.3"></rect>`;
       }).join('');
-      return `
-        <div class="gc-row">
-          <div class="gc-char-label">
-            <span class="gc-av av-${esc(char)}">
-              <img src="data/images/avatars/${esc(char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
-            </span>
-            <span class="gc-char-name">${esc(char)}</span>
+      return `<div class="swim-lane">
+          <div class="swim-name">
+            <span class="swim-av av-${esc(char)}"><img src="data/images/avatars/${esc(char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'"></span>
+            <span class="swim-nm">${esc(char)}</span>
+            <span class="swim-badge" title="累計">${total}</span>
           </div>
-          <div class="gc-cells">${cells}</div>
+          <div class="swim-track swim-track-bars"><span class="swim-baseline"></span>
+            <svg class="swim-spark pal-${metric.palette}" viewBox="0 0 ${N} 100" preserveAspectRatio="none" aria-hidden="true">${bars}</svg>
+          </div>
         </div>`;
     }).join('');
-
-    const sessionLabels = sids.map(sid => `<div class="gc-sid-label">S${sid}</div>`).join('');
-    return `
-      <div class="gc-grid">
-        <div class="gc-sid-row"><div class="gc-char-label"></div><div class="gc-cells">${sessionLabels}</div></div>
-        ${rows}
+    return `<div class="swim">
+        <div class="swim-lane swim-axis-row"><span class="swim-name"></span><div class="swim-track">${axisHtml}</div></div>
+        ${lanes}
       </div>`;
   }
 
-  const grids = METRICS.map((m, i) =>
-    `<div class="gc-panel${i === 0 ? '' : ' gc-hidden'}" data-metric="${m.key}">${buildGrid(m)}</div>`
+  const panels = METRICS.map((m, i) =>
+    `<div class="gc-panel${i === 0 ? '' : ' gc-hidden'}" data-metric="${m.key}">${buildPanel(m)}</div>`
   ).join('');
 
   const tabs = METRICS.map((m, i) =>
@@ -1627,13 +1630,8 @@ function renderGrowthGrid(chars) {
   return `
     <div class="stats-section">
       <div class="gc-tabs">${tabs}</div>
-      <div class="gc-legend" id="gc-legend-bar">
-        <span class="gc-leg-item"><span class="gc-leg-dot gc-0"></span>無</span>
-        <span class="gc-leg-item"><span class="gc-leg-dot gc-1 gc-orange"></span>1次</span>
-        <span class="gc-leg-item"><span class="gc-leg-dot gc-2 gc-orange"></span>2–3次</span>
-        <span class="gc-leg-item"><span class="gc-leg-dot gc-3 gc-orange"></span>4+次</span>
-      </div>
-      ${grids}
+      <div class="dtl-hint" style="margin:2px 0 10px">長條越高＝該集在此項次數越多；右側數字為全季累計</div>
+      ${panels}
     </div>`;
 }
 

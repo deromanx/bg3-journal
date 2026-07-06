@@ -1721,102 +1721,98 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .dtl-summary strong { color: var(--crimson); font-weight: 700; }
 
-.dtl-scroll {
-  overflow-x: auto;
-  overflow-y: hidden;
-  border: 1px solid rgba(var(--edge-rgb),0.18);
-  background: rgba(255,255,255,0.25);
-  -webkit-overflow-scrolling: touch;
-}
-.dtl-scroll::-webkit-scrollbar { height: 7px; }
-.dtl-scroll::-webkit-scrollbar-thumb { background: rgba(var(--edge-rgb),0.30); border-radius: 3px; }
-
-.dtl { display: inline-block; min-width: max-content; }
-
-.dtl-row { display: flex; }
-.dtl-row:nth-child(even) { background: rgba(var(--edge-rgb),0.04); }
-
-.dtl-cell {
-  width: 26px;
-  flex: 0 0 26px;
-  height: 30px;
-  display: flex;
+/* 泳道（死亡時間軸 / 角色活躍度共用）：集數以百分比落在固定寬度軌道，永不撐寬 */
+.swim { margin-top: 4px; }
+.swim-lane {
+  display: grid;
+  grid-template-columns: 104px 1fr;
   align-items: center;
-  justify-content: center;
-  position: relative;
-  border-right: 1px solid rgba(var(--edge-rgb),0.08);
-  border-bottom: 1px solid rgba(var(--edge-rgb),0.08);
-  font-size: 15px;
-  line-height: 1;
+  gap: 10px;
+  min-height: 34px;
 }
-
-/* 表頭：集數 + 血腥度（單一緋紅 hue 濃淡） */
-.dtl-hcell {
-  font-family: 'Cinzel', serif;
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--ink-light);
-  background: rgba(122,21,21, calc(var(--heat, 0) * 0.55));
-}
-.dtl-hcell.has-heat { color: var(--ink); }
-
-/* 左側角色名欄：sticky 固定，橫向捲動時不被蓋 */
-.dtl-name {
-  position: sticky;
-  left: 0;
-  z-index: 2;
-  width: 96px;
-  flex: 0 0 96px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 8px;
-  height: 30px;
-  background: var(--parchment);
-  border-right: 1px solid rgba(var(--edge-rgb),0.22);
-  border-bottom: 1px solid rgba(var(--edge-rgb),0.08);
-}
-.dtl-corner {
-  font-family: 'Cinzel', serif;
-  font-size: 10px;
-  color: var(--ink-light);
-  letter-spacing: 0.5px;
-}
-.dtl-av {
-  width: 20px; height: 20px;
-  flex: 0 0 20px;
+.swim-name { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.swim-av {
+  width: 24px; height: 24px;
+  flex: 0 0 24px;
   border-radius: 50%;
   overflow: hidden;
   background: rgba(var(--edge-rgb),0.15);
 }
-.dtl-av img { width: 100%; height: 100%; object-fit: cover; }
-.dtl-nm { font-size: 12px; color: var(--ink); font-weight: 600; }
-.dtl-dn {
+.swim-av img { width: 100%; height: 100%; object-fit: cover; }
+.swim-nm {
+  font-size: 12px;
+  color: var(--ink-mid);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.swim-badge {
   margin-left: auto;
+  flex-shrink: 0;
   font-family: 'Cinzel', serif;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   color: var(--crimson);
-  opacity: 0.75;
+  opacity: 0.8;
+  padding-left: 4px;
 }
 
-.dtl-death { cursor: pointer; transition: background 0.12s ease; }
-.dtl-death:hover { background: rgba(122,21,21,0.12); }
-.dtl-death.dtl-sel {
-  background: rgba(122,21,21,0.18);
-  box-shadow: inset 0 0 0 2px var(--crimson);
-}
-.dtl-x {
+.swim-track { position: relative; height: 30px; min-width: 0; }
+.swim-rail {
   position: absolute;
-  top: 1px; right: 1px;
-  font-size: 8px;
-  font-weight: 700;
-  color: var(--crimson);
-  background: var(--parchment);
-  border-radius: 6px;
-  padding: 0 2px;
-  line-height: 1.2;
+  left: 0; right: 0; top: 50%;
+  height: 2px;
+  transform: translateY(-50%);
+  background: rgba(var(--edge-rgb),0.16);
 }
+.swim-track-bars { height: 34px; }
+.swim-baseline { position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: rgba(var(--edge-rgb),0.18); }
+
+/* 座標軸列 */
+.swim-axis-row { min-height: 16px; margin-bottom: 2px; }
+.swim-axis-row .swim-track { height: 14px; }
+.swim-tick {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  color: var(--ink-light);
+  opacity: 0.7;
+  white-space: nowrap;
+}
+
+/* 死亡圓點：緋紅實心，大小隨當集死亡數 */
+.swim-dot {
+  position: absolute;
+  top: 50%; left: 0;
+  transform: translate(-50%, -50%);
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: var(--crimson);
+  border: 1.5px solid var(--parchment);
+  box-shadow: 0 0 0 1px rgba(122,21,21,0.35);
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  z-index: 1;
+}
+.swim-dot:hover { transform: translate(-50%, -50%) scale(1.28); z-index: 3; }
+.swim-dot-multi { width: 18px; height: 18px; }
+.swim-dn { font-family: 'Cinzel', serif; font-size: 10px; font-weight: 700; color: #fff; line-height: 1; }
+.swim-dot.dtl-sel { box-shadow: 0 0 0 3px rgba(122,21,21,0.32); z-index: 3; }
+
+/* 活躍度 sparkline 長條 */
+.swim-spark { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pal-orange rect { fill: rgba(210,120,30,0.82); }
+.pal-red    rect { fill: rgba(180,30,30,0.72); }
+.pal-green  rect { fill: rgba(26,110,50,0.72); }
+.pal-blue   rect { fill: rgba(30,90,180,0.70); }
+.pal-gold   rect { fill: rgba(var(--gold-deep-rgb),0.88); }
 
 .dtl-caption {
   margin-top: 10px;
