@@ -2478,12 +2478,20 @@ function renderCharacters(charName) {
   const decisive = (c.duels?.wins || 0) + (c.duels?.losses || 0);
   const pct = decisive ? Math.round((c.duels?.wins || 0) / decisive * 100) : 0;
 
-  const quotesHtml = (c.quotes || []).map(q => `
-    <div class="cp-quote-card">
+  // 名言錄預設只顯示最近 8 句（集數最大的 8 句，位於陣列末端），
+  // 其餘標記為 extra 由 CSS 隱藏，透過「展開看全部」按鈕切換。
+  const CP_QUOTES_CAP = 8;
+  const allQuotes = c.quotes || [];
+  const quotesExtra = Math.max(0, allQuotes.length - CP_QUOTES_CAP);
+  const quotesHtml = allQuotes.map((q, i) => `
+    <div class="cp-quote-card${i < quotesExtra ? ' cp-quote-extra' : ''}">
       <div class="cp-qmark">「</div>
       <blockquote class="cp-qtext">${esc(q.text)}</blockquote>
       <div class="cp-qsession">S${q.session}</div>
     </div>`).join('');
+  const quotesToggle = quotesExtra > 0 ? `
+      <button class="cp-quotes-toggle" onclick="toggleCharQuotes(this)"
+              data-more="展開看全部（共 ${allQuotes.length} 句）" data-less="收合">展開看全部（共 ${allQuotes.length} 句）</button>` : '';
 
   const achieveHtml = (c.achievements || []).map(a => `
     <div class="cp-achieve">
@@ -2534,6 +2542,7 @@ function renderCharacters(charName) {
       <div class="cp-section">
         <div class="cp-section-title">💬 名言錄</div>
         <div class="cp-quotes">${quotesHtml}</div>
+        ${quotesToggle}
       </div>` : ''}
 
       ${c.achievements?.length ? `
@@ -2560,6 +2569,14 @@ function renderCharacters(charName) {
         </div>
       </div>` : ''}
     </div>`;
+}
+
+// 名言錄「展開看全部 / 收合」切換：在 .cp-quotes 上切 expanded class，改按鈕文字。
+function toggleCharQuotes(btn) {
+  const box = btn.closest('.cp-section')?.querySelector('.cp-quotes');
+  if (!box) return;
+  const expanded = box.classList.toggle('expanded');
+  btn.textContent = expanded ? btn.dataset.less : btn.dataset.more;
 }
 
 function resolveChar(name) {

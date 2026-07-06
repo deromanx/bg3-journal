@@ -3158,6 +3158,29 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   padding: 10px 16px 10px 12px;
 }
 
+/* 名言錄預設只顯示最近 8 句，其餘（extra）隱藏，展開後顯示 */
+.cp-quote-extra { display: none; }
+.cp-quotes.expanded .cp-quote-extra { display: grid; }
+
+.cp-quotes-toggle {
+  display: block;
+  margin: 10px auto 0;
+  padding: 6px 18px;
+  background: rgba(255,255,255,0.35);
+  border: 1px solid rgba(var(--edge-rgb),0.22);
+  color: var(--crimson);
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.cp-quotes-toggle:hover {
+  background: rgba(255,255,255,0.6);
+  border-color: rgba(var(--edge-rgb),0.4);
+}
+
 .cp-qmark {
   font-family: 'Cinzel', serif;
   font-size: 20px;
