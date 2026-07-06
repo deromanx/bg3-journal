@@ -543,6 +543,96 @@ function computeBaseStats() {
   return { count: completed.length, weeks };
 }
 
+// ══════════════════════════════════════════════════════════
+// 死亡時間軸 / 死法圖鑑：角色 × 集數矩陣，格內骷髏，hover 看死因
+// ══════════════════════════════════════════════════════════
+function renderDeathTimeline(chars) {
+  // 完成集數（排除 placeholder），依 id 升序作為時間軸欄位
+  const sids = sessions.filter(s => !s.placeholder).map(s => s.id).sort((a, b) => a - b);
+  if (!sids.length) return '';
+
+  // 每位角色：session → [死因]；同時累計每集總死亡數（找最血腥的一集）
+  const perSessionTotal = {};
+  const rows = chars.map(c => {
+    const bySession = {};
+    (c.death_notes || []).forEach(note => {
+      const m = String(note).match(/^第(\d+)集\s*(.*)$/);
+      if (!m) return;
+      const sid = +m[1];
+      (bySession[sid] = bySession[sid] || []).push(m[2] || String(note));
+      perSessionTotal[sid] = (perSessionTotal[sid] || 0) + 1;
+    });
+    return { char: c.char, deaths: c.deaths || 0, bySession };
+  });
+
+  const totalDeaths = rows.reduce((s, r) => s + Object.values(r.bySession).reduce((a, v) => a + v.length, 0), 0);
+  if (!totalDeaths) return '';
+  const maxPerSession = Math.max(1, ...Object.values(perSessionTotal));
+  // 最血腥的一集
+  let deadliest = null;
+  for (const sid of sids) {
+    const n = perSessionTotal[sid] || 0;
+    if (!deadliest || n > deadliest.n) deadliest = { sid, n };
+  }
+  // 最耐命（死最少，且至少上場）
+  const safest = rows.slice().sort((a, b) => a.deaths - b.deaths)[0];
+
+  const headCells = sids.map(sid => {
+    const n = perSessionTotal[sid] || 0;
+    const heat = n / maxPerSession;
+    return `<div class="dtl-cell dtl-hcell${n ? ' has-heat' : ''}" style="--heat:${heat.toFixed(3)}"
+                 ${n ? `data-tip="第${sid}集 · ${n} 死"` : ''}>${sid}</div>`;
+  }).join('');
+
+  const bodyRows = rows.map(r => {
+    const cells = sids.map(sid => {
+      const causes = r.bySession[sid];
+      if (!causes || !causes.length) return `<div class="dtl-cell"></div>`;
+      const tip = `第${sid}集\n` + causes.map(x => '☠ ' + x).join('\n');
+      const cap = `<span class="dtl-cap-who">${esc(r.char)}</span><span class="dtl-cap-sid">S${sid}</span>` +
+                  causes.map(x => `<span class="dtl-cap-cause">☠ ${esc(x)}</span>`).join('');
+      const mark = causes.length > 1 ? `💀<span class="dtl-x">×${causes.length}</span>` : '💀';
+      return `<div class="dtl-cell dtl-death" data-tip="${esc(tip)}" data-cap="${esc(cap)}" onclick="showDeathCause(this)">${mark}</div>`;
+    }).join('');
+    return `<div class="dtl-row">
+        <div class="dtl-name">
+          <span class="dtl-av av-${esc(r.char)}"><img src="data/images/avatars/${esc(r.char)}.webp" alt="" loading="lazy" onerror="this.style.display='none'"></span>
+          <span class="dtl-nm">${esc(r.char)}</span>
+          <span class="dtl-dn">${r.deaths}</span>
+        </div>${cells}</div>`;
+  }).join('');
+
+  return `
+    <div class="stats-section">
+      <div class="stats-section-title">死亡時間軸</div>
+      <div class="dtl-summary">
+        全隊累計 <strong>${totalDeaths}</strong> 次陣亡 ·
+        最血腥 <strong>S${deadliest.sid}</strong>（${deadliest.n} 死） ·
+        最耐命 <strong>${esc(safest.char)}</strong>（${safest.deaths} 死）
+      </div>
+      <div class="dtl-scroll">
+        <div class="dtl">
+          <div class="dtl-row dtl-head">
+            <div class="dtl-name dtl-corner">集數 →</div>${headCells}
+          </div>
+          ${bodyRows}
+        </div>
+      </div>
+      <div class="dtl-caption" id="dtl-caption"><span class="dtl-cap-hint">👆 點擊骷髏，這裡顯示死因</span></div>
+      <div class="dtl-hint">☠ 骷髏＝該集陣亡，右上數字為當集死亡數；表頭越紅代表該集越血腥</div>
+    </div>`;
+}
+
+// 點擊死亡格：在下方 caption 顯示死因（觸控裝置沒有 hover tooltip，靠這個）
+function showDeathCause(el) {
+  const cap = document.getElementById('dtl-caption');
+  if (!cap) return;
+  cap.innerHTML = el.dataset.cap || '';
+  cap.closest('.stats-section')?.querySelectorAll('.dtl-death.dtl-sel')
+    .forEach(x => x.classList.remove('dtl-sel'));
+  el.classList.add('dtl-sel');
+}
+
 function renderStats() {
   _roastFilter.clear();
   _roastPairFilter = null;
@@ -764,6 +854,7 @@ function renderStats() {
         <div class="stats-section-title">各角色死亡次數</div>
         <div class="death-grid">${deathCards}</div>
       </div>
+      ${renderDeathTimeline(chars)}
       ${ffSection}
     </div>
 

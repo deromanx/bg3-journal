@@ -1712,6 +1712,142 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   margin-bottom: 8px;
 }
 
+/* ── 死亡時間軸 / 死法圖鑑 ───────────────────────────── */
+.dtl-summary {
+  font-size: 13px;
+  color: var(--ink-mid);
+  margin-bottom: 12px;
+  line-height: 1.7;
+}
+.dtl-summary strong { color: var(--crimson); font-weight: 700; }
+
+.dtl-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+  border: 1px solid rgba(var(--edge-rgb),0.18);
+  background: rgba(255,255,255,0.25);
+  -webkit-overflow-scrolling: touch;
+}
+.dtl-scroll::-webkit-scrollbar { height: 7px; }
+.dtl-scroll::-webkit-scrollbar-thumb { background: rgba(var(--edge-rgb),0.30); border-radius: 3px; }
+
+.dtl { display: inline-block; min-width: max-content; }
+
+.dtl-row { display: flex; }
+.dtl-row:nth-child(even) { background: rgba(var(--edge-rgb),0.04); }
+
+.dtl-cell {
+  width: 26px;
+  flex: 0 0 26px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border-right: 1px solid rgba(var(--edge-rgb),0.08);
+  border-bottom: 1px solid rgba(var(--edge-rgb),0.08);
+  font-size: 15px;
+  line-height: 1;
+}
+
+/* 表頭：集數 + 血腥度（單一緋紅 hue 濃淡） */
+.dtl-hcell {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ink-light);
+  background: rgba(122,21,21, calc(var(--heat, 0) * 0.55));
+}
+.dtl-hcell.has-heat { color: var(--ink); }
+
+/* 左側角色名欄：sticky 固定，橫向捲動時不被蓋 */
+.dtl-name {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  width: 96px;
+  flex: 0 0 96px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 8px;
+  height: 30px;
+  background: var(--parchment);
+  border-right: 1px solid rgba(var(--edge-rgb),0.22);
+  border-bottom: 1px solid rgba(var(--edge-rgb),0.08);
+}
+.dtl-corner {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  color: var(--ink-light);
+  letter-spacing: 0.5px;
+}
+.dtl-av {
+  width: 20px; height: 20px;
+  flex: 0 0 20px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(var(--edge-rgb),0.15);
+}
+.dtl-av img { width: 100%; height: 100%; object-fit: cover; }
+.dtl-nm { font-size: 12px; color: var(--ink); font-weight: 600; }
+.dtl-dn {
+  margin-left: auto;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--crimson);
+  opacity: 0.75;
+}
+
+.dtl-death { cursor: pointer; transition: background 0.12s ease; }
+.dtl-death:hover { background: rgba(122,21,21,0.12); }
+.dtl-death.dtl-sel {
+  background: rgba(122,21,21,0.18);
+  box-shadow: inset 0 0 0 2px var(--crimson);
+}
+.dtl-x {
+  position: absolute;
+  top: 1px; right: 1px;
+  font-size: 8px;
+  font-weight: 700;
+  color: var(--crimson);
+  background: var(--parchment);
+  border-radius: 6px;
+  padding: 0 2px;
+  line-height: 1.2;
+}
+
+.dtl-caption {
+  margin-top: 10px;
+  min-height: 22px;
+  padding: 8px 12px;
+  background: rgba(255,255,255,0.35);
+  border-left: 3px solid rgba(122,21,21,0.32);
+  font-size: 13px;
+  line-height: 1.6;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 8px;
+}
+.dtl-cap-hint { color: var(--ink-light); font-style: italic; }
+.dtl-cap-who { font-weight: 700; color: var(--ink); }
+.dtl-cap-sid {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--crimson);
+}
+.dtl-cap-cause { color: var(--ink-mid); font-style: italic; width: 100%; }
+
+.dtl-hint {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--ink-light);
+  line-height: 1.6;
+}
+
 .death-card {
   background: var(--ink);
   border: 1px solid rgba(var(--edge-rgb),0.20);
