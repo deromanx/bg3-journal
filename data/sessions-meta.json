@@ -190,5 +190,13 @@
     "dateDisplay": "2026 年 6 月 25 日",
     "title": "智力堪憂、力量27、謎之命中",
     "placeholder": false
+  },
+  {
+    "id": 25,
+    "chapter": "第二十五章",
+    "date": "2026-06-30",
+    "dateDisplay": "2026 年 6 月 30 日",
+    "title": "黑臉、紅衣、幻想破滅",
+    "placeholder": false
   }
 ]
