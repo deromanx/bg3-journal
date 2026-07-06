@@ -5,6 +5,7 @@ __pycache__/
 *.pyc
 *.log
 logs_update_all.txt
+logs_char_quotes.txt
 data/.stats_processed.json
 
 # 開發截圖與測試裁切（雜物，不納版控）

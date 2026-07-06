@@ -8,6 +8,7 @@
 # 用法：
 #   ./update_all.sh              一般更新
 #   ./update_all.sh --roast-all  靠北統計全量重跑（改了 regen 邏輯時才需要）
+#   ./update_all.sh --quotes-all 角色名言錄全量重抽（改了抽取邏輯時才需要）
 #   ./update_all.sh --skip-chars 跳過角色介紹重生成（省 ~5 分鐘）
 #
 set -euo pipefail
@@ -73,6 +74,14 @@ if [[ "${1:-}" == "--ff-all" || "${1:-}" == "--roast-all" ]]; then
     run python3 gen_ff_stats.py
 else
     run python3 gen_ff_stats.py --from "$LATEST"
+fi
+
+# 8.5 角色名言錄（增量，每集 1 次 Gemini；不受 --skip-chars 影響。
+#     --quotes-all 或 --roast-all 全量重抽）
+if [[ "${1:-}" == "--quotes-all" || "${1:-}" == "--roast-all" ]]; then
+    run python3 gen_char_quotes.py
+else
+    run python3 gen_char_quotes.py --from "$LATEST"
 fi
 
 # 9. 角色介紹、死亡敘述、成就（預設每次重生成，加 --skip-chars 可略過；依序執行避免競態）
