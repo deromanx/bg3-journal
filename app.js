@@ -620,7 +620,7 @@ function renderDeathTimeline(chars) {
         最血腥 <strong>S${deadliest.sid}</strong>（${deadliest.n} 死） ·
         最耐命 <strong>${esc(safest.char)}</strong>（${safest.deaths} 死）
       </div>
-      <div class="swim">
+      <div class="swim swim-scroll" style="--track-min:${sids.length * 16}px">
         <div class="swim-lane swim-axis-row"><span class="swim-name"></span><div class="swim-track">${axisHtml}</div></div>
         ${lanes}
       </div>

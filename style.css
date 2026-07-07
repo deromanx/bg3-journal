@@ -1769,6 +1769,22 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .swim-track-bars { height: 34px; }
 .swim-baseline { position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: rgba(var(--edge-rgb),0.18); }
 
+/* 密度保護（僅死亡時間軸）：軌道最小寬 = 集數×16px。
+   空間夠→填滿不捲；不夠→軌道維持最小寬、只有它橫向捲動，圓點間距恆定；名字欄 sticky 固定 */
+.swim-scroll { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
+.swim-scroll::-webkit-scrollbar { height: 6px; }
+.swim-scroll::-webkit-scrollbar-thumb { background: rgba(var(--edge-rgb),0.28); border-radius: 3px; }
+.swim-scroll .swim-lane { grid-template-columns: 104px minmax(var(--track-min, 0px), 1fr); }
+.swim-scroll .swim-name {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  align-self: stretch;
+  background: var(--parchment);
+  padding-right: 6px;
+  box-shadow: 1px 0 0 rgba(var(--edge-rgb),0.12);
+}
+
 /* 座標軸列 */
 .swim-axis-row { min-height: 16px; margin-bottom: 2px; }
 .swim-axis-row .swim-track { height: 14px; }
