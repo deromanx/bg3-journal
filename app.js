@@ -1468,24 +1468,26 @@ function closeQuoteModal(kind) {
 const DRO_CHAR_COLORS = {
   影心: '#4a80c0', 阿斯代倫: '#a07030', 曹: '#3a7a3c', 卡拉克: '#a02020', 貓咕咕: '#6a3aaa',
 };
-let _droSelectedChar = null; // null = 全員混抽
 let _droActivePool   = [];   // 目前輪盤上的 note 陣列（依角色分組，決定弧段大小）
 let _droCumulative   = 0;    // 累計旋轉角度（只增不減，避免視覺倒轉）
 let _droSpinning     = false;
 const _droEscHandler = e => { if (e.key === 'Escape') closeDeathRoulette(); };
 
-// death_notes 原始格式為「第N集 死因描述」，拆出集數以便對照 sessions
-// 附上該集章節/標題/日期（既有本地資料，不需額外呼叫 Gemini）
-function _droPool(charName) {
+// death_notes 原始格式為「第N集 死因描述」，拆出集數以便對照 sessions；
+// 若該角色同一集有決鬥花絮（duels.highlights），一併附上作為更詳細的情境描述
+// （既有本地資料重組，不需額外呼叫 Gemini；只有部分死亡與決鬥同集，其餘沒有花絮可附）
+function _droPool() {
   const chars = charStats.characters || [];
   const pool = [];
   chars.forEach(c => {
-    if (charName && c.char !== charName) return;
+    const hlBySid = {};
+    (c.duels?.highlights || []).forEach(h => { hlBySid[h.session_id] = h.text; });
     (c.death_notes || []).forEach(note => {
       const m = note.match(/^第(\d+)集\s*(.*)$/);
       const sid = m ? parseInt(m[1]) : null;
       const desc = m ? m[2] : note;
-      pool.push({ char: c.char, note, sid, desc });
+      const hl = sid !== null ? hlBySid[sid] : undefined;
+      pool.push({ char: c.char, note, sid, desc, hl });
     });
   });
   return pool;
@@ -1546,20 +1548,6 @@ function _droBuildWheel(pool) {
 
 function _droInit() {
   if (document.getElementById('dro-overlay')) return;
-  const chars = charStats.characters || [];
-  const picker = [`
-    <button class="dro-char-btn active" data-char="" onclick="droPick(null)">
-      <div class="dro-char-av" style="display:flex;align-items:center;justify-content:center;background:var(--gold-faint);font-size:18px">🎲</div>
-      <span class="dro-char-name">全員</span>
-    </button>`]
-    .concat(chars.map(c => `
-      <button class="dro-char-btn" data-char="${esc(c.char)}" onclick="droPick('${esc(c.char)}')">
-        <div class="dro-char-av">
-          <img src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" onerror="this.style.display='none'">
-        </div>
-        <span class="dro-char-name">${esc(c.char)}</span>
-      </button>`)).join('');
-
   const el = document.createElement('div');
   el.id = 'dro-overlay';
   el.className = 'dro-overlay';
@@ -1575,7 +1563,6 @@ function _droInit() {
         <div class="dro-title">🎰 死 法 輪 盤</div>
         <span class="dro-title-line"></span>
       </div>
-      <div class="dro-char-picker">${picker}</div>
       <div class="dro-wheel-wrap">
         <div class="dro-wheel-rays"></div>
         <div class="dro-wheel-glow"></div>
@@ -1606,10 +1593,8 @@ function _droInit() {
 
 function openDeathRoulette() {
   _droInit();
-  _droSelectedChar = null;
-  document.querySelectorAll('.dro-char-btn').forEach(b => b.classList.toggle('active', !b.dataset.char));
-  document.getElementById('dro-result').innerHTML = '<div class="dro-result-hint">選好對象後轉動輪盤</div>';
-  _droBuildWheel(_droPool(null));
+  document.getElementById('dro-result').innerHTML = '<div class="dro-result-hint">轉動輪盤，看看誰又死了</div>';
+  _droBuildWheel(_droPool());
   document.getElementById('dro-overlay').classList.add('dro-open');
   document.addEventListener('keydown', _droEscHandler);
 }
@@ -1623,16 +1608,6 @@ function closeDeathRoulette() {
     if (e.target !== overlay) return;
     overlay.classList.remove('dro-open', 'dro-closing');
   }, { once: true });
-}
-
-function droPick(charName) {
-  if (_droSpinning) return;
-  _droSelectedChar = charName;
-  document.querySelectorAll('.dro-char-btn').forEach(b => {
-    b.classList.toggle('active', (b.dataset.char || null) === (charName || null));
-  });
-  document.getElementById('dro-result').innerHTML = '<div class="dro-result-hint">選好對象後轉動輪盤</div>';
-  _droBuildWheel(_droPool(charName));
 }
 
 function spinDeathRoulette() {
@@ -1666,6 +1641,7 @@ function spinDeathRoulette() {
            📖 ${esc(sRef.chapter)}・${esc(sRef.title)}${sRef.dateDisplay ? `　${esc(sRef.dateDisplay)}` : ''}
          </button>`
       : (r.sid ? `<div class="dro-result-ep-plain">📖 第 ${r.sid} 集</div>` : '');
+    const hlLine = r.hl ? `<div class="dro-result-hl">⚔ ${esc(r.hl)}</div>` : '';
     result.innerHTML = `
       <div class="dro-result-avatar av-${esc(r.char)}" style="border-color:${color};box-shadow:0 0 24px ${color}88, 0 0 60px ${color}44">
         <img width="72" height="72" src="data/images/avatars/${esc(r.char)}.webp" alt=""
@@ -1673,6 +1649,7 @@ function spinDeathRoulette() {
       </div>
       <div class="dro-result-text">
         <div class="dro-result-desc">${esc(r.char)}：${esc(r.desc)}</div>
+        ${hlLine}
         ${epLine}
       </div>`;
     result.style.boxShadow = `0 0 30px ${color}33, inset 0 0 20px ${color}1a`;
