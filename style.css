@@ -1822,28 +1822,58 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .dro-char-av img { width: 100%; height: 100%; object-fit: cover; }
 .dro-char-name { font-size: 11px; color: var(--ink-mid); }
 
-.dro-reel {
-  min-height: 120px;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: 10px; padding: 18px 10px;
+/* 輪盤本體：conic-gradient 扇形由 JS 依 pool 動態產生 */
+.dro-wheel-wrap {
+  position: relative;
+  width: 200px; height: 200px;
+  margin: 4px auto 18px;
+}
+.dro-wheel-pointer {
+  position: absolute; top: -14px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 20px; color: var(--crimson);
+  z-index: 2;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.35));
+}
+.dro-wheel {
+  width: 100%; height: 100%; border-radius: 50%;
+  border: 4px solid var(--gold-deep);
+  box-shadow: 0 6px 24px rgba(0,0,0,0.3), inset 0 0 0 2px rgba(255,255,255,0.15);
+  transition: transform 3.4s cubic-bezier(0.12, 0.68, 0.22, 1);
+  will-change: transform;
+}
+.dro-wheel-hub {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--parchment);
+  border: 2px solid var(--gold-deep);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+}
+
+.dro-result {
+  min-height: 76px;
+  display: flex; align-items: center; justify-content: center;
+  gap: 12px; padding: 14px 10px;
   background: rgba(122,21,21,0.05);
   border: 1px dashed rgba(122,21,21,0.25);
   border-radius: 8px;
   margin-bottom: 20px;
+  text-align: left;
 }
-.dro-reel-avatar {
+.dro-result-avatar {
+  flex-shrink: 0;
   width: 56px; height: 56px; border-radius: 50%; overflow: hidden;
   border: 2px solid var(--gold-deep);
 }
-.dro-reel-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.dro-reel-text {
+.dro-result-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.dro-result-text {
   font-size: 16px; color: var(--ink); line-height: 1.6;
-  max-width: 320px;
+  max-width: 300px;
 }
-.dro-reel-hint { font-size: 12px; color: var(--ink-light); opacity: 0.5; font-style: italic; }
-.dro-reel.dro-spinning .dro-reel-text,
-.dro-reel.dro-spinning .dro-reel-avatar { animation: dro-flicker 0.09s steps(1) infinite; }
-@keyframes dro-flicker { 50% { opacity: 0.25; } }
+.dro-result-hint { font-size: 12px; color: var(--ink-light); opacity: 0.5; font-style: italic; }
 
 .dro-actions { display: flex; gap: 10px; justify-content: center; }
 .dro-btn {
@@ -1863,8 +1893,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .dro-btn.dro-btn-ghost:hover { background: rgba(67,44,24,0.06); }
 
 @media (prefers-reduced-motion: reduce) {
-  .dro-reel.dro-spinning .dro-reel-text,
-  .dro-reel.dro-spinning .dro-reel-avatar { animation: none; }
+  .dro-wheel { transition: none; }
 }
 
 /* ── 宿敵對戰海報（矩陣格點擊觸發） ────────────────────────── */

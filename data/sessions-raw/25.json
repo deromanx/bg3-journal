@@ -22,16 +22,8 @@
       "is_downed": false
     }
   ],
-  "duels": [
-    {
-      "winner": "曹",
-      "loser": "卡拉克",
-      "draw": false
-    }
-  ],
-  "duel_highlights": [
-    "曹在隊長決定擲骰中骰出20點大成功，擊敗卡拉克。"
-  ],
+  "duels": [],
+  "duel_highlights": [],
   "roasts": [
     {
       "from": [
