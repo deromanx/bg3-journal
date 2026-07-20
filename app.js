@@ -1474,14 +1474,26 @@ let _droCumulative   = 0;    // 累計旋轉角度（只增不減，避免視覺
 let _droSpinning     = false;
 const _droEscHandler = e => { if (e.key === 'Escape') closeDeathRoulette(); };
 
+// death_notes 原始格式為「第N集 死因描述」，拆出集數以便對照 sessions
+// 附上該集章節/標題/日期（既有本地資料，不需額外呼叫 Gemini）
 function _droPool(charName) {
   const chars = charStats.characters || [];
   const pool = [];
   chars.forEach(c => {
     if (charName && c.char !== charName) return;
-    (c.death_notes || []).forEach(note => pool.push({ char: c.char, note }));
+    (c.death_notes || []).forEach(note => {
+      const m = note.match(/^第(\d+)集\s*(.*)$/);
+      const sid = m ? parseInt(m[1]) : null;
+      const desc = m ? m[2] : note;
+      pool.push({ char: c.char, note, sid, desc });
+    });
   });
   return pool;
+}
+
+function droJumpToSession(sid) {
+  closeDeathRoulette();
+  loadSession(sid);
 }
 
 // 依目前 pool 重繪輪盤扇形（每則死法佔等角扇形，同角色連續排列形成同色弧段），
@@ -1648,12 +1660,21 @@ function spinDeathRoulette() {
   const reveal = () => {
     const r = pool[targetIdx];
     const color = DRO_CHAR_COLORS[r.char] || '#8a7d63';
+    const sRef = r.sid ? sessions.find(s => s.id === r.sid) : null;
+    const epLine = sRef
+      ? `<button class="dro-result-ep" onclick="droJumpToSession(${r.sid})" title="前往該集日誌">
+           📖 ${esc(sRef.chapter)}・${esc(sRef.title)}${sRef.dateDisplay ? `　${esc(sRef.dateDisplay)}` : ''}
+         </button>`
+      : (r.sid ? `<div class="dro-result-ep-plain">📖 第 ${r.sid} 集</div>` : '');
     result.innerHTML = `
       <div class="dro-result-avatar av-${esc(r.char)}" style="border-color:${color};box-shadow:0 0 24px ${color}88, 0 0 60px ${color}44">
         <img width="72" height="72" src="data/images/avatars/${esc(r.char)}.webp" alt=""
              loading="lazy" onerror="this.style.display='none'">
       </div>
-      <div class="dro-result-text">${esc(r.char)}：${esc(r.note)}</div>`;
+      <div class="dro-result-text">
+        <div class="dro-result-desc">${esc(r.char)}：${esc(r.desc)}</div>
+        ${epLine}
+      </div>`;
     result.style.boxShadow = `0 0 30px ${color}33, inset 0 0 20px ${color}1a`;
     result.classList.remove('dro-result-pop'); void result.offsetWidth; result.classList.add('dro-result-pop');
     wheel.classList.remove('dro-blurring');
