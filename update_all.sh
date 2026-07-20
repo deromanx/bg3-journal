@@ -16,6 +16,11 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
+# 全程輸出留檔（logs/ 被 *.log 規則 gitignore）：過夜跑掛掉有屍體可驗，
+# 也可事後 grep 統計實際 Gemini 呼叫數以校準配額預估
+mkdir -p logs
+exec > >(tee -a "logs/update_$(date +%Y%m%d_%H%M%S).log") 2>&1
+
 trap 'echo; echo "❌ 上一步失敗，pipeline 已停止。已完成步驟的結果已落盤，修正後可直接重跑。" >&2' ERR
 
 run() { echo; echo "▶ $*"; "$@"; }
@@ -32,6 +37,9 @@ for arg in "$@"; do
         *) echo "未知旗標：$arg（可用：--roast-all --praise-all --ff-all --quotes-all --skip-chars）" >&2; exit 1 ;;
     esac
 done
+
+# 0. extract.py 回歸測試（標題層級判斷歷史上改壞過兩次；先擋再跑）
+run python3 tests/test_extract.py
 
 # 1. 萃取最新 docx（圖片已存在會自動跳過）
 run python3 extract.py
@@ -122,16 +130,19 @@ run python3 normalize_names.py
 # 10.5 每集分享 stub 頁（og 預覽卡；純本地生成，不呼叫 Gemini）
 run python3 gen_share_pages.py
 
-# 11. 資料一致性驗證（最後關卡；--warn 只警告不阻斷 pipeline）
-run python3 verify_data.py --warn
-
-# 12. Cache busting：app.js / style.css 有變更時自動遞增 index.html 的 ?v=N
+# 10.7 Cache busting：app.js / style.css 有變更時自動遞增 index.html 的 ?v=N
+#      （須在 verify_data 之前，其部署產物檢查會驗證 ?v= 已同步）
 for f in style.css app.js; do
     if ! git diff --quiet HEAD -- "$f" 2>/dev/null; then
-        perl -pi -e "s/(\Q$f\E\?v=)(\d+)/\$1.(\$2+1)/e" index.html
-        echo "🔄 $f 有變更，已自動遞增 index.html 的版本號"
+        if git diff --quiet HEAD -- index.html 2>/dev/null; then
+            perl -pi -e "s/(\Q$f\E\?v=)(\d+)/\$1.(\$2+1)/e" index.html
+            echo "🔄 $f 有變更，已自動遞增 index.html 的版本號"
+        fi
     fi
 done
+
+# 11. 資料一致性驗證（最後關卡；--warn 只警告不阻斷 pipeline）
+run python3 verify_data.py --warn
 
 echo
 echo "✅ Pipeline 完成。檢查 git diff 後即可 commit / push。"

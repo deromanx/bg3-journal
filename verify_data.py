@@ -2,11 +2,13 @@
 """
 verify_data.py — 資料一致性驗證器（pipeline 最後關卡）
 
-兩類檢查：
+四類檢查：
   A. 結構一致性：個人統計 vs 衍生來源（matchup 矩陣、awards、by_session 合計）
   B. 文案脫鉤：AI 生成的 prose（ai_intro / death_narrative / achievements）
      內嵌的累計數字，是否與真實統計一致。
   C. 集數同步：最新集數的衍生資料是否都已生成、各 _note 集數字串是否過時。
+  D. 部署產物：每集分享 stub（s/{id}.html）與 sessions 同步；
+     app.js/style.css 有變更時 index.html 的 ?v= 是否已遞增。
 
 設計動機：achievements、死亡敘述等由 Gemini 生成的文字會把「9次MVP」「14次陣亡」
 這類累計數字寫死在句子裡。每次全量 rebuild 改變統計後，這些數字就過時；Gemini
@@ -17,10 +19,11 @@ verify_data.py — 資料一致性驗證器（pipeline 最後關卡）
   python3 verify_data.py --warn     # 只警告，永遠 exit 0（pipeline 用，不阻斷）
 """
 
-import json, re, sys, argparse
+import json, re, sys, argparse, subprocess
 from pathlib import Path
 from collections import defaultdict
 
+BASE = Path(__file__).parent
 DATA = Path(__file__).parent / "data"
 CHARS = ["影心", "阿斯代倫", "曹", "卡拉克", "貓咕咕"]
 
@@ -230,6 +233,36 @@ def check_session_sync():
     return issues
 
 
+# ── D. 部署產物檢查 ─────────────────────────────────────────────
+def check_deploy_artifacts():
+    """分享 stub 與 sessions 同步；asset 有變更時 ?v= 應已遞增。"""
+    issues = []
+
+    # D1. 每個非 placeholder 集數都要有 s/{id}.html；多出來的 stub 視為孤兒
+    meta = load("sessions-meta.json", [])
+    want = {s["id"] for s in meta if not s.get("placeholder")}
+    have = {int(p.stem) for p in (BASE / "s").glob("*.html") if p.stem.isdigit()} \
+        if (BASE / "s").is_dir() else set()
+    for sid in sorted(want - have):
+        issues.append(f"缺第 {sid} 集分享頁 s/{sid}.html，gen_share_pages.py 可能漏跑")
+    for sid in sorted(have - want):
+        issues.append(f"s/{sid}.html 是孤兒 stub（無對應集數），可刪除")
+
+    # D2. app.js / style.css 相對 HEAD 有變更時，index.html（含 ?v=）也應已變更
+    try:
+        changed = set(subprocess.run(
+            ["git", "diff", "--name-only", "HEAD"],
+            capture_output=True, text=True, cwd=BASE, timeout=10,
+        ).stdout.split())
+        assets = {"app.js", "style.css"} & changed
+        if assets and "index.html" not in changed:
+            issues.append(f"{'/'.join(sorted(assets))} 已變更但 index.html ?v= 未遞增，"
+                          f"部署後瀏覽器會吃到舊快取")
+    except Exception:
+        pass  # 非 git 環境（如 CI 淺複製異常）時跳過此檢查
+    return issues
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--warn", action="store_true", help="只警告不阻斷（exit 0）")
@@ -239,6 +272,7 @@ def main():
     structural = check_structural(cs, gt)
     prose = check_prose(cs, gt, args.warn)
     sync = check_session_sync()
+    deploy = check_deploy_artifacts()
 
     print("═" * 56)
     print("資料一致性驗證")
@@ -268,7 +302,15 @@ def main():
     else:
         print("✓ 集數同步：最新集衍生資料齊全，各 _note 集數字串無過時")
 
-    total = len(structural) + len(prose) + len(sync)
+    if deploy:
+        print(f"\n⚠ 部署產物問題（{len(deploy)}）：")
+        for s in deploy:
+            print(f"  • {s}")
+        print("\n  → 缺 stub 重跑 gen_share_pages.py；?v= 未遞增則重跑 update_all.sh 尾段或手動遞增")
+    else:
+        print("✓ 部署產物：分享 stub 與集數同步，asset 版本號無過時")
+
+    total = len(structural) + len(prose) + len(sync) + len(deploy)
     print()
     if total == 0:
         print("✅ 全部通過")

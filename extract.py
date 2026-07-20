@@ -89,6 +89,18 @@ def classify(text: str, bold: bool = False) -> str:
         return "h2"
     return "p"
 
+def resolve_type(t: str, left: int) -> str:
+    """依自身縮排收斂段落型別：p → li/li2；h1 有縮排 → 降為 h2（left=0 才是主節）"""
+    if t == "p":
+        if left >= 1200:
+            return "li2"
+        if left >= 660:
+            return "li"
+        return "p"
+    if t == "h1" and left > 0:
+        return "h2"
+    return t
+
 # ── 圖片存檔 ──────────────────────────────────────────────────
 IMG_MAX_W = 900   # 最大寬度（px），超過則縮小
 
@@ -223,20 +235,12 @@ def extract_docx(docx_path: Path, session_id: int) -> list[dict]:
                 if nid_el is not None:
                     left = num_indent.get(nid_el.get(qn("w:val")), 0)
         t = classify(text, bold=bold)
-        # 非標題段落：依縮排深度細分
-        if t == "p":
-            if left >= 1200:
-                t = "li2"
-            elif left >= 660:
-                t = "li"
         raw.append({"t": t, "v": text, "left": left})
 
-    # ── 後處理：依自身縮排決定 h1/h2（left=0 → h1，left>0 → h2）──
+    # ── 後處理：依自身縮排收斂型別（p→li/li2；h1 left>0 → h2）──
     items = []
     for item in raw:
-        t = item["t"]
-        if t == "h1" and item["left"] > 0:
-            t = "h2"
+        t = resolve_type(item["t"], item["left"])
         new_item = {"t": t, "v": item["v"]}
         if "w" in item:
             new_item["w"], new_item["h"] = item["w"], item["h"]
