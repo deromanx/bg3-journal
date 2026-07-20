@@ -1513,8 +1513,8 @@ function _droBuildWheel(pool) {
   wheel.style.background = `conic-gradient(from 0deg, ${stops})`;
 
   // 找出每個角色連續弧段的中點角度，各放一個頭像標記
+  // 半徑取自 .dro-wheel-wrap 的 --dro-mark-r CSS 變數，行動版縮小輪盤時自動等比縮放
   if (marks) {
-    const RADIUS = 104; // 貼齊輪盤外緣內側（輪盤半徑 136，扣頭像自身尺寸留邊）
     let i = 0;
     const markHtml = [];
     while (i < pool.length) {
@@ -1523,7 +1523,7 @@ function _droBuildWheel(pool) {
       while (j < pool.length && pool[j].char === char) j++;
       const midAngle = ((i + j) / 2) * seg;
       markHtml.push(`
-        <div class="dro-wheel-mark" style="transform:rotate(${midAngle.toFixed(2)}deg) translateY(-${RADIUS}px)">
+        <div class="dro-wheel-mark" style="transform:rotate(${midAngle.toFixed(2)}deg) translateY(calc(-1 * var(--dro-mark-r)))">
           <img src="data/images/avatars/${esc(char)}.webp" alt="" loading="lazy" onerror="this.style.display='none'">
         </div>`);
       i = j;
@@ -1553,13 +1553,24 @@ function _droInit() {
   el.className = 'dro-overlay';
   el.innerHTML = `
     <div class="dro-dialog">
+      <span class="dro-corner dro-corner-tl">✦</span>
+      <span class="dro-corner dro-corner-tr">✦</span>
+      <span class="dro-corner dro-corner-bl">✦</span>
+      <span class="dro-corner dro-corner-br">✦</span>
       <button class="dro-close" onclick="closeDeathRoulette()" title="關閉 (Esc)">✕</button>
-      <div class="dro-title">🎰 死 法 輪 盤</div>
+      <div class="dro-title-row">
+        <span class="dro-title-line"></span>
+        <div class="dro-title">🎰 死 法 輪 盤</div>
+        <span class="dro-title-line"></span>
+      </div>
       <div class="dro-char-picker">${picker}</div>
       <div class="dro-wheel-wrap">
+        <div class="dro-wheel-rays"></div>
         <div class="dro-wheel-glow"></div>
-        <div class="dro-wheel-pegs">${Array.from({ length: 16 }, (_, i) =>
-          `<span class="dro-peg" style="transform:rotate(${i * 22.5}deg) translateY(-142px)"></span>`).join('')}</div>
+        <div class="dro-wheel-pegs">${Array.from({ length: 20 }, (_, i) =>
+          `<span class="dro-peg" style="transform:rotate(${i * 18}deg) translateY(calc(-1 * var(--dro-peg-r)))"></span>`).join('')}</div>
+        <div class="dro-sparks" id="dro-sparks">${Array.from({ length: 14 }, (_, i) =>
+          `<div class="dro-spark-arm" style="transform:rotate(${i * (360 / 14)}deg)"><span class="dro-spark" style="animation-delay:${(i % 3) * 0.03}s"></span></div>`).join('')}</div>
         <div class="dro-wheel-pointer">
           <div class="dro-pointer-blade"></div>
         </div>
@@ -1621,6 +1632,7 @@ function spinDeathRoulette() {
   const wrap   = document.getElementById('dro-wheel')?.closest('.dro-wheel-wrap');
   const dialog = document.querySelector('.dro-dialog');
   const burst  = document.getElementById('dro-wheel-burst');
+  const sparks = document.getElementById('dro-sparks');
 
   const targetIdx = Math.floor(Math.random() * pool.length);
   const seg = 360 / pool.length;
@@ -1637,11 +1649,12 @@ function spinDeathRoulette() {
     const r = pool[targetIdx];
     const color = DRO_CHAR_COLORS[r.char] || '#8a7d63';
     result.innerHTML = `
-      <div class="dro-result-avatar av-${esc(r.char)}" style="border-color:${color};box-shadow:0 0 16px ${color}66">
-        <img width="56" height="56" src="data/images/avatars/${esc(r.char)}.webp" alt=""
+      <div class="dro-result-avatar av-${esc(r.char)}" style="border-color:${color};box-shadow:0 0 24px ${color}88, 0 0 60px ${color}44">
+        <img width="72" height="72" src="data/images/avatars/${esc(r.char)}.webp" alt=""
              loading="lazy" onerror="this.style.display='none'">
       </div>
       <div class="dro-result-text">${esc(r.char)}：${esc(r.note)}</div>`;
+    result.style.boxShadow = `0 0 30px ${color}33, inset 0 0 20px ${color}1a`;
     result.classList.remove('dro-result-pop'); void result.offsetWidth; result.classList.add('dro-result-pop');
     wheel.classList.remove('dro-blurring');
     _droSpinning = false;
@@ -1650,6 +1663,10 @@ function spinDeathRoulette() {
     if (!reduceMotion) {
       wrap?.classList.remove('dro-landed'); void wrap?.offsetWidth; wrap?.classList.add('dro-landed');
       if (burst) { burst.style.background = `radial-gradient(circle, ${color}99 0%, transparent 70%)`; burst.classList.remove('dro-burst-play'); void burst.offsetWidth; burst.classList.add('dro-burst-play'); }
+      if (sparks) {
+        sparks.style.setProperty('--spark-color', color);
+        sparks.classList.remove('dro-sparks-play'); void sparks.offsetWidth; sparks.classList.add('dro-sparks-play');
+      }
       dialog?.classList.remove('dro-shake'); void dialog?.offsetWidth; dialog?.classList.add('dro-shake');
     }
   };

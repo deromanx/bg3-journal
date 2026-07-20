@@ -1779,32 +1779,55 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 /* 暗色主題（呼應靠北語錄的 rm-dialog），搭配輪盤更有「賭局」戲劇感 */
 .dro-dialog {
   position: relative;
-  width: min(420px, 100%);
-  background: radial-gradient(ellipse at 50% -10%, rgba(217,176,122,0.1), transparent 60%), #0f0c09;
+  width: min(600px, 100%);
+  max-height: 92vh;
+  overflow-y: auto;
+  background: radial-gradient(ellipse at 50% -10%, rgba(217,176,122,0.13), transparent 60%), #0f0c09;
   border: 1px solid var(--gold-border);
   border-top: 3px solid var(--crimson);
-  border-radius: 10px;
-  padding: 32px 28px 26px;
+  border-radius: 12px;
+  padding: 40px 36px 32px;
   text-align: center;
-  box-shadow: 0 24px 80px rgba(0,0,0,0.75), 0 0 50px rgba(217,176,122,0.07);
+  box-shadow: 0 30px 100px rgba(0,0,0,0.8), 0 0 70px rgba(217,176,122,0.09);
   transform: scale(0.94) translateY(10px);
   transition: transform 0.25s ease;
 }
 .dro-overlay.dro-open .dro-dialog { transform: scale(1) translateY(0); }
 
+/* 角落裝飾（呼應站內 content-frame 的四角花紋，換用金色貼合暗色主題） */
+.dro-corner {
+  position: absolute;
+  font-size: 15px;
+  color: rgba(var(--gold-rgb),0.45);
+  line-height: 1;
+  pointer-events: none;
+}
+.dro-corner-tl { top: 12px;    left: 14px; }
+.dro-corner-tr { top: 12px;    right: 14px; }
+.dro-corner-bl { bottom: 12px; left: 14px; }
+.dro-corner-br { bottom: 12px; right: 14px; }
+
 .dro-close {
-  position: absolute; top: 10px; right: 12px;
-  font-size: 18px; color: var(--gold-dim); opacity: 0.7;
+  position: absolute; top: 12px; right: 40px;
+  font-size: 19px; color: var(--gold-dim); opacity: 0.7;
   padding: 4px 8px; z-index: 2;
 }
 .dro-close:hover { opacity: 1; }
 
+.dro-title-row {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 26px;
+}
+.dro-title-line {
+  flex: 1; height: 1px;
+  background: linear-gradient(to right, transparent, var(--gold-border), transparent);
+}
 .dro-title {
   font-family: 'Cinzel', serif;
-  font-size: 16px; letter-spacing: 4px;
+  font-size: 19px; letter-spacing: 5px;
   color: var(--gold-bright);
-  text-shadow: 0 0 18px rgba(247,212,142,0.35);
-  margin-bottom: 20px;
+  text-shadow: 0 0 20px rgba(247,212,142,0.4);
+  white-space: nowrap;
 }
 
 .dro-char-picker {
@@ -1828,9 +1851,36 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 /* ── 輪盤本體：conic-gradient 扇形由 JS 依 pool 動態產生 ─────── */
 .dro-wheel-wrap {
   position: relative;
-  width: 272px; height: 272px;
-  margin: 8px auto 22px;
+  width: 340px; height: 340px;
+  margin: 10px auto 26px;
+  /* 頭像標記／金屬釘的半徑，用 CSS 變數讓行動版縮小輪盤時同步等比縮放 */
+  --dro-mark-r: 130px;
+  --dro-peg-r: 176px;
 }
+
+/* 環形光束：緩慢持續旋轉的背景光芒，營造祭壇/儀式感 */
+.dro-wheel-rays {
+  position: absolute; inset: -34px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    rgba(217,176,122,0.16) 0deg 8deg, transparent 8deg 30deg,
+    rgba(217,176,122,0.16) 30deg 38deg, transparent 38deg 60deg,
+    rgba(217,176,122,0.16) 60deg 68deg, transparent 68deg 90deg,
+    rgba(217,176,122,0.16) 90deg 98deg, transparent 98deg 120deg,
+    rgba(217,176,122,0.16) 120deg 128deg, transparent 128deg 150deg,
+    rgba(217,176,122,0.16) 150deg 158deg, transparent 158deg 180deg,
+    rgba(217,176,122,0.16) 180deg 188deg, transparent 188deg 210deg,
+    rgba(217,176,122,0.16) 210deg 218deg, transparent 218deg 240deg,
+    rgba(217,176,122,0.16) 240deg 248deg, transparent 248deg 270deg,
+    rgba(217,176,122,0.16) 270deg 278deg, transparent 278deg 300deg,
+    rgba(217,176,122,0.16) 300deg 308deg, transparent 308deg 330deg,
+    rgba(217,176,122,0.16) 330deg 338deg, transparent 338deg 360deg
+  );
+  animation: dro-rays-spin 18s linear infinite;
+  pointer-events: none;
+}
+@keyframes dro-rays-spin { to { transform: rotate(360deg); } }
 
 /* 底層呼吸光暈，讓輪盤在靜止時也有生命感 */
 .dro-wheel-glow {
@@ -1852,10 +1902,10 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .dro-peg {
   position: absolute; top: 50%; left: 50%;
-  width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px;
+  width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold-deep) 70%);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
 }
 
 .dro-wheel-pointer {
@@ -1939,6 +1989,32 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   100% { filter: brightness(1); }
 }
 
+/* 命中瞬間的金色火花：固定 14 支放射臂，命中時一起噴發 */
+.dro-sparks {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  --spark-color: var(--gold-bright);
+}
+.dro-spark-arm {
+  position: absolute; top: 50%; left: 50%;
+  width: 0; height: 0;
+}
+.dro-spark {
+  position: absolute;
+  width: 3px; height: 18px; margin-left: -1.5px;
+  background: linear-gradient(var(--spark-color), transparent);
+  border-radius: 2px;
+  opacity: 0;
+  transform: translateY(-20px);
+}
+.dro-sparks.dro-sparks-play .dro-spark {
+  animation: dro-spark-fly 0.65s ease-out;
+}
+@keyframes dro-spark-fly {
+  0%   { transform: translateY(-20px);  opacity: 1; }
+  100% { transform: translateY(-150px); opacity: 0; }
+}
+
 .dro-dialog.dro-shake { animation: dro-shake 0.4s ease; }
 @keyframes dro-shake {
   0%, 100% { transform: translate(0, 0); }
@@ -1949,14 +2025,15 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .dro-result {
-  min-height: 76px;
+  min-height: 96px;
   display: flex; align-items: center; justify-content: center;
-  gap: 12px; padding: 14px 10px;
+  gap: 16px; padding: 18px 16px;
   background: rgba(var(--gold-rgb),0.05);
   border: 1px dashed var(--gold-border);
-  border-radius: 8px;
-  margin-bottom: 20px;
+  border-radius: 10px;
+  margin-bottom: 24px;
   text-align: left;
+  transition: box-shadow 0.3s ease;
 }
 .dro-result.dro-result-pop { animation: dro-result-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
 @keyframes dro-result-pop {
@@ -1965,22 +2042,22 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .dro-result-avatar {
   flex-shrink: 0;
-  width: 56px; height: 56px; border-radius: 50%; overflow: hidden;
+  width: 72px; height: 72px; border-radius: 50%; overflow: hidden;
   border: 2px solid var(--gold-deep);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .dro-result-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .dro-result-text {
-  font-size: 16px; color: var(--gold); line-height: 1.6;
-  max-width: 300px;
+  font-size: 18px; color: var(--gold); line-height: 1.65;
+  max-width: 380px;
 }
-.dro-result-hint { font-size: 12px; color: var(--gold-dim); opacity: 0.7; font-style: italic; }
+.dro-result-hint { font-size: 13px; color: var(--gold-dim); opacity: 0.7; font-style: italic; }
 
-.dro-actions { display: flex; gap: 10px; justify-content: center; }
+.dro-actions { display: flex; gap: 12px; justify-content: center; }
 .dro-btn {
   font-family: 'Cinzel', serif;
-  font-size: 13px; letter-spacing: 1.5px;
-  padding: 9px 18px; border-radius: 6px;
+  font-size: 14px; letter-spacing: 1.5px;
+  padding: 11px 22px; border-radius: 6px;
   color: var(--bg-dark);
   background: var(--gold-bright);
   transition: background var(--ease), transform var(--ease), box-shadow var(--ease);
@@ -1994,18 +2071,24 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .dro-btn.dro-btn-ghost:hover { background: rgba(var(--gold-rgb),0.08); box-shadow: none; }
 
 @media (max-width: 520px) {
-  .dro-wheel-wrap { width: 220px; height: 220px; }
+  .dro-wheel-wrap {
+    width: 220px; height: 220px;
+    --dro-mark-r: 84px;
+  }
   .dro-peg { display: none; }
+  .dro-wheel-mark { width: 26px; height: 26px; margin: -13px 0 0 -13px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .dro-wheel { transition: none; }
   .dro-wheel.dro-blurring { filter: none; }
   .dro-wheel-glow { animation: none; opacity: 0.7; }
+  .dro-wheel-rays { animation: none; }
   .dro-wheel-wrap.dro-landed .dro-wheel { animation: none; }
   .dro-dialog.dro-shake { animation: none; }
   .dro-result.dro-result-pop { animation: none; }
   .dro-wheel-burst.dro-burst-play { animation: none; }
+  .dro-sparks.dro-sparks-play .dro-spark { animation: none; }
 }
 
 /* ── 宿敵對戰海報（矩陣格點擊觸發） ────────────────────────── */
