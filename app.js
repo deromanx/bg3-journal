@@ -119,6 +119,13 @@ function _setHash(h) {
 
 const ALL_VIEWS = ['journal', 'characters', 'stats', 'milestones', 'story'];
 
+// ── 分頁標題（隨章節/視圖更新，利於多分頁辨識與書籤） ──────
+const BASE_TITLE = '前進柏德之門 — 冒險日誌';
+const VIEW_TITLES = { characters: '冒險隊伍', stats: '統計', milestones: '里程碑', story: '瓦羅的故事集' };
+function updateTitle(prefix) {
+  document.title = prefix ? `${prefix}｜前進柏德之門` : BASE_TITLE;
+}
+
 function hideAllViews() {
   VIEW_IDS.forEach(id => document.getElementById(id)?.classList.add('hidden'));
 }
@@ -127,6 +134,7 @@ function goHome() {
   currentId = null;
   currentView = 'journal';
   _setHash('#home');
+  updateTitle(null);
   document.querySelectorAll('.stab').forEach(b => b.classList.toggle('active', b.dataset.view === 'journal'));
   hideAllViews();
   const _wEl = document.getElementById('welcome');
@@ -196,6 +204,9 @@ function showView(view) {
   }
   if (view === 'journal')    { _setHash(currentId ? '#s' + currentId : '#home'); }
 
+  if (VIEW_TITLES[view]) updateTitle(VIEW_TITLES[view]);
+  else if (view === 'journal' && currentId === null) updateTitle(null);
+
   // Force fade-in animation restart on each view switch
   const _targetId = view === 'journal'
     ? (showWelcome ? 'welcome' : 'session-view')
@@ -205,6 +216,27 @@ function showView(view) {
     _targetEl.style.animation = 'none';
     void _targetEl.offsetHeight;
     _targetEl.style.animation = '';
+  }
+}
+
+// ── 分享本集（複製 s/{id}.html stub，讓 LINE/FB 抓到每集專屬預覽卡） ──
+function shareSession() {
+  if (currentId === null) return;
+  const session = sessions.find(s => s.id === currentId);
+  const url = `${location.origin}${location.pathname.replace(/[^/]*$/, '')}s/${currentId}.html`;
+  if (navigator.share) {
+    navigator.share({ title: `${session.chapter}・${session.title}`, url }).catch(() => {});
+    return;
+  }
+  const btn = document.getElementById('share-btn');
+  const done = () => {
+    btn.textContent = '✓ 已複製連結';
+    setTimeout(() => { btn.textContent = '🔗 分享本集'; }, 1600);
+  };
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(url).then(done).catch(() => prompt('複製此連結：', url));
+  } else {
+    prompt('複製此連結：', url);
   }
 }
 
@@ -244,6 +276,7 @@ function loadSession(id) {
   if (!session) return;
   currentId = id;
   _setHash('#s' + id);
+  updateTitle(`${session.chapter}・${session.title}`);
   if (!session.placeholder) markSessionRead(id);
 
   // 切回日誌視圖
@@ -272,6 +305,7 @@ function loadSession(id) {
   document.getElementById('header-chapter').textContent = session.chapter;
   document.getElementById('header-title').textContent   = session.title;
   document.getElementById('header-date').textContent    = session.dateDisplay ?? '';
+  document.getElementById('share-btn')?.classList.toggle('hidden', !!session.placeholder);
 
   renderAwardCard(id);
 
@@ -340,7 +374,7 @@ function extractChar(str) {
 
 function awAvatar(char) {
   if (!char) return '';
-  return `<span class="aw-av av-${esc(char)}"><img src="data/images/avatars/${esc(char)}.webp" alt="${esc(char)}" loading="lazy" decoding="async" onerror="this.style.display='none'"></span>`;
+  return `<span class="aw-av av-${esc(char)}"><img width="64" height="64" src="data/images/avatars/${esc(char)}.webp" alt="${esc(char)}" loading="lazy" decoding="async" onerror="this.style.display='none'"></span>`;
 }
 
 function renderAwardCard(sessionId) {
@@ -604,7 +638,7 @@ function renderDeathTimeline(chars) {
     }).join('');
     return `<div class="swim-lane">
         <div class="swim-name">
-          <span class="swim-av av-${esc(r.char)}"><img src="data/images/avatars/${esc(r.char)}.webp" alt="" loading="lazy" onerror="this.style.display='none'"></span>
+          <span class="swim-av av-${esc(r.char)}"><img width="64" height="64" src="data/images/avatars/${esc(r.char)}.webp" alt="" loading="lazy" onerror="this.style.display='none'"></span>
           <span class="swim-nm">${esc(r.char)}</span>
           <span class="swim-badge" title="累計陣亡">${r.deaths}</span>
         </div>
@@ -673,7 +707,7 @@ function renderStats() {
     return `
       <div class="death-card${intensity}" data-tip="${esc(deathTip)}">
         <div class="dc-avatar av-${esc(c.char)}">
-          <img src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+          <img width="64" height="64" src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
         </div>
         <div class="dc-name-wrap">
           <span class="dc-char">${esc(c.char)}</span>
@@ -711,7 +745,7 @@ function renderStats() {
     return `
       <div class="duel-row" data-tip="${esc(duelTip)}">
         <div class="dr-av av-${esc(c.char)}">
-          <img src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+          <img width="64" height="64" src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
         </div>
         <div class="dr-rank">${medal || (rank + 1)}</div>
         <div class="dr-name">
@@ -750,7 +784,7 @@ function renderStats() {
   const mmHeaders = chars.map(c => `
     <th class="mm-hdr">
       <div class="mm-hav av-${esc(c.char)}">
-        <img src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+        <img width="64" height="64" src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
       </div>
       <span class="mm-hchar">${esc(c.char)}</span>
     </th>`).join('');
@@ -771,7 +805,7 @@ function renderStats() {
     return `<tr>
       <th class="mm-row-hdr">
         <div class="mm-rav av-${esc(rowC.char)}">
-          <img src="data/images/avatars/${esc(rowC.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+          <img width="64" height="64" src="data/images/avatars/${esc(rowC.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
         </div>
         <div class="mm-rnames">
           <span class="mm-rchar">${esc(rowC.char)}</span>
@@ -807,7 +841,7 @@ function renderStats() {
     return `
       <div class="duel-row" data-tip="${esc(tip)}">
         <div class="dr-av av-${esc(c.char)}">
-          <img src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+          <img width="64" height="64" src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
         </div>
         <div class="dr-rank">${medal || (rank + 1)}</div>
         <div class="dr-name">
@@ -1009,7 +1043,7 @@ function renderFriendlyFire() {
     return `
       <div class="ff-mini-row">
         <div class="ff-mini-av av-${esc(char)}">
-          <img src="data/images/avatars/${esc(char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+          <img width="64" height="64" src="data/images/avatars/${esc(char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
         </div>
         <div class="ff-mini-info">
           <div class="ff-mini-name">${esc(char)}</div>
@@ -1034,7 +1068,7 @@ function renderFriendlyFire() {
       <div class="ff-actors">
         <div class="ff-actor">
           <div class="ff-av av-${esc(inc.perp)}">
-            <img src="data/images/avatars/${esc(inc.perp)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+            <img width="64" height="64" src="data/images/avatars/${esc(inc.perp)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
           </div>
           <span class="ff-name ff-perp">${esc(inc.perp)}</span>
           <span class="ff-role">兇手</span>
@@ -1042,7 +1076,7 @@ function renderFriendlyFire() {
         <div class="ff-arrow">→</div>
         <div class="ff-actor">
           <div class="ff-av av-${esc(inc.victim)}">
-            <img src="data/images/avatars/${esc(inc.victim)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+            <img width="64" height="64" src="data/images/avatars/${esc(inc.victim)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
           </div>
           <span class="ff-name ff-victim">${esc(inc.victim)}</span>
           <span class="ff-role">受害者</span>
@@ -1162,8 +1196,8 @@ function renderMatchupSplits(matchupData) {
     const d = m.draws || 0;
     const decisive = wa + wb;
     const pctA = decisive ? (wa / decisive * 100).toFixed(1) : 50;
-    const avA = `<div class="msp-av av-${esc(ca)}"><img src="data/images/avatars/${esc(ca)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'"></div>`;
-    const avB = `<div class="msp-av av-${esc(cb)}"><img src="data/images/avatars/${esc(cb)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'"></div>`;
+    const avA = `<div class="msp-av av-${esc(ca)}"><img width="64" height="64" src="data/images/avatars/${esc(ca)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'"></div>`;
+    const avB = `<div class="msp-av av-${esc(cb)}"><img width="64" height="64" src="data/images/avatars/${esc(cb)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'"></div>`;
     const pctB = (100 - pctA).toFixed(1);
     return `
       <div class="msp-row">
@@ -1385,7 +1419,7 @@ function openQuoteModal(kind, q) {
   const charBlock = (chars, label) => {
     const avatars = chars.map(c => `
       <div class="${pfx}-av av-${esc(c)}">
-        <img src="data/images/avatars/${esc(c)}.webp" alt="${esc(c)}"
+        <img width="64" height="64" src="data/images/avatars/${esc(c)}.webp" alt="${esc(c)}"
              loading="lazy" decoding="async" onerror="this.style.display='none'">
       </div>`).join('');
     const names = chars.map(c => `<span>${esc(c)}</span>`).join('、');
@@ -1472,7 +1506,7 @@ function renderQuoteCard(q, kind) {
   const { arrow } = QUOTE_MODAL[kind];
   const isPraise = kind === 'praise';
   const avatar = char => `<div class="rq-av av-${esc(char)}" data-tip="${esc(char)}">
-          <img src="data/images/avatars/${esc(char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+          <img width="64" height="64" src="data/images/avatars/${esc(char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
         </div>`;
   const froms = asArr(q.from);
   const tos   = asArr(q.to);
@@ -1507,7 +1541,7 @@ function renderRoastQuotes() {
             onclick="filterRoastQuotes('${esc(c.char)}')"
             data-tip="${esc(c.char)}">
       <div class="rq-fav av-${esc(c.char)}">
-        <img src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+        <img width="64" height="64" src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
       </div>
       <span class="rq-fname">${esc(c.char)}</span>
     </button>`).join('');
@@ -1604,7 +1638,7 @@ function renderGrowthGrid(chars) {
       }).join('');
       return `<div class="swim-lane">
           <div class="swim-name">
-            <span class="swim-av av-${esc(char)}"><img src="data/images/avatars/${esc(char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'"></span>
+            <span class="swim-av av-${esc(char)}"><img width="64" height="64" src="data/images/avatars/${esc(char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'"></span>
             <span class="swim-nm">${esc(char)}</span>
             <span class="swim-badge" title="累計">${total}</span>
           </div>
@@ -1786,7 +1820,7 @@ function renderPraiseSection() {
     return `
       <div class="rb-row${crown}" data-tip="${esc(tip)}">
         <div class="rb-avatar av-${name}">
-          <img src="data/images/avatars/${esc(name)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+          <img width="64" height="64" src="data/images/avatars/${esc(name)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
         </div>
         <div class="rb-info">
           <div class="rb-name">${esc(name)}<span class="rb-player">${esc(c?.player || '')}</span></div>
@@ -1809,7 +1843,7 @@ function renderPraiseSection() {
     return `
       <div class="ib-row${crown}" data-tip="${esc(tip)}">
         <div class="ib-avatar av-${name}">
-          <img src="data/images/avatars/${esc(name)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+          <img width="64" height="64" src="data/images/avatars/${esc(name)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
         </div>
         <div class="ib-info">
           <div class="ib-name">${esc(name)}<span class="ib-player">${esc(c?.player || '')}</span></div>
@@ -2145,7 +2179,7 @@ function renderPraiseQuotes() {
             onclick="filterPraiseQuotes('${esc(c.char)}')"
             data-tip="${esc(c.char)}">
       <div class="rq-fav av-${esc(c.char)}">
-        <img src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+        <img width="64" height="64" src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
       </div>
       <span class="rq-fname">${esc(c.char)}</span>
     </button>`).join('');
@@ -2212,7 +2246,7 @@ function renderRoastSection() {
     return `
       <div class="rb-row${crown}" data-tip="${esc(rbTip)}">
         <div class="rb-avatar av-${name}">
-          <img src="data/images/avatars/${esc(name)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+          <img width="64" height="64" src="data/images/avatars/${esc(name)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
         </div>
         <div class="rb-info">
           <div class="rb-name">${esc(name)}<span class="rb-player">${esc(c?.player || '')}</span></div>
@@ -2237,7 +2271,7 @@ function renderRoastSection() {
     return `
       <div class="ib-row${crown}" data-tip="${esc(ibTip)}">
         <div class="ib-avatar av-${name}">
-          <img src="data/images/avatars/${esc(name)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+          <img width="64" height="64" src="data/images/avatars/${esc(name)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
         </div>
         <div class="ib-info">
           <div class="ib-name">${esc(name)}<span class="ib-player">${esc(c?.player || '')}</span></div>
@@ -2558,7 +2592,7 @@ function renderCharacters(charName) {
             onclick="renderCharacters('${esc(c.char)}')"
             data-tip="${esc(c.player)} · ${esc(c.class)}">
       <div class="cp-pav av-${esc(c.char)}">
-        <img src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+        <img width="64" height="64" src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
       </div>
       <span class="cp-pname">${esc(c.char)}</span>
     </button>`).join('');
@@ -2601,7 +2635,7 @@ function renderCharacters(charName) {
     <div class="cp-detail">
       <div class="cp-hero">
         <div class="cp-hero-av av-${esc(c.char)}">
-          <img src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+          <img width="64" height="64" src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
         </div>
         <div class="cp-hero-info">
           <div class="cp-char-name">${esc(c.char)}</div>
@@ -2678,7 +2712,7 @@ function resolveChar(name) {
 function makeQuoteWrap(speaker, content, attr) {
   return `<div class="quote-wrap">
     <div class="char-avatar av-${esc(speaker)}" aria-label="${esc(speaker)}" data-tip="${esc(speaker)}">
-      <img src="data/images/avatars/${speaker}.webp" alt="" loading="lazy">
+      <img width="64" height="64" src="data/images/avatars/${speaker}.webp" alt="" loading="lazy">
     </div>
     <blockquote class="char-quote">
       ${renderInline('「' + content + '」')}

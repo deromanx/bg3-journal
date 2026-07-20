@@ -1,4 +1,4 @@
-extract.py
+local_config.py
 assets/
 .playwright-mcp/
 __pycache__/

@@ -7,7 +7,7 @@
 用法：python3 extract.py
 """
 
-import os, re, json, io, zipfile
+import os, re, json, io, sys, zipfile
 from pathlib import Path
 from docx import Document
 from docx.oxml.ns import qn
@@ -21,8 +21,16 @@ except ImportError:
     PILLOW = False
 
 # ── 路徑設定 ──────────────────────────────────────────────────
-GOOGLE_DRIVE = Path.home() / "Library/CloudStorage" \
-    / "GoogleDrive-deromanx@gmail.com/My Drive/To Baldur's Gate"
+# 日誌來源目錄（含個人帳號路徑，不進版控）：
+# 環境變數 BG3_DRIVE_DIR 優先，否則讀 gitignored 的 local_config.py
+if os.environ.get("BG3_DRIVE_DIR"):
+    GOOGLE_DRIVE = Path(os.environ["BG3_DRIVE_DIR"])
+else:
+    try:
+        from local_config import GOOGLE_DRIVE
+    except ImportError:
+        sys.exit("錯誤：未設定日誌來源目錄。請設環境變數 BG3_DRIVE_DIR，"
+                 "或建立 local_config.py（參考 local_config.example.py）。")
 BASE_DIR   = Path(__file__).parent
 OUTPUT     = BASE_DIR / "data" / "sessions.json"
 IMAGES_DIR = BASE_DIR / "data" / "images"
