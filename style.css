@@ -1281,6 +1281,23 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   text-shadow: 0 1px 2px rgba(249,238,223,0.8);
 }
 
+/* 標題 + 動作按鈕併排時，邊框線移到列本身，避免只框住標題寬度 */
+.stats-section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid rgba(122,21,21,0.28);
+  padding-bottom: 12px;
+  flex-wrap: wrap;
+}
+.stats-section-title-row > .stats-section-title {
+  margin-bottom: 0;
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
 /* ── 角色出場橫條 ────────────────────────────────────────── */
 .char-row {
   display: flex;
@@ -1729,6 +1746,219 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   grid-template-columns: repeat(5, 1fr);
   gap: 10px;
   margin-bottom: 8px;
+}
+
+/* ── 死法輪盤（觸發鈕 + Modal） ────────────────────────────── */
+.dro-trigger {
+  font-family: 'Cinzel', serif;
+  font-size: 12.5px;
+  letter-spacing: 1px;
+  color: var(--crimson);
+  border: 1px solid rgba(122,21,21,0.35);
+  border-radius: 6px;
+  padding: 7px 14px;
+  background: rgba(122,21,21,0.06);
+  transition: background var(--ease), transform var(--ease);
+  flex-shrink: 0;
+}
+.dro-trigger:hover { background: rgba(122,21,21,0.14); transform: translateY(-1px); }
+.dro-trigger:active { transform: translateY(0); }
+
+.dro-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  display: none;
+  align-items: center; justify-content: center;
+  background: rgba(2,1,0,0.72);
+  backdrop-filter: blur(3px);
+  opacity: 0; transition: opacity 0.25s ease;
+  padding: 20px;
+}
+.dro-overlay.dro-open { display: flex; opacity: 1; }
+.dro-overlay.dro-closing { opacity: 0; }
+
+.dro-dialog {
+  position: relative;
+  width: min(420px, 100%);
+  background: var(--parchment);
+  border: 2px solid var(--gold-deep);
+  border-radius: 10px;
+  padding: 32px 28px 26px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  transform: scale(0.94) translateY(10px);
+  transition: transform 0.25s ease;
+}
+.dro-overlay.dro-open .dro-dialog { transform: scale(1) translateY(0); }
+
+.dro-close {
+  position: absolute; top: 10px; right: 12px;
+  font-size: 18px; color: var(--ink-light); opacity: 0.6;
+  padding: 4px 8px;
+}
+.dro-close:hover { opacity: 1; }
+
+.dro-title {
+  font-family: 'Cinzel', serif;
+  font-size: 15px; letter-spacing: 3px;
+  color: var(--crimson);
+  margin-bottom: 20px;
+}
+
+.dro-char-picker {
+  display: flex; flex-wrap: wrap; justify-content: center;
+  gap: 8px; margin-bottom: 22px;
+}
+.dro-char-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 6px 8px 4px; border-radius: 8px;
+  opacity: 0.55; transition: opacity var(--ease), background var(--ease);
+}
+.dro-char-btn:hover { opacity: 0.85; }
+.dro-char-btn.active { opacity: 1; background: rgba(122,21,21,0.1); }
+.dro-char-av {
+  width: 44px; height: 44px; border-radius: 50%; overflow: hidden;
+  border: 2px solid var(--gold-deep);
+}
+.dro-char-av img { width: 100%; height: 100%; object-fit: cover; }
+.dro-char-name { font-size: 11px; color: var(--ink-mid); }
+
+.dro-reel {
+  min-height: 120px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; padding: 18px 10px;
+  background: rgba(122,21,21,0.05);
+  border: 1px dashed rgba(122,21,21,0.25);
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+.dro-reel-avatar {
+  width: 56px; height: 56px; border-radius: 50%; overflow: hidden;
+  border: 2px solid var(--gold-deep);
+}
+.dro-reel-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.dro-reel-text {
+  font-size: 16px; color: var(--ink); line-height: 1.6;
+  max-width: 320px;
+}
+.dro-reel-hint { font-size: 12px; color: var(--ink-light); opacity: 0.5; font-style: italic; }
+.dro-reel.dro-spinning .dro-reel-text,
+.dro-reel.dro-spinning .dro-reel-avatar { animation: dro-flicker 0.09s steps(1) infinite; }
+@keyframes dro-flicker { 50% { opacity: 0.25; } }
+
+.dro-actions { display: flex; gap: 10px; justify-content: center; }
+.dro-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 13px; letter-spacing: 1.5px;
+  padding: 9px 18px; border-radius: 6px;
+  color: var(--parchment);
+  background: var(--crimson);
+  transition: background var(--ease), transform var(--ease);
+}
+.dro-btn:hover { background: var(--crimson-lt); transform: translateY(-1px); }
+.dro-btn:disabled { opacity: 0.5; pointer-events: none; }
+.dro-btn.dro-btn-ghost {
+  background: transparent; color: var(--ink-mid);
+  border: 1px solid rgba(67,44,24,0.3);
+}
+.dro-btn.dro-btn-ghost:hover { background: rgba(67,44,24,0.06); }
+
+@media (prefers-reduced-motion: reduce) {
+  .dro-reel.dro-spinning .dro-reel-text,
+  .dro-reel.dro-spinning .dro-reel-avatar { animation: none; }
+}
+
+/* ── 宿敵對戰海報（矩陣格點擊觸發） ────────────────────────── */
+.rv-overlay {
+  position: fixed; inset: 0; z-index: 300;
+  display: none;
+  align-items: center; justify-content: center;
+  background: rgba(2,1,0,0.72);
+  backdrop-filter: blur(3px);
+  opacity: 0; transition: opacity 0.25s ease;
+  padding: 20px;
+}
+.rv-overlay.rv-open { display: flex; opacity: 1; }
+.rv-overlay.rv-closing { opacity: 0; }
+
+.rv-dialog {
+  position: relative;
+  width: min(560px, 100%);
+  max-height: 86vh;
+  overflow-y: auto;
+  background: var(--parchment);
+  border: 2px solid var(--gold-deep);
+  border-radius: 10px;
+  padding: 30px 30px 24px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  transform: scale(0.94) translateY(10px);
+  transition: transform 0.25s ease;
+}
+.rv-overlay.rv-open .rv-dialog { transform: scale(1) translateY(0); }
+
+.rv-close {
+  position: absolute; top: 10px; right: 12px;
+  font-size: 18px; color: var(--ink-light); opacity: 0.6;
+  padding: 4px 8px; z-index: 1;
+}
+.rv-close:hover { opacity: 1; }
+
+.rv-title {
+  font-family: 'Cinzel', serif;
+  font-size: 15px; letter-spacing: 4px; text-align: center;
+  color: var(--crimson); margin-bottom: 22px;
+}
+
+.rv-matchup {
+  display: flex; align-items: center; justify-content: center;
+  gap: 18px; margin-bottom: 8px;
+}
+.rv-side { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
+.rv-av {
+  width: 88px; height: 88px; border-radius: 50%; overflow: hidden;
+  border: 2.5px solid var(--gold-deep);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+}
+.rv-av img { width: 100%; height: 100%; object-fit: cover; }
+.rv-char { font-weight: 700; font-size: 17px; color: var(--ink); margin-top: 4px; }
+.rv-player { font-size: 12px; color: var(--ink-light); opacity: 0.7; }
+.rv-score { font-family: 'Cinzel', serif; font-size: 28px; font-weight: 700; color: var(--crimson); margin-top: 4px; }
+
+.rv-vs { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; }
+.rv-vs-text {
+  font-family: 'Cinzel', serif; font-size: 22px; font-weight: 700;
+  color: var(--ink-mid); opacity: 0.7;
+}
+.rv-vs-total { font-size: 11px; color: var(--ink-light); opacity: 0.6; white-space: nowrap; }
+
+.rv-draw { text-align: center; font-size: 13px; color: var(--ink-light); opacity: 0.7; margin-bottom: 12px; }
+
+.rv-hl-list {
+  margin-top: 18px; padding-top: 18px;
+  border-top: 1px solid rgba(67,44,24,0.15);
+  display: flex; flex-direction: column; gap: 12px;
+}
+.rv-hl-entry { font-size: 14px; color: var(--ink); line-height: 1.7; }
+.rv-hl-sid {
+  display: inline-block; font-family: 'Cinzel', serif; font-size: 11px;
+  color: var(--crimson); border: 1px solid rgba(122,21,21,0.3);
+  border-radius: 4px; padding: 1px 6px; margin-right: 8px; vertical-align: middle;
+}
+.rv-hl-empty { font-size: 13px; color: var(--ink-light); opacity: 0.6; font-style: italic; text-align: center; }
+
+.rv-dialog .qm-copy {
+  border: 1px solid rgba(122,21,21,0.35);
+  color: var(--crimson);
+}
+.rv-dialog .qm-copy:not(:disabled):hover {
+  background: var(--crimson);
+  border-color: var(--crimson);
+  color: var(--parchment);
+}
+
+@media (max-width: 520px) {
+  .rv-matchup { gap: 10px; }
+  .rv-av { width: 68px; height: 68px; }
+  .rv-score { font-size: 22px; }
 }
 
 /* ── 死亡時間軸 / 死法圖鑑 ───────────────────────────── */

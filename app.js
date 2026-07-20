@@ -793,12 +793,13 @@ function renderStats() {
     const cells = chars.map(colC => {
       if (rowC.char === colC.char) return `<td class="mm-self"></td>`;
       const rec = mmMap[rowC.char]?.[colC.char];
-      if (!rec) return `<td class="mm-empty" data-tip="${esc(rowC.char)} vs ${esc(colC.char)}&#10;無正式對戰記錄">—</td>`;
+      const rvOnclick = `onclick="openRivalryPoster('${esc(rowC.char)}','${esc(colC.char)}')" style="cursor:pointer"`;
+      if (!rec) return `<td class="mm-empty" data-tip="${esc(rowC.char)} vs ${esc(colC.char)}&#10;無正式對戰記錄&#10;點擊查看宿敵海報" ${rvOnclick}>—</td>`;
       const cls = rec.w > rec.l ? 'mm-win' : rec.l > rec.w ? 'mm-lose' : 'mm-even';
       const decisive = rec.w + rec.l;
       const pct = decisive ? Math.round(rec.w / decisive * 100) : 0;
-      const tip = `${esc(rowC.char)} vs ${esc(colC.char)}&#10;${rec.w}勝 ${rec.l}敗${rec.d ? ` ${rec.d}平` : ''}&#10;勝率 ${pct}%（勝/決定局）`;
-      return `<td class="mm-cell ${cls}" data-tip="${tip}">
+      const tip = `${esc(rowC.char)} vs ${esc(colC.char)}&#10;${rec.w}勝 ${rec.l}敗${rec.d ? ` ${rec.d}平` : ''}&#10;勝率 ${pct}%（勝/決定局）&#10;點擊查看宿敵海報`;
+      return `<td class="mm-cell ${cls}" data-tip="${tip}" ${rvOnclick}>
         <span class="mm-w">${rec.w}</span><span class="mm-sep">/</span><span class="mm-l">${rec.l}</span>${rec.d > 0 ? `<span class="mm-d">${rec.d}平</span>` : ''}
       </td>`;
     }).join('');
@@ -890,7 +891,10 @@ function renderStats() {
     <div class="stat-group" id="stat-death">
       <div class="stat-group-title">☠ 死亡紀錄</div>
       <div class="stats-section">
-        <div class="stats-section-title">各角色死亡次數</div>
+        <div class="stats-section-title-row">
+          <div class="stats-section-title">各角色死亡次數</div>
+          <button class="dro-trigger" onclick="openDeathRoulette()" title="隨機抽一句死法">🎰 死法輪盤</button>
+        </div>
         <div class="death-grid">${deathCards}</div>
       </div>
       ${renderDeathTimeline(chars)}
@@ -1457,6 +1461,348 @@ function closeQuoteModal(kind) {
     if (e.target !== overlay) return;
     overlay.classList.remove(`${pfx}-open`, `${pfx}-closing`);
   }, { once: true });
+}
+
+// ── 死法輪盤 Modal（角色 death_notes 隨機抽一句） ──────────────
+let _droSelectedChar = null; // null = 全員混抽
+const _droEscHandler = e => { if (e.key === 'Escape') closeDeathRoulette(); };
+
+function _droPool(charName) {
+  const chars = charStats.characters || [];
+  const pool = [];
+  chars.forEach(c => {
+    if (charName && c.char !== charName) return;
+    (c.death_notes || []).forEach(note => pool.push({ char: c.char, note }));
+  });
+  return pool;
+}
+
+function _droInit() {
+  if (document.getElementById('dro-overlay')) return;
+  const chars = charStats.characters || [];
+  const picker = [`
+    <button class="dro-char-btn active" data-char="" onclick="droPick(null)">
+      <div class="dro-char-av" style="display:flex;align-items:center;justify-content:center;background:var(--gold-faint);font-size:18px">🎲</div>
+      <span class="dro-char-name">全員</span>
+    </button>`]
+    .concat(chars.map(c => `
+      <button class="dro-char-btn" data-char="${esc(c.char)}" onclick="droPick('${esc(c.char)}')">
+        <div class="dro-char-av">
+          <img src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" onerror="this.style.display='none'">
+        </div>
+        <span class="dro-char-name">${esc(c.char)}</span>
+      </button>`)).join('');
+
+  const el = document.createElement('div');
+  el.id = 'dro-overlay';
+  el.className = 'dro-overlay';
+  el.innerHTML = `
+    <div class="dro-dialog">
+      <button class="dro-close" onclick="closeDeathRoulette()" title="關閉 (Esc)">✕</button>
+      <div class="dro-title">🎰 死 法 輪 盤</div>
+      <div class="dro-char-picker">${picker}</div>
+      <div class="dro-reel" id="dro-reel">
+        <div class="dro-reel-hint">選好對象後拉一次拉桿</div>
+      </div>
+      <div class="dro-actions">
+        <button class="dro-btn" id="dro-spin-btn" onclick="spinDeathRoulette()">🎲 抽一次</button>
+        <button class="dro-btn dro-btn-ghost" onclick="closeDeathRoulette()">關閉</button>
+      </div>
+    </div>`;
+  el.addEventListener('click', e => { if (e.target === el) closeDeathRoulette(); });
+  document.body.appendChild(el);
+}
+
+function openDeathRoulette() {
+  _droInit();
+  _droSelectedChar = null;
+  document.querySelectorAll('.dro-char-btn').forEach(b => b.classList.toggle('active', !b.dataset.char));
+  document.getElementById('dro-reel').innerHTML = '<div class="dro-reel-hint">選好對象後拉一次拉桿</div>';
+  document.getElementById('dro-overlay').classList.add('dro-open');
+  document.addEventListener('keydown', _droEscHandler);
+}
+
+function closeDeathRoulette() {
+  const overlay = document.getElementById('dro-overlay');
+  if (!overlay) return;
+  document.removeEventListener('keydown', _droEscHandler);
+  overlay.classList.add('dro-closing');
+  overlay.addEventListener('transitionend', e => {
+    if (e.target !== overlay) return;
+    overlay.classList.remove('dro-open', 'dro-closing');
+  }, { once: true });
+}
+
+function droPick(charName) {
+  _droSelectedChar = charName;
+  document.querySelectorAll('.dro-char-btn').forEach(b => {
+    b.classList.toggle('active', (b.dataset.char || null) === (charName || null));
+  });
+}
+
+function spinDeathRoulette() {
+  const pool = _droPool(_droSelectedChar);
+  const reel = document.getElementById('dro-reel');
+  const btn  = document.getElementById('dro-spin-btn');
+  if (!pool.length) {
+    reel.innerHTML = '<div class="dro-reel-hint">這個角色還沒死過，暫時抽不出來 ✦</div>';
+    return;
+  }
+  btn.disabled = true;
+  reel.classList.add('dro-spinning');
+  reel.innerHTML = `
+    <div class="dro-reel-avatar"><img alt="" onerror="this.style.display='none'"></div>
+    <div class="dro-reel-text"></div>`;
+  const avImg  = reel.querySelector('.dro-reel-avatar img');
+  const textEl = reel.querySelector('.dro-reel-text');
+
+  let ticks = 0;
+  const maxTicks = 14 + Math.floor(Math.random() * 6);
+  const timer = setInterval(() => {
+    const r = pool[Math.floor(Math.random() * pool.length)];
+    avImg.src = `data/images/avatars/${r.char}.webp`;
+    textEl.textContent = `${r.char}：${r.note}`;
+    ticks++;
+    if (ticks >= maxTicks) {
+      clearInterval(timer);
+      reel.classList.remove('dro-spinning');
+      btn.disabled = false;
+    }
+  }, 70);
+}
+
+// ── 宿敵對戰海報 Modal ────────────────────────────────────────
+let _rvCurrent = null; // { charA, charB, rec, highlights }
+const _rvEscHandler = e => { if (e.key === 'Escape') closeRivalryPoster(); };
+
+function getMatchupRecord(charA, charB) {
+  const m = (charStats.matchups || []).find(mm =>
+    (mm.chars[0] === charA && mm.chars[1] === charB) ||
+    (mm.chars[0] === charB && mm.chars[1] === charA));
+  if (!m) return { w: 0, l: 0, d: 0 };
+  const [ca] = m.chars;
+  const [wa, wb] = m.wins;
+  const d = m.draws || 0;
+  return ca === charA ? { w: wa, l: wb, d } : { w: wb, l: wa, d };
+}
+
+function getRivalryHighlights(charA, charB) {
+  const chars = charStats.characters || [];
+  const ca = chars.find(c => c.char === charA);
+  const cb = chars.find(c => c.char === charB);
+  const pool = [...(ca?.duels?.highlights || []), ...(cb?.duels?.highlights || [])];
+  const seen = new Set();
+  const matched = [];
+  for (const h of pool) {
+    if (!h.text || !h.text.includes(charA) || !h.text.includes(charB)) continue;
+    const key = h.session_id + '|' + h.text;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    matched.push(h);
+  }
+  return matched.sort((a, b) => b.session_id - a.session_id);
+}
+
+function _rvInit() {
+  if (document.getElementById('rv-overlay')) return;
+  const el = document.createElement('div');
+  el.id = 'rv-overlay';
+  el.className = 'rv-overlay';
+  el.innerHTML = `
+    <div class="rv-dialog">
+      <button class="rv-close" onclick="closeRivalryPoster()" title="關閉 (Esc)">✕</button>
+      <div class="rv-poster" id="rv-poster"></div>
+      <div class="qm-actions">
+        <button class="qm-copy" onclick="copyRivalryImage()" title="複製成圖片，方便分享">📋 複製圖片</button>
+      </div>
+    </div>`;
+  el.addEventListener('click', e => { if (e.target === el) closeRivalryPoster(); });
+  document.body.appendChild(el);
+}
+
+function openRivalryPoster(charA, charB) {
+  const chars = charStats.characters || [];
+  const ca = chars.find(c => c.char === charA);
+  const cb = chars.find(c => c.char === charB);
+  if (!ca || !cb) return;
+  _rvInit();
+  const rec = getMatchupRecord(charA, charB);
+  const highlights = getRivalryHighlights(charA, charB);
+  _rvCurrent = { charA, charB, rec, highlights };
+
+  const total = rec.w + rec.l + rec.d;
+  const avBlock = (c, label) => `
+    <div class="rv-side">
+      <div class="rv-av av-${esc(c.char)}">
+        <img width="88" height="88" src="data/images/avatars/${esc(c.char)}.webp" alt="${esc(c.char)}"
+             loading="lazy" decoding="async" onerror="this.style.display='none'">
+      </div>
+      <div class="rv-char">${esc(c.char)}</div>
+      <div class="rv-player">${esc(c.player)}</div>
+      <div class="rv-score">${label}</div>
+    </div>`;
+
+  const hlHtml = highlights.length
+    ? highlights.slice(0, 3).map(h => `
+        <div class="rv-hl-entry">
+          <span class="rv-hl-sid">S${h.session_id}</span>${esc(h.text)}
+        </div>`).join('')
+    : `<div class="rv-hl-empty">尚無兩人正式對戰的詳細記錄</div>`;
+
+  document.getElementById('rv-poster').innerHTML = `
+    <div class="rv-title">宿 敵 對 戰</div>
+    <div class="rv-matchup">
+      ${avBlock(ca, rec.w)}
+      <div class="rv-vs">
+        <span class="rv-vs-text">VS</span>
+        ${total ? `<span class="rv-vs-total">共 ${total} 場</span>` : ''}
+      </div>
+      ${avBlock(cb, rec.l)}
+    </div>
+    ${rec.d > 0 ? `<div class="rv-draw">另有 ${rec.d} 場平手</div>` : ''}
+    <div class="rv-hl-list">${hlHtml}</div>`;
+
+  document.getElementById('rv-overlay').classList.add('rv-open');
+  document.addEventListener('keydown', _rvEscHandler);
+}
+
+function closeRivalryPoster() {
+  const overlay = document.getElementById('rv-overlay');
+  if (!overlay) return;
+  document.removeEventListener('keydown', _rvEscHandler);
+  overlay.classList.add('rv-closing');
+  overlay.addEventListener('transitionend', e => {
+    if (e.target !== overlay) return;
+    overlay.classList.remove('rv-open', 'rv-closing');
+  }, { once: true });
+}
+
+async function _rvRenderBlob(data) {
+  const { charA, charB, rec, highlights } = data;
+  const chars = charStats.characters || [];
+  const ca = chars.find(c => c.char === charA);
+  const cb = chars.find(c => c.char === charB);
+  const FONT = '"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif';
+  const accent = '#a6492f';
+
+  const P = 46, W = 680, innerW = W - 2 * P;
+  const AV = 96, AVR = AV / 2;
+  const hlText = highlights.slice(0, 2)
+    .map(h => `S${h.session_id}：${h.text}`).join('\n');
+
+  const m = document.createElement('canvas').getContext('2d');
+  m.font = `21px ${FONT}`;
+  const hlLines = hlText ? _qmWrap(m, hlText, innerW) : [];
+  const LH_HL = 32;
+
+  let H = P + 34 /* title */ + 24 /* gap */ + (AV + 16 + 22 + 20) /* av block */ + 30 /* gap+draw */;
+  H += hlLines.length ? hlLines.length * LH_HL + 20 : 0;
+  H += 28 + 1 + 22 + 18; // footer
+
+  const contentH = Math.round(H);
+  const side = Math.max(W, contentH);
+  const OX = (side - W) / 2, OY = (side - contentH) / 2;
+
+  const SCALE = 2;
+  const cv = document.createElement('canvas');
+  cv.width = side * SCALE; cv.height = side * SCALE;
+  const ctx = cv.getContext('2d');
+  ctx.scale(SCALE, SCALE);
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillStyle = '#f6efdd'; ctx.fillRect(0, 0, side, side);
+  ctx.strokeStyle = '#d9c89b'; ctx.lineWidth = 2; ctx.strokeRect(1, 1, side - 2, side - 2);
+  ctx.translate(OX, OY);
+
+  let y = P;
+  ctx.fillStyle = accent; ctx.font = `bold 27px ${FONT}`; ctx.textAlign = 'center';
+  ctx.fillText('宿 敵 對 戰', W / 2, y + 26); y += 34 + 24;
+
+  const avCY = y + AVR;
+  const colW = (W - 2 * P) / 3;
+  const drawSide = async (c, cx, score) => {
+    try {
+      const img = await _qmLoadImg(`data/images/avatars/${c.char}.webp`);
+      ctx.save();
+      ctx.beginPath(); ctx.arc(cx, avCY, AVR, 0, Math.PI * 2); ctx.clip();
+      const s = Math.max(AV / img.width, AV / img.height);
+      const dw = img.width * s, dh = img.height * s;
+      ctx.drawImage(img, cx - dw / 2, avCY - dh / 2, dw, dh);
+      ctx.restore();
+    } catch (_) {
+      ctx.fillStyle = '#cdbf99'; ctx.beginPath(); ctx.arc(cx, avCY, AVR, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.beginPath(); ctx.arc(cx, avCY, AVR, 0, Math.PI * 2);
+    ctx.lineWidth = 2.5; ctx.strokeStyle = accent; ctx.stroke();
+    ctx.fillStyle = '#3a3226'; ctx.font = `bold 19px ${FONT}`; ctx.textAlign = 'center';
+    ctx.fillText(c.char, cx, avCY + AVR + 24);
+    ctx.fillStyle = '#8a7d63'; ctx.font = `14px ${FONT}`;
+    ctx.fillText(c.player, cx, avCY + AVR + 42);
+    ctx.fillStyle = accent; ctx.font = `bold 30px ${FONT}`;
+    ctx.fillText(String(score), cx, avCY + AVR + 74);
+  };
+  await drawSide(ca, P + colW / 2, rec.w);
+  ctx.fillStyle = '#3a3226'; ctx.font = `bold 24px ${FONT}`; ctx.textAlign = 'center';
+  ctx.fillText('VS', P + colW * 1.5, avCY + 8);
+  await drawSide(cb, P + colW * 2.5, rec.l);
+  y += AV + 16 + 22 + 20;
+
+  if (rec.d > 0) {
+    ctx.fillStyle = '#8a7d63'; ctx.font = `14px ${FONT}`; ctx.textAlign = 'center';
+    ctx.fillText(`另有 ${rec.d} 場平手`, W / 2, y); y += 18;
+  }
+  y += 12;
+
+  if (hlLines.length) {
+    ctx.strokeStyle = '#e2d6b4'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(P, y); ctx.lineTo(W - P, y); ctx.stroke(); y += 1 + 22;
+    ctx.fillStyle = '#3a3226'; ctx.font = `19px ${FONT}`; ctx.textAlign = 'left';
+    for (const ln of hlLines) { ctx.fillText(ln, P, y + 19); y += LH_HL; }
+    y += 6;
+  }
+
+  y += 22;
+  ctx.strokeStyle = '#e2d6b4'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(P, y); ctx.lineTo(W - P, y); ctx.stroke(); y += 1 + 22;
+  ctx.fillStyle = '#8a7d63'; ctx.font = `15px ${FONT}`; ctx.textAlign = 'center';
+  ctx.fillText('柏德之門 3 跑團日誌', W / 2, y + 15);
+
+  return await new Promise(res => cv.toBlob(res, 'image/png'));
+}
+
+async function copyRivalryImage() {
+  const data = _rvCurrent;
+  if (!data) return;
+  const btn = document.querySelector('#rv-overlay .qm-copy');
+  const orig = btn ? btn.textContent : '';
+  const reset = () => { if (btn) setTimeout(() => { btn.disabled = false; btn.textContent = orig; }, 1800); };
+  if (btn) { btn.disabled = true; btn.textContent = '產生中…'; }
+
+  const blobP = _rvRenderBlob(data).then(b => {
+    if (!b) throw new Error('blob 產生失敗');
+    return b;
+  });
+
+  if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blobP })]);
+      if (btn) btn.textContent = '✓ 已複製';
+      reset();
+      return;
+    } catch (_) { /* 落到下載後備 */ }
+  }
+
+  try {
+    const blob = await blobP;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `宿敵對戰-${data.charA}-vs-${data.charB}.png`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    if (btn) btn.textContent = '✓ 已下載';
+  } catch (_) {
+    if (btn) btn.textContent = '✗ 失敗';
+  }
+  reset();
 }
 
 // ── 插圖燈箱 lightbox ─────────────────────────────────────
