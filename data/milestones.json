@@ -598,5 +598,29 @@
     "desc": "阿斯代倫、曹與卡拉克成功半奪心魔化，獲得力量也改變外型。",
     "date": "2026-06-30",
     "session_id": 25
+  },
+  {
+    "type": "location",
+    "icon": "🏠",
+    "title": "阿爾弗宅邸",
+    "desc": "探索充滿傭兵、難民與陷阱的宅邸地下室。",
+    "date": "2026-07-12",
+    "session_id": 26
+  },
+  {
+    "type": "custom",
+    "icon": "🧀",
+    "title": "起司影心",
+    "desc": "影心在馬戲團被魔神Akabi變成一塊缺角的起司。",
+    "date": "2026-07-12",
+    "session_id": 26
+  },
+  {
+    "type": "achievement",
+    "icon": "🥊",
+    "title": "決鬥王者",
+    "desc": "阿斯代倫在三回合PvP中擊敗曹。",
+    "date": "2026-07-12",
+    "session_id": 26
   }
 ]

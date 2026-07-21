@@ -198,5 +198,13 @@
     "dateDisplay": "2026 年 6 月 30 日",
     "title": "黑臉、紅衣、幻想破滅",
     "placeholder": false
+  },
+  {
+    "id": 26,
+    "chapter": "第26章",
+    "date": "2026-07-12",
+    "dateDisplay": "2026 年 7 月 12 日",
+    "title": "牛郎、大傑、一拳超人",
+    "placeholder": false
   }
 ]

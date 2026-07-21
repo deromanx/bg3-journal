@@ -34,7 +34,7 @@ for arg in "$@"; do
         --ff-all)     FF_ALL=1 ;;
         --quotes-all) QUOTES_ALL=1 ;;
         --skip-chars) SKIP_CHARS=1 ;;
-        *) echo "未知旗標：$arg（可用：--roast-all --praise-all --ff-all --quotes-all --skip-chars）" >&2; exit 1 ;;
+        *) echo "未知旗標：${arg}（可用：--roast-all --praise-all --ff-all --quotes-all --skip-chars）" >&2; exit 1 ;;
     esac
 done
 
@@ -68,7 +68,7 @@ print(min(ids) if ids else max(s['id'] for s in non_ph), len(ids))
 # 角色介紹+成就固定 10 次（--skip-chars 可省）。全量旗標另計、不在此估算內。
 EST=$(( STALE_COUNT * 10 + (SKIP_CHARS == 1 ? 0 : 10) ))
 echo
-echo "ℹ️  待更新集數：$STALE_COUNT（從 S$LATEST 起）；本次 Gemini 呼叫預估 ~$EST 次（每日上限約 20）"
+echo "ℹ️  待更新集數：${STALE_COUNT}（從 S${LATEST} 起）；本次 Gemini 呼叫預估 ~${EST} 次（每日上限約 20）"
 if (( EST > 20 )); then
     echo "⚠️  預估超出每日免費配額，可能中途遇 TerminalQuotaError。"
     echo "    建議：加 --skip-chars 省 10 次；或分天跑（pipeline 可中斷重跑，不會重複計數）。"
