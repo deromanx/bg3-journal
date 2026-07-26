@@ -622,5 +622,29 @@
     "desc": "阿斯代倫在三回合PvP中擊敗曹。",
     "date": "2026-07-12",
     "session_id": 26
+  },
+  {
+    "type": "achievement",
+    "icon": "🎒",
+    "title": "屍體背包大法",
+    "desc": "卡拉克成功偷渡隊友進入叢林。",
+    "date": "2026-07-21",
+    "session_id": 27
+  },
+  {
+    "type": "death",
+    "icon": "🔥",
+    "title": "貓咕咕自燃",
+    "desc": "貓咕咕因頭盔自燃死在戰場。",
+    "date": "2026-07-21",
+    "session_id": 27
+  },
+  {
+    "type": "location",
+    "icon": "🎪",
+    "title": "馬戲團遇險",
+    "desc": "馬戲團中小丑Dribbles變成變形怪。",
+    "date": "2026-07-21",
+    "session_id": 27
   }
 ]
