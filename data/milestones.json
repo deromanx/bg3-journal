@@ -646,5 +646,29 @@
     "desc": "馬戲團中小丑Dribbles變成變形怪。",
     "date": "2026-07-21",
     "session_id": 27
+  },
+  {
+    "type": "item",
+    "icon": "  Belt",
+    "title": "魔改腰帶",
+    "desc": "阿斯代倫新增腰帶MOD，大幅提升隊伍戰力。",
+    "date": "2026-07-28",
+    "session_id": 28
+  },
+  {
+    "type": "custom",
+    "icon": "💍",
+    "title": "影心結婚",
+    "desc": "影心突然宣布與TYY結婚，震撼全場。",
+    "date": "2026-07-28",
+    "session_id": 28
+  },
+  {
+    "type": "achievement",
+    "icon": "🕵️",
+    "title": "神殿謀殺案",
+    "desc": "隊伍調查神殿命案，發現紅衣矮人是真兇。",
+    "date": "2026-07-28",
+    "session_id": 28
   }
 ]
