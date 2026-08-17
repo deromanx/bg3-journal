@@ -694,5 +694,29 @@
     "desc": "貓咕咕學會召喚龍法術，可召喚五色巨龍。",
     "date": "2026-08-06",
     "session_id": 29
+  },
+  {
+    "type": "achievement",
+    "icon": "🌐",
+    "title": "成功連線",
+    "desc": "貓咕咕歷經艱難，成功連線與隊友會合。",
+    "date": "2026-08-11",
+    "session_id": 30
+  },
+  {
+    "type": "location",
+    "icon": "⛏️",
+    "title": "地侏基地",
+    "desc": "隊伍意外發現鐵手地侏的秘密基地。",
+    "date": "2026-08-11",
+    "session_id": 30
+  },
+  {
+    "type": "achievement",
+    "icon": "👑",
+    "title": "萬獸之王",
+    "desc": "芬里爾在寵物對決中橫掃全場，榮登寶座。",
+    "date": "2026-08-11",
+    "session_id": 30
   }
 ]
