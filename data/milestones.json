@@ -718,5 +718,29 @@
     "desc": "芬里爾在寵物對決中橫掃全場，榮登寶座。",
     "date": "2026-08-11",
     "session_id": 30
+  },
+  {
+    "type": "achievement",
+    "icon": "🐛",
+    "title": "閃退根源揪出",
+    "desc": "阿斯代倫揪出Xbox錢包為閃退真兇",
+    "date": "2026-08-18",
+    "session_id": 31
+  },
+  {
+    "type": "item",
+    "icon": "💣",
+    "title": "自爆卡車裝備",
+    "desc": "獲得一件強大卻致命的詛咒裝備，能導致全隊死亡",
+    "date": "2026-08-18",
+    "session_id": 31
+  },
+  {
+    "type": "achievement",
+    "icon": "👕",
+    "title": "時尚大改造",
+    "desc": "曹、影心、貓咕咕更新造型，擺脫流浪漢形象",
+    "date": "2026-08-18",
+    "session_id": 31
   }
 ]
