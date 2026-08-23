@@ -18,11 +18,6 @@
     },
     {
       "char": "影心",
-      "note": "被阿斯代倫錘死",
-      "is_downed": false
-    },
-    {
-      "char": "影心",
       "note": "被曹一箭射死",
       "is_downed": true
     }

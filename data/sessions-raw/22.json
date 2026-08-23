@@ -8,11 +8,6 @@
   "deaths": [
     {
       "char": "影心",
-      "note": "被卡拉克飛斧丟死",
-      "is_downed": false
-    },
-    {
-      "char": "影心",
       "note": "被衣服寒冷傷害凍死",
       "is_downed": false
     },

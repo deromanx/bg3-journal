@@ -5,33 +5,7 @@
     "best_quote": "你是海豚玩河豚是不是？舔一下扣十滴血你還舔？",
     "worst_moment": "身為黑暗女神莎爾的牧師，影心在自家神殿的黑暗中施法命中率竟然只有悲慘的6%。"
   },
-  "deaths": [
-    {
-      "char": "影心",
-      "note": "決鬥被阿斯代倫打死",
-      "is_downed": false
-    },
-    {
-      "char": "阿斯代倫",
-      "note": "決鬥被曹一箭射死",
-      "is_downed": false
-    },
-    {
-      "char": "曹",
-      "note": "決鬥被卡拉克飛斧丟死",
-      "is_downed": false
-    },
-    {
-      "char": "曹",
-      "note": "決鬥遭影心亂入電死",
-      "is_downed": false
-    },
-    {
-      "char": "影心",
-      "note": "決鬥被貓咕咕燒死",
-      "is_downed": false
-    }
-  ],
+  "deaths": [],
   "duels": [
     {
       "winner": "阿斯代倫",

@@ -32,24 +32,9 @@
       "is_downed": true
     },
     {
-      "char": "曹",
-      "note": "決鬥把自己耗死",
-      "is_downed": false
-    },
-    {
-      "char": "阿斯代倫",
-      "note": "決鬥被魔能爆死",
-      "is_downed": false
-    },
-    {
       "char": "影心",
       "note": "決鬥被魔能爆倒",
       "is_downed": true
-    },
-    {
-      "char": "貓咕咕",
-      "note": "決鬥被卡拉克砍死",
-      "is_downed": false
     }
   ],
   "duels": [

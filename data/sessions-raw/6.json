@@ -5,28 +5,7 @@
     "best_quote": "你的手那麼短哦？",
     "worst_moment": "遇到卡在樓梯下方死角、狂戳眾人屁眼卻無法被選取反擊的無敵骷髏怪"
   },
-  "deaths": [
-    {
-      "char": "影心",
-      "note": "決鬥中同歸於盡",
-      "is_downed": false
-    },
-    {
-      "char": "貓咕咕",
-      "note": "決鬥中同歸於盡",
-      "is_downed": false
-    },
-    {
-      "char": "貓咕咕",
-      "note": "決鬥被電死",
-      "is_downed": false
-    },
-    {
-      "char": "影心",
-      "note": "決鬥被燒死",
-      "is_downed": false
-    }
-  ],
+  "deaths": [],
   "duels": [
     {
       "winner": "影心",
