@@ -273,7 +273,7 @@ def main():
     try:
         entries = sorted(
             e for e in GOOGLE_DRIVE.iterdir()
-            if e.is_dir() and re.match(r"^\d{8}", e.name)
+            if e.is_dir() and re.match(r"^\d{8}-", e.name)
         )
     except OSError as e:
         print(f"❌ 無法讀取 Google Drive：{e}")
