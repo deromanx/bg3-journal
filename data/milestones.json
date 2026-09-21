@@ -766,5 +766,29 @@
     "desc": "遭變形怪突襲，隊伍慘遭團滅後讀檔。",
     "date": "2026-08-25",
     "session_id": 32
+  },
+  {
+    "type": "location",
+    "icon": "🏛️",
+    "title": "飛龍巖要塞",
+    "desc": "隊伍進入戈塔什的要塞，展開探索與營救。",
+    "date": "2026-09-15",
+    "session_id": 33
+  },
+  {
+    "type": "item",
+    "icon": "🎭",
+    "title": "神偷頭盔",
+    "desc": "曹獲得神器級頭盔，竊盜技能飆升。",
+    "date": "2026-09-15",
+    "session_id": 33
+  },
+  {
+    "type": "achievement",
+    "icon": "🤝",
+    "title": "宣誓結盟",
+    "desc": "曹與戈塔什結盟，揭露營地秘密。",
+    "date": "2026-09-15",
+    "session_id": 33
   }
 ]
