@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 為每集生成靜態分享 stub 頁（s/{id}.html）：
-含該集專屬 og:title / og:image，供 LINE/FB/Discord 抓預覽卡片，
+含該集專屬 og:title / og:description（本集亮點）/ og:image，供 LINE/FB/Discord 抓預覽卡片，
 載入後立即導回 SPA 的 #s{id}。純本地生成，不呼叫 Gemini。
 
 用法：python3 gen_share_pages.py
@@ -49,17 +49,30 @@ def first_image(sid: int) -> str:
     return f"{SITE}/data/images/cover.webp"
 
 
+DESC_MAX = 150
+
+
+def describe(s: dict, awards: dict) -> str:
+    """og:description：日期＋本集亮點（awards.json highlight）；無亮點時退回通用描述。"""
+    date = s.get("dateDisplay", "")
+    hl = (awards.get(str(s["id"])) or {}).get("highlight", "").strip()
+    if not hl:
+        return f"{date} — 《柏德之門3》TRPG 跑團冒險日誌".strip(" —")
+    desc = f"{date}｜{hl}" if date else hl
+    return desc if len(desc) <= DESC_MAX else desc[:DESC_MAX - 1] + "…"
+
+
 def main():
     meta = json.loads((BASE_DIR / "data" / "sessions-meta.json").read_text())
+    awards_f = BASE_DIR / "data" / "awards.json"
+    awards = json.loads(awards_f.read_text()) if awards_f.exists() else {}
     OUT_DIR.mkdir(exist_ok=True)
     count = 0
     for s in meta:
         if s.get("placeholder"):
             continue
         title = html.escape(f"{s['chapter']}・{s['title']}｜前進柏德之門")
-        desc = html.escape(
-            f"{s.get('dateDisplay', '')} — 《柏德之門3》TRPG 跑團冒險日誌".strip(" —")
-        )
+        desc = html.escape(describe(s, awards))
         page = TEMPLATE.format(
             title=title, desc=desc, site=SITE, id=s["id"], image=first_image(s["id"])
         )

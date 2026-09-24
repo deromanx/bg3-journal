@@ -18,7 +18,9 @@ Google Drive docx ──extract.py──▶ data/sessions.json + sessions/{id}.j
                                         ▼
         gen_*.py ──▶ awards / character-stats / roast / praise / ff / milestones / story
                                         │
-                     gen_share_pages.py ▶ s/{id}.html（每集 og 分享卡 stub）
+                     gen_share_pages.py ▶ s/{id}.html（每集 og 分享卡 stub，描述取本集亮點）
+                                        │
+                     gen_story_split.py ▶ data/story/（故事逐章小檔，前端捲動延遲載入）
                                         │
                        verify_data.py ──▶ 一致性驗證（結構／文案佔位符／集數同步／部署產物）
 ```
@@ -56,4 +58,4 @@ python3 verify_data.py          # 資料一致性驗證（pipeline 最後關卡�
 
 ## 部署
 
-push 到 `main` 後由 GitHub Pages（legacy 建置）自動部署。改 `app.js` / `style.css` 時 pipeline 會自動遞增 `index.html` 的 `?v=N` 做 cache busting。
+push 到 `main` 後由 GitHub Pages（legacy Jekyll 建置）自動部署。`_config.yml` 的 `exclude` 讓 pipeline 腳本、`data/sessions-raw/`、`story.json` 等不上線；`data/sessions.json` 是本機中間產物，不進版控。改 `app.js` / `style.css` 時 pipeline 會自動遞增 `index.html` 的 `?v=N` 做 cache busting。

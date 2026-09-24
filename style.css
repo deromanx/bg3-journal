@@ -39,7 +39,9 @@
 
   /* ── 字型 */
   --font-title: 'Cinzel', serif;
-  --font-body:  'Noto Sans TC', sans-serif;
+  /* 中文用系統字型（不載 Noto Sans TC 網路字型，省下 Android/Windows 每頁數百 KB）；
+     本機裝有 Noto Sans TC 者仍會用到 */
+  --font-body:  'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', 'Heiti TC', sans-serif;
 
   /* ── 主題色（加深加飽和） */
   --crimson:    #7a1515;
@@ -59,8 +61,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-dark); }
 #session-view, .content-scroll, #content { scroll-behavior: smooth; }
 
 body {
-  font-family: 'Noto Sans TC', 'PingFang TC', 'Microsoft JhengHei',
-               'Heiti TC', sans-serif;
+  font-family: var(--font-body);
   color: var(--gold);
   font-size: 15px;
 }
@@ -1123,7 +1124,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .stab-label {
   flex: 1;
-  font-family: 'Noto Sans TC', sans-serif;
+  font-family: var(--font-body);
 }
 
 .stab:hover {
@@ -2948,9 +2949,6 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   letter-spacing: 0.5px;
 }
 
-.mm-w-ex { color: #3a8a3a; font-weight: 700; }
-.mm-l-ex { color: #8a2a2a; font-weight: 700; }
-
 .matchup-wrap {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -3287,9 +3285,6 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   border-bottom: 1px solid rgba(var(--edge-rgb),0.20);
 }
 
-.rh-hdr { text-align: center; border-right: 1px solid rgba(var(--edge-rgb),0.12); }
-.rh-row-hdr { border-right: 1px solid rgba(var(--edge-rgb),0.20); white-space: nowrap; }
-
 .rh-cell {
   text-align: center;
   padding: 8px 10px;
@@ -3299,7 +3294,6 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   font-size: 14px;
   background: rgba(122,21,21, calc(var(--ri, 0) * 0.0055));
   color: var(--ink-mid);
-  cursor: default;
 }
 .rh-clickable {
   cursor: pointer;
@@ -3978,9 +3972,6 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     border-left: 2px solid rgba(var(--edge-rgb),0.22);
     background: rgba(var(--edge-rgb),0.04);
   }
-  .radar-stat-val {
-    font-size: 16px;
-  }
 }
 .radar-stat-label {
   font-family: var(--font-title);
@@ -4135,7 +4126,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .rg-label {
-  font-family: 'Noto Sans TC', sans-serif;
+  font-family: var(--font-body);
   font-size: 12px;
   font-weight: 600;
   fill: var(--ink-mid, #c2a06a);
@@ -4518,9 +4509,6 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   .gc-sid-label { font-size: 10px; }
 }
 
-@media (max-width: 480px) {
-}
-
 /* ── 桌機字級放大（≥ 1024px）─────────────────────────────── */
 @media (min-width: 1024px) {
   /* 分組 & 小節標題 */
@@ -4724,6 +4712,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 /* 2. 全站鍵盤焦點樣式（Tab 導航時可見） */
 button:focus-visible,
 .session-item:focus-visible,
+#sidebar-brand:focus-visible,
 .stab:focus-visible,
 .welcome-cta:focus-visible,
 .sf-card:focus-visible,

@@ -248,6 +248,18 @@ def check_deploy_artifacts():
     for sid in sorted(have - want):
         issues.append(f"s/{sid}.html 是孤兒 stub（無對應集數），可刪除")
 
+    # D1b. 故事拆檔（data/story/）須與 story.json 同步：目錄、章數、全文一致
+    story = load("story.json", {"chapters": []})
+    want_story = {c["session_id"]: c.get("text", "") for c in story.get("chapters", [])}
+    index = load("story/index.json", {"chapters": []})
+    if {c["session_id"] for c in index.get("chapters", [])} != set(want_story):
+        issues.append("data/story/index.json 與 story.json 章節不同步，gen_story_split.py 可能漏跑")
+    else:
+        for sid, text in want_story.items():
+            if load(f"story/{sid}.json", {}).get("text") != text:
+                issues.append(f"data/story/{sid}.json 與 story.json 內容不同步，重跑 gen_story_split.py")
+                break
+
     # D2. app.js / style.css 相對 HEAD 有變更時，index.html（含 ?v=）也應已變更
     try:
         changed = set(subprocess.run(
@@ -306,9 +318,9 @@ def main():
         print(f"\n⚠ 部署產物問題（{len(deploy)}）：")
         for s in deploy:
             print(f"  • {s}")
-        print("\n  → 缺 stub 重跑 gen_share_pages.py；?v= 未遞增則重跑 update_all.sh 尾段或手動遞增")
+        print("\n  → 缺 stub 重跑 gen_share_pages.py；故事不同步重跑 gen_story_split.py；?v= 未遞增則重跑 update_all.sh 尾段或手動遞增")
     else:
-        print("✓ 部署產物：分享 stub 與集數同步，asset 版本號無過時")
+        print("✓ 部署產物：分享 stub、故事拆檔與集數同步，asset 版本號無過時")
 
     total = len(structural) + len(prose) + len(sync) + len(deploy)
     print()

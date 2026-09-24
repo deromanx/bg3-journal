@@ -14,3 +14,6 @@ check-*.png
 stats-*.png
 ff-check.png
 data/images/avatars/test_crops/
+
+# pipeline 中間產物（本機由 extract.py 生成，各 gen 腳本讀取；前端不用，不進版控也不部署）
+data/sessions.json

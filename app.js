@@ -64,7 +64,8 @@ const DATA_SOURCES = {
                  } },
   ffStats:     { url: 'data/ff-stats.json',        fallback: { incidents: [], total: 0 },
                  assign: d => { ffStats = d; } },
-  storyData:   { url: 'data/story.json',           fallback: { chapters: [] },
+  // 故事只抓章節目錄；各章全文由 loadStoryChapter() 捲動接近時再抓
+  storyData:   { url: 'data/story/index.json',     fallback: { chapters: [] },
                  assign: d => { storyData = d; } },
 };
 const _dataPromises = {};
@@ -260,7 +261,7 @@ function renderSidebar() {
   const readSet = getReadSet();
   list.innerHTML = reversedSessions().map(s => `
     <li class="session-item${s.placeholder ? ' placeholder' : ''}${readSet.has(s.id) ? ' read' : ''}"
-        data-id="${s.id}"
+        data-id="${s.id}" tabindex="0" role="button"
         onclick="loadSession(${s.id})"
         title="${esc(s.title)}">
       <div class="item-chapter">${esc(s.chapter)}</div>
@@ -372,9 +373,15 @@ function extractChar(str) {
   return null;
 }
 
+// 角色頭像 <img>（單一來源）：size=null 不帶寬高屬性，withAlt 以角色名當 alt
+function avImg(char, size = 64, withAlt = false) {
+  const dim = size ? `width="${size}" height="${size}" ` : '';
+  return `<img ${dim}src="data/images/avatars/${esc(char)}.webp" alt="${withAlt ? esc(char) : ''}" loading="lazy" decoding="async" onerror="this.style.display='none'">`;
+}
+
 function awAvatar(char) {
   if (!char) return '';
-  return `<span class="aw-av av-${esc(char)}"><img width="64" height="64" src="data/images/avatars/${esc(char)}.webp" alt="${esc(char)}" loading="lazy" decoding="async" onerror="this.style.display='none'"></span>`;
+  return `<span class="aw-av av-${esc(char)}">${avImg(char, 64, true)}</span>`;
 }
 
 function renderAwardCard(sessionId) {
@@ -469,9 +476,20 @@ function scrollToTop() {
 }
 
 // ── 鍵盤導航 ──────────────────────────────────────────────
+// 任一彈窗（燈箱 lb / 語錄 rm·pm / 死亡輪盤 dro / 宿敵海報 rv）開著時，
+// 方向鍵與 j/k 不應操作背後的頁面
+function isModalOpen() {
+  return !!document.querySelector('.lb-open, .rm-open, .pm-open, .dro-open, .rv-open');
+}
+
 function initKeyboard() {
   document.addEventListener('keydown', e => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    // role="button" 的非 button 元素（章節列表 li、側欄標題）：Enter / Space 觸發點擊
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.matches?.('[role="button"]:not(button)')) {
+      e.preventDefault(); e.target.click(); return;
+    }
+    if (isModalOpen()) return;
     if (e.key === 'ArrowLeft'  && currentView === 'journal' && currentId !== null) {
       e.preventDefault(); navigateSession(-1);
     }
@@ -638,7 +656,7 @@ function renderDeathTimeline(chars) {
     }).join('');
     return `<div class="swim-lane">
         <div class="swim-name">
-          <span class="swim-av av-${esc(r.char)}"><img width="64" height="64" src="data/images/avatars/${esc(r.char)}.webp" alt="" loading="lazy" onerror="this.style.display='none'"></span>
+          <span class="swim-av av-${esc(r.char)}">${avImg(r.char)}</span>
           <span class="swim-nm">${esc(r.char)}</span>
           <span class="swim-badge" title="累計陣亡">${r.deaths}</span>
         </div>
@@ -707,7 +725,7 @@ function renderStats() {
     return `
       <div class="death-card${intensity}" data-tip="${esc(deathTip)}">
         <div class="dc-avatar av-${esc(c.char)}">
-          <img width="64" height="64" src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+          ${avImg(c.char)}
         </div>
         <div class="dc-name-wrap">
           <span class="dc-char">${esc(c.char)}</span>
@@ -745,7 +763,7 @@ function renderStats() {
     return `
       <div class="duel-row" data-tip="${esc(duelTip)}">
         <div class="dr-av av-${esc(c.char)}">
-          <img width="64" height="64" src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+          ${avImg(c.char)}
         </div>
         <div class="dr-rank">${medal || (rank + 1)}</div>
         <div class="dr-name">
@@ -784,7 +802,7 @@ function renderStats() {
   const mmHeaders = chars.map(c => `
     <th class="mm-hdr">
       <div class="mm-hav av-${esc(c.char)}">
-        <img width="64" height="64" src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+        ${avImg(c.char)}
       </div>
       <span class="mm-hchar">${esc(c.char)}</span>
     </th>`).join('');
@@ -806,7 +824,7 @@ function renderStats() {
     return `<tr>
       <th class="mm-row-hdr">
         <div class="mm-rav av-${esc(rowC.char)}">
-          <img width="64" height="64" src="data/images/avatars/${esc(rowC.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+          ${avImg(rowC.char)}
         </div>
         <div class="mm-rnames">
           <span class="mm-rchar">${esc(rowC.char)}</span>
@@ -842,7 +860,7 @@ function renderStats() {
     return `
       <div class="duel-row" data-tip="${esc(tip)}">
         <div class="dr-av av-${esc(c.char)}">
-          <img width="64" height="64" src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+          ${avImg(c.char)}
         </div>
         <div class="dr-rank">${medal || (rank + 1)}</div>
         <div class="dr-name">
@@ -1047,7 +1065,7 @@ function renderFriendlyFire() {
     return `
       <div class="ff-mini-row">
         <div class="ff-mini-av av-${esc(char)}">
-          <img width="64" height="64" src="data/images/avatars/${esc(char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+          ${avImg(char)}
         </div>
         <div class="ff-mini-info">
           <div class="ff-mini-name">${esc(char)}</div>
@@ -1072,7 +1090,7 @@ function renderFriendlyFire() {
       <div class="ff-actors">
         <div class="ff-actor">
           <div class="ff-av av-${esc(inc.perp)}">
-            <img width="64" height="64" src="data/images/avatars/${esc(inc.perp)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+            ${avImg(inc.perp)}
           </div>
           <span class="ff-name ff-perp">${esc(inc.perp)}</span>
           <span class="ff-role">兇手</span>
@@ -1080,7 +1098,7 @@ function renderFriendlyFire() {
         <div class="ff-arrow">→</div>
         <div class="ff-actor">
           <div class="ff-av av-${esc(inc.victim)}">
-            <img width="64" height="64" src="data/images/avatars/${esc(inc.victim)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+            ${avImg(inc.victim)}
           </div>
           <span class="ff-name ff-victim">${esc(inc.victim)}</span>
           <span class="ff-role">受害者</span>
@@ -1200,8 +1218,8 @@ function renderMatchupSplits(matchupData) {
     const d = m.draws || 0;
     const decisive = wa + wb;
     const pctA = decisive ? (wa / decisive * 100).toFixed(1) : 50;
-    const avA = `<div class="msp-av av-${esc(ca)}"><img width="64" height="64" src="data/images/avatars/${esc(ca)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'"></div>`;
-    const avB = `<div class="msp-av av-${esc(cb)}"><img width="64" height="64" src="data/images/avatars/${esc(cb)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'"></div>`;
+    const avA = `<div class="msp-av av-${esc(ca)}">${avImg(ca)}</div>`;
+    const avB = `<div class="msp-av av-${esc(cb)}">${avImg(cb)}</div>`;
     const pctB = (100 - pctA).toFixed(1);
     return `
       <div class="msp-row">
@@ -1423,8 +1441,7 @@ function openQuoteModal(kind, q) {
   const charBlock = (chars, label) => {
     const avatars = chars.map(c => `
       <div class="${pfx}-av av-${esc(c)}">
-        <img width="64" height="64" src="data/images/avatars/${esc(c)}.webp" alt="${esc(c)}"
-             loading="lazy" decoding="async" onerror="this.style.display='none'">
+        ${avImg(c, 64, true)}
       </div>`).join('');
     const names = chars.map(c => `<span>${esc(c)}</span>`).join('、');
     return `
@@ -1538,7 +1555,7 @@ function _droBuildWheel(pool) {
       const midAngle = ((i + j) / 2) * seg;
       markHtml.push(`
         <div class="dro-wheel-mark" style="transform:rotate(${midAngle.toFixed(2)}deg) translateY(calc(-1 * var(--dro-mark-r)))">
-          <img src="data/images/avatars/${esc(char)}.webp" alt="" loading="lazy" onerror="this.style.display='none'">
+          ${avImg(char, null)}
         </div>`);
       i = j;
     }
@@ -1644,8 +1661,7 @@ function spinDeathRoulette() {
     const hlLine = r.hl ? `<div class="dro-result-hl">⚔ ${esc(r.hl)}</div>` : '';
     result.innerHTML = `
       <div class="dro-result-avatar av-${esc(r.char)}" style="border-color:${color};box-shadow:0 0 24px ${color}88, 0 0 60px ${color}44">
-        <img width="72" height="72" src="data/images/avatars/${esc(r.char)}.webp" alt=""
-             loading="lazy" onerror="this.style.display='none'">
+        ${avImg(r.char, 72)}
       </div>
       <div class="dro-result-text">
         <div class="dro-result-desc">${esc(r.char)}：${esc(r.desc)}</div>
@@ -1751,8 +1767,7 @@ function openRivalryPoster(charA, charB) {
   const avBlock = (c, label) => `
     <div class="rv-side">
       <div class="rv-av av-${esc(c.char)}">
-        <img width="88" height="88" src="data/images/avatars/${esc(c.char)}.webp" alt="${esc(c.char)}"
-             loading="lazy" decoding="async" onerror="this.style.display='none'">
+        ${avImg(c.char, 88, true)}
       </div>
       <div class="rv-char">${esc(c.char)}</div>
       <div class="rv-player">${esc(c.player)}</div>
@@ -1969,7 +1984,7 @@ function renderQuoteCard(q, kind) {
   const { arrow } = QUOTE_MODAL[kind];
   const isPraise = kind === 'praise';
   const avatar = char => `<div class="rq-av av-${esc(char)}" data-tip="${esc(char)}">
-          <img width="64" height="64" src="data/images/avatars/${esc(char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+          ${avImg(char)}
         </div>`;
   const froms = asArr(q.from);
   const tos   = asArr(q.to);
@@ -2004,7 +2019,7 @@ function renderRoastQuotes() {
             onclick="filterRoastQuotes('${esc(c.char)}')"
             data-tip="${esc(c.char)}">
       <div class="rq-fav av-${esc(c.char)}">
-        <img width="64" height="64" src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+        ${avImg(c.char)}
       </div>
       <span class="rq-fname">${esc(c.char)}</span>
     </button>`).join('');
@@ -2101,7 +2116,7 @@ function renderGrowthGrid(chars) {
       }).join('');
       return `<div class="swim-lane">
           <div class="swim-name">
-            <span class="swim-av av-${esc(char)}"><img width="64" height="64" src="data/images/avatars/${esc(char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'"></span>
+            <span class="swim-av av-${esc(char)}">${avImg(char)}</span>
             <span class="swim-nm">${esc(char)}</span>
             <span class="swim-badge" title="累計">${total}</span>
           </div>
@@ -2283,7 +2298,7 @@ function renderPraiseSection() {
     return `
       <div class="rb-row${crown}" data-tip="${esc(tip)}">
         <div class="rb-avatar av-${name}">
-          <img width="64" height="64" src="data/images/avatars/${esc(name)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+          ${avImg(name)}
         </div>
         <div class="rb-info">
           <div class="rb-name">${esc(name)}<span class="rb-player">${esc(c?.player || '')}</span></div>
@@ -2306,7 +2321,7 @@ function renderPraiseSection() {
     return `
       <div class="ib-row${crown}" data-tip="${esc(tip)}">
         <div class="ib-avatar av-${name}">
-          <img width="64" height="64" src="data/images/avatars/${esc(name)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+          ${avImg(name)}
         </div>
         <div class="ib-info">
           <div class="ib-name">${esc(name)}<span class="ib-player">${esc(c?.player || '')}</span></div>
@@ -2642,7 +2657,7 @@ function renderPraiseQuotes() {
             onclick="filterPraiseQuotes('${esc(c.char)}')"
             data-tip="${esc(c.char)}">
       <div class="rq-fav av-${esc(c.char)}">
-        <img width="64" height="64" src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+        ${avImg(c.char)}
       </div>
       <span class="rq-fname">${esc(c.char)}</span>
     </button>`).join('');
@@ -2709,7 +2724,7 @@ function renderRoastSection() {
     return `
       <div class="rb-row${crown}" data-tip="${esc(rbTip)}">
         <div class="rb-avatar av-${name}">
-          <img width="64" height="64" src="data/images/avatars/${esc(name)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+          ${avImg(name)}
         </div>
         <div class="rb-info">
           <div class="rb-name">${esc(name)}<span class="rb-player">${esc(c?.player || '')}</span></div>
@@ -2734,7 +2749,7 @@ function renderRoastSection() {
     return `
       <div class="ib-row${crown}" data-tip="${esc(ibTip)}">
         <div class="ib-avatar av-${name}">
-          <img width="64" height="64" src="data/images/avatars/${esc(name)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+          ${avImg(name)}
         </div>
         <div class="ib-info">
           <div class="ib-name">${esc(name)}<span class="ib-player">${esc(c?.player || '')}</span></div>
@@ -2931,7 +2946,7 @@ function renderRadarSvg(scores) {
     const anchor = x < cx - 6 ? 'end' : x > cx + 6 ? 'start' : 'middle';
     const dy = y < cy - 6 ? '-0.3em' : y > cy + 6 ? '1em' : '0.35em';
     return `<text x="${x.toFixed(1)}" y="${y.toFixed(1)}" text-anchor="${anchor}" dy="${dy}"
-      font-size="10.5" fill="rgba(60,35,10,0.75)" font-family="Noto Sans TC, sans-serif" font-weight="500">${d.label}</text>`;
+      font-size="10.5" fill="rgba(60,35,10,0.75)" font-family="PingFang TC, Noto Sans TC, Microsoft JhengHei, sans-serif" font-weight="500">${d.label}</text>`;
   }).join('');
 
   return `<svg viewBox="0 0 296 296" width="280" height="280" style="overflow:visible">
@@ -3055,7 +3070,7 @@ function renderCharacters(charName) {
             onclick="renderCharacters('${esc(c.char)}')"
             data-tip="${esc(c.player)} · ${esc(c.class)}">
       <div class="cp-pav av-${esc(c.char)}">
-        <img width="64" height="64" src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+        ${avImg(c.char)}
       </div>
       <span class="cp-pname">${esc(c.char)}</span>
     </button>`).join('');
@@ -3098,7 +3113,7 @@ function renderCharacters(charName) {
     <div class="cp-detail">
       <div class="cp-hero">
         <div class="cp-hero-av av-${esc(c.char)}">
-          <img width="64" height="64" src="data/images/avatars/${esc(c.char)}.webp" alt="" loading="lazy" decoding="async" onerror="this.style.display='none'">
+          ${avImg(c.char)}
         </div>
         <div class="cp-hero-info">
           <div class="cp-char-name">${esc(c.char)}</div>
@@ -3175,7 +3190,7 @@ function resolveChar(name) {
 function makeQuoteWrap(speaker, content, attr) {
   return `<div class="quote-wrap">
     <div class="char-avatar av-${esc(speaker)}" aria-label="${esc(speaker)}" data-tip="${esc(speaker)}">
-      <img width="64" height="64" src="data/images/avatars/${speaker}.webp" alt="" loading="lazy">
+      ${avImg(speaker)}
     </div>
     <blockquote class="char-quote">
       ${renderInline('「' + content + '」')}
@@ -3309,7 +3324,7 @@ function renderStoryNav() {
 
   list.innerHTML = chapters.map((ch, i) => {
     const num = ROMAN[i] || (i + 1);
-    return `<li class="session-item" id="story-nav-${ch.session_id}"
+    return `<li class="session-item" id="story-nav-${ch.session_id}" tabindex="0" role="button"
         onclick="storyScrollTo(${ch.session_id})">
       <div class="item-chapter">第 ${num} 章</div>
       <div class="item-title">${esc(ch.title || '')}</div>
@@ -3346,10 +3361,70 @@ function storyScrollTo(sid) {
   const t = document.getElementById('story-ch-' + sid);
   const sv = document.getElementById('story-view');
   if (t && sv) {
-    const top = t.getBoundingClientRect().top - sv.getBoundingClientRect().top + sv.scrollTop - 24;
-    sv.scrollTo({ top, behavior: 'smooth' });
+    // 先載齊目標章與其之前所有章：上方高度定案後才算位置，避免落點被後補內容推走
+    const upTo = (storyData.chapters || []).filter(ch => ch.session_id <= sid);
+    Promise.all(upTo.map(ch => loadStoryChapter(ch.session_id).catch(() => {}))).then(() => {
+      const top = t.getBoundingClientRect().top - sv.getBoundingClientRect().top + sv.scrollTop - 24;
+      sv.scrollTo({ top, behavior: 'smooth' });
+    });
   }
   if (window.innerWidth <= 720) toggleSidebar();
+}
+
+// ── 故事逐章延遲載入 ──────────────────────────────────────
+const _storyText = {};
+const _storyPromises = {};
+let _storyLoadObserver = null;
+
+function storyParas(text) {
+  return (text || '').split(/\n+/).filter(p => p.trim())
+    .map(p => `<p class="story-para">${esc(p.trim())}</p>`).join('');
+}
+
+function loadStoryChapter(sid) {
+  const fill = text => {
+    const body = document.querySelector(`#story-ch-${sid} .story-body`);
+    if (body && body.classList.contains('story-pending')) {
+      body.classList.remove('story-pending');
+      body.style.minHeight = '';
+      body.innerHTML = storyParas(text);
+    }
+  };
+  if (sid in _storyText) { fill(_storyText[sid]); return Promise.resolve(); }
+  _storyPromises[sid] ||= fetch(`data/story/${sid}.json`)
+    .then(r => {
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    })
+    .then(d => { _storyText[sid] = d.text || ''; })
+    .catch(err => {
+      delete _storyPromises[sid];   // 失敗後允許重試（下次捲到或點目錄時）
+      throw err;
+    });
+  return _storyPromises[sid].then(() => fill(_storyText[sid]));
+}
+
+// 未載入章節的佔位高度：以字數估算（680px 欄寬 ≈ 40 字/行，行高 34px，含段距）
+function storyPlaceholderHeight(chars) {
+  return Math.round(Math.ceil((chars || 0) / 40) * 34 * 1.15);
+}
+
+function observeStoryChapters(chapters) {
+  if (_storyLoadObserver) _storyLoadObserver.disconnect();
+  _storyLoadObserver = new IntersectionObserver((entries, obs) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const sid = +entry.target.dataset.sid;
+      loadStoryChapter(sid).then(() => obs.unobserve(entry.target)).catch(() => {});
+    });
+  }, { root: document.getElementById('story-view'), rootMargin: '0px 0px 1500px 0px' });
+  chapters.forEach(ch => {
+    const el = document.getElementById('story-ch-' + ch.session_id);
+    if (el && !(ch.session_id in _storyText)) {
+      el.dataset.sid = ch.session_id;
+      _storyLoadObserver.observe(el);
+    }
+  });
 }
 
 function renderStory() {
@@ -3376,15 +3451,18 @@ function renderStory() {
     <div class="story-chapters">
       ${chapters.map((ch, i) => {
         const num = ROMAN[i] || (i + 1);
-        const paragraphs = (ch.text || '').split(/\n+/).filter(p => p.trim())
-          .map(p => `<p class="story-para">${esc(p.trim())}</p>`).join('');
+        const loaded = ch.session_id in _storyText;
+        const body = loaded
+          ? `<div class="story-body">${storyParas(_storyText[ch.session_id])}</div>`
+          : `<div class="story-body story-pending" style="min-height:${storyPlaceholderHeight(ch.chars)}px"></div>`;
         return `
           ${i > 0 ? '<div class="story-sep">✦ ✦ ✦</div>' : ''}
           <div class="story-chapter" id="story-ch-${ch.session_id}">
             <div class="story-chapter-eyebrow">第 ${num} 章</div>
             <h2 class="story-chapter-title">${esc(ch.title || '')}</h2>
-            <div class="story-body">${paragraphs}</div>
+            ${body}
           </div>`;
       }).join('')}
     </div>`;
+  observeStoryChapters(chapters);
 }

@@ -1,0 +1,13 @@
+# GitHub Pages（legacy 建置）設定：只部署網站本體，pipeline 檔案不上線。
+# 網站實際用到的只有 index.html / app.js / style.css / s/ / data/ 內前端讀取的檔案。
+# 新增 pipeline 腳本若不是 .py / .sh，記得加進 exclude。
+exclude:
+  - "*.py"
+  - "*.sh"
+  - "*.md"
+  - tests
+  - logs
+  - assets
+  - data/sessions-raw
+  - data/story.json
+  - data/sessions.json

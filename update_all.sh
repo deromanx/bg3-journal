@@ -130,6 +130,9 @@ run python3 normalize_names.py
 # 10.5 每集分享 stub 頁（og 預覽卡；純本地生成，不呼叫 Gemini）
 run python3 gen_share_pages.py
 
+# 10.6 故事集拆檔（story.json → data/story/ 逐章小檔，前端延遲載入用；純本地）
+run python3 gen_story_split.py
+
 # 10.7 Cache busting：app.js / style.css 有變更時自動遞增 index.html 的 ?v=N
 #      （須在 verify_data 之前，其部署產物檢查會驗證 ?v= 已同步）
 for f in style.css app.js; do
