@@ -154,6 +154,11 @@ def main():
 
     matrix, highlights = build_matrix_highlights(new_quotes)
     print(f"\n總計 {len(new_quotes)} 條")
+    # _note 集數跟著 sessions.json 走，免得每集手動改（verify_data 會檢查）
+    n_sessions = len(sessions)
+    roast_stats["_note"] = re.sub(r"分析 \d+ 集", f"分析 {n_sessions} 集",
+                                  roast_stats.get("_note", "")) or \
+        f"靠北統計：分析 {n_sessions} 集日誌，記錄玩家角色間批評/嘲笑/吐槽次數（不含決鬥嘲諷）"
     roast_stats["quotes"]     = new_quotes
     roast_stats["matrix"]     = matrix
     roast_stats["highlights"] = highlights
