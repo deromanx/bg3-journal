@@ -273,7 +273,9 @@ def main():
     try:
         entries = sorted(
             e for e in GOOGLE_DRIVE.iterdir()
-            if e.is_dir() and re.match(r"^\d{8}-", e.name)
+            # 「YYYYMMDD-標題」或純「YYYYMMDD」（標題改取 docx 檔名）；
+            # 「20260915 PARTY」這類空白分隔的非日誌資料夾不算
+            if e.is_dir() and re.match(r"^\d{8}(-|$)", e.name)
         )
     except OSError as e:
         print(f"❌ 無法讀取 Google Drive：{e}")
@@ -288,6 +290,11 @@ def main():
 
         has_pdf   = find_pdf(folder)
         docx_path = find_docx(folder) if has_pdf else None
+        if "-" not in folder.name and docx_path:
+            # 資料夾未命名時，從「YYYYMMDD-標題.docx」取標題（S35 實例）
+            m = re.match(r"^\d{8}-(.+)$", docx_path.stem)
+            if m:
+                title = m.group(1).strip()
         placeholder = not has_pdf
 
         if docx_path:
