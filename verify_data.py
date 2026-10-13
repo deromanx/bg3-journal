@@ -214,6 +214,11 @@ def check_session_sync():
     if str(latest) not in aw and latest not in aw:
         issues.append(f"獎項缺最新第 {latest} 集（awards.json 無此 key），gen_awards.py 可能漏跑")
 
+    # 故事章節：gen_story.py 單集 JSON 解析失敗只印警告不中斷（S35 實例）
+    story = load("story.json", {"chapters": []})
+    if latest not in {c.get("session_id") for c in story.get("chapters", [])}:
+        issues.append(f"故事集缺最新第 {latest} 集（story.json 無此章），重跑 gen_story.py")
+
     # C2. 角色逐集處理進度 marker
     for marker, script in [(".praised_processed.json", "count_praised.py"),
                            (".combat_contrib_processed.json", "count_combat_contrib.py")]:
