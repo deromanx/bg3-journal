@@ -3530,7 +3530,7 @@ const ACTIONS = {
   setRoastPage, setRoastSort, filterRoastQuotes, filterRoastByPair, clearRoastFilter,
   setPraisePage, setPraiseSort, filterPraiseQuotes, clearPraiseFilter,
   ffSetFilter, ffSetSort, ffExpand,
-  renderQuiz, startQuiz, quizAnswer, quizNext, shareQuizScore, shareQuizImage,
+  renderQuiz, startQuiz, quizAnswer, quizNext, shareQuiz,
 };
 // 需要觸發元素本身的 handler（舊寫法傳 this）
 const ACTIONS_WITH_EL = { showDeathCause, toggleCharQuotes };
@@ -3888,8 +3888,7 @@ function renderQuiz() {
         <div class="qz-grid-line" aria-label="答對 ${saved.correct} 題">${saved.grid.map(c => `<i class="${c ? 'ok' : 'ng'}"></i>`).join('')}</div>
         <div class="qz-sub">答對 ${saved.correct} / ${saved.grid.length} 題・${esc(quizRank(saved.score))}</div>
         <div class="qz-actions">
-          <button class="qz-btn" ${act('shareQuizScore')} id="qz-share">${icon('link')} 分享成績</button>
-          <button class="qz-btn qz-btn-ghost" id="qz-img" ${act('shareQuizImage')}>${icon('copy')} 存成圖片</button>
+          <button class="qz-btn" ${act('shareQuiz')} id="qz-share">${icon('link')} 分享成績</button>
           <button class="qz-btn qz-btn-ghost" ${act('startQuiz', true)}>再玩一次（練習，不計分）</button>
         </div>` : `
         <div class="qz-intro-label">本週 ${qs.length} 題</div>
@@ -4024,6 +4023,7 @@ function quizNext() {
   const rec = { score: z.score, correct: z.answers.filter(a => a.ok).length,
                 grid: z.answers.map(a => a.ok), at: Date.now() };
   if (!z.practice) quizSave(z.wk.key, rec);
+  z.lastRec = { ...rec, practice: z.practice };   // 結算頁分享用（練習成績也能分享，會標示練習）
   renderQuizResult(rec);
 }
 
@@ -4041,8 +4041,7 @@ function renderQuizResult(rec) {
       <div class="qz-grid-line qz-grid-anim">${rec.grid.map((c, i) => `<i class="${c ? 'ok' : 'ng'}" style="--i:${i}"></i>`).join('')}</div>
       <div class="qz-sub qz-rank-reveal">答對 ${rec.correct} / ${rec.grid.length} 題・${esc(quizRank(rec.score))}</div>
       <div class="qz-actions">
-        ${z.practice ? '' : `<button class="qz-btn" id="qz-share" ${act('shareQuizScore')}>${icon('link')} 分享成績</button>
-        <button class="qz-btn qz-btn-ghost" id="qz-img" ${act('shareQuizImage')}>${icon('copy')} 存成圖片</button>`}
+        <button class="qz-btn" id="qz-share" ${act('shareQuiz')}>${icon('link')} 分享成績</button>
         <button class="qz-btn qz-btn-ghost" ${act('renderQuiz')}>回到週測首頁</button>
       </div>
     </div>
@@ -4063,41 +4062,20 @@ function renderQuizResult(rec) {
   quizCountUp(document.getElementById('qz-final'), 0, rec.score, 1200);
 }
 
-// 成績分享（Wordle 式文字）：手機叫出系統分享選單，桌機複製到剪貼簿
 // 每週專屬分享頁（gen_share_pages.py 產生 q/YYYY-Www.html），LINE 預覽卡才會顯示週數
 const quizShareUrl = wk => `${location.origin}${location.pathname.replace(/[^/]*$/, '')}q/${wk.key}.html`;
 
 function quizShareText(wk, rec) {
   const url = quizShareUrl(wk);
-  return `柏德之門週測 ${wk.year} 第 ${wk.week} 週\n${rec.grid.map(c => (c ? '🟩' : '🟥')).join('')}\n` +
+  return `柏德之門週測 ${wk.year} 第 ${wk.week} 週${rec.practice ? '（練習）' : ''}\n${rec.grid.map(c => (c ? '🟩' : '🟥')).join('')}\n` +
          `${rec.score.toLocaleString()} 分（答對 ${rec.correct}/${rec.grid.length}）${quizRank(rec.score)}\n${url}`;
 }
 
-function shareQuizScore() {
-  const wk = quizWeek();
-  const rec = quizCurrentRecord();
-  if (!rec) return;
-  const text = quizShareText(wk, rec);
-  const btn = document.getElementById('qz-share');
-  const done = () => {
-    if (!btn) return;
-    btn.textContent = '✓ 已複製，貼到群組吧';
-    setTimeout(() => { btn.innerHTML = `${icon('link')} 分享成績`; }, 1800);
-  };
-  if (navigator.share && matchMedia('(pointer: coarse)').matches) {
-    navigator.share({ text }).catch(() => {});
-  } else if (navigator.clipboard?.writeText) {
-    navigator.clipboard.writeText(text).then(done).catch(() => prompt('複製以下成績：', text));
-  } else {
-    prompt('複製以下成績：', text);
-  }
-}
-
 // ── 成績圖卡（方形 PNG，沿用語錄卡的 canvas 工具）────────────
+// 結算頁分享剛玩完的那一輪（含練習）；週測首頁分享本週正式成績
 function quizCurrentRecord() {
-  const wk = quizWeek();
-  return quizSaved(wk.key) || (_quiz && !_quiz.practice && _quiz.answers.length === _quiz.qs.length && {
-    score: _quiz.score, correct: _quiz.answers.filter(a => a.ok).length, grid: _quiz.answers.map(a => a.ok) });
+  if (_quiz?.lastRec && document.getElementById('qz-final')) return _quiz.lastRec;
+  return quizSaved(quizWeek().key);
 }
 
 async function _qzRenderBlob(wk, rec) {
@@ -4116,7 +4094,7 @@ async function _qzRenderBlob(wk, rec) {
   ctx.fillStyle = crimson; ctx.font = `bold 30px ${FONT}`;
   ctx.fillText('柏 德 之 門 週 測', W / 2, 88);
   ctx.fillStyle = mute; ctx.font = `17px ${FONT}`;
-  ctx.fillText(`${wk.year} 第 ${wk.week} 週　${quizRange(wk)}`, W / 2, 120);
+  ctx.fillText(`${wk.year} 第 ${wk.week} 週　${quizRange(wk)}${rec.practice ? '　練習' : ''}`, W / 2, 120);
 
   ctx.fillStyle = crimson; ctx.font = `bold 108px ${FONT}`;
   const num = rec.score.toLocaleString();
@@ -4173,41 +4151,46 @@ async function _qzRenderBlob(wk, rec) {
   return await new Promise(res => cv.toBlob(res, 'image/png'));
 }
 
-// 手機：系統分享選單（可直接選 LINE）；桌機：複製圖片到剪貼簿；都不行就下載
-async function shareQuizImage() {
+// 分享成績：圖卡＋文字一起送出。
+// 手機：系統分享選單帶圖片與文字（選 LINE 會一起貼上）。
+// 桌機：剪貼簿一次只能貼出一種內容，改為「複製文字＋下載圖片」。
+// 都不支援（舊瀏覽器）：至少分享／複製文字。
+async function shareQuiz() {
   const wk = quizWeek(), rec = quizCurrentRecord();
   if (!rec) return;
-  const btn = document.getElementById('qz-img');
-  const label = `${icon('copy')} 存成圖片`;
-  const flash = t => { if (!btn) return; btn.textContent = t; setTimeout(() => { btn.disabled = false; btn.innerHTML = label; }, 1800); };
+  const text = quizShareText(wk, rec);
+  const btn = document.getElementById('qz-share');
+  const label = `${icon('link')} 分享成績`;
+  const flash = t => { if (!btn) return; btn.textContent = t; setTimeout(() => { btn.disabled = false; btn.innerHTML = label; }, 2200); };
   if (btn) { btn.disabled = true; btn.textContent = '產生中…'; }
-  const name = `柏德之門週測-${wk.key}.png`;
-  const blobP = _qzRenderBlob(wk, rec).then(b => { if (!b) throw new Error('blob 產生失敗'); return b; });
-  try {
-    if (matchMedia('(pointer: coarse)').matches && navigator.canShare) {
-      const file = new File([await blobP], name, { type: 'image/png' });
-      if (navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], text: quizShareText(wk, rec) }).catch(() => {});
-        flash('✓ 已開啟分享');
-        return;
-      }
+  const name = `柏德之門週測-${wk.key}${rec.practice ? '-練習' : ''}.png`;
+  let blob = null;
+  try { blob = await _qzRenderBlob(wk, rec); } catch (_) { /* 圖卡失敗仍分享文字 */ }
+
+  if (matchMedia('(pointer: coarse)').matches && navigator.share) {
+    const file = blob && new File([blob], name, { type: 'image/png' });
+    const data = file && navigator.canShare?.({ files: [file] }) ? { files: [file], text } : { text };
+    try { await navigator.share(data); flash('✓ 已開啟分享'); }
+    catch (e) {
+      if (e?.name !== 'AbortError') flash('分享失敗，請再試一次');
+      else if (btn) { btn.disabled = false; btn.innerHTML = label; }   // 使用者自己關掉分享選單
     }
-    if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
-      try {
-        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blobP })]);
-        flash('✓ 已複製圖片，貼到群組吧');
-        return;
-      } catch (_) { /* 落到下載 */ }
-    }
-    const url = URL.createObjectURL(await blobP);
-    const a = document.createElement('a');
-    a.href = url; a.download = name;
-    document.body.appendChild(a); a.click(); a.remove();
-    URL.revokeObjectURL(url);
-    flash('✓ 已下載');
-  } catch (_) {
-    flash('產生失敗，請再試一次');
+    return;
   }
+
+  let copied = false;
+  try { await navigator.clipboard.writeText(text); copied = true; } catch (_) { /* 下面提示 */ }
+  if (blob) {
+    try {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch (_) { blob = null; }
+  }
+  if (!copied) prompt('複製以下成績：', text);
+  flash(blob ? (copied ? '✓ 已複製文字並下載圖片' : '✓ 已下載圖片') : '✓ 已複製文字');
 }
 
 // 作答中：數字鍵 1–4 選答案，Enter 下一題
