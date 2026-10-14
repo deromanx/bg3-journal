@@ -2965,14 +2965,6 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   margin: 0;
   padding: 0;
 }
-/* 多人來回：氣泡依內容收縮，換人時靠右，形成對話節奏 */
-.dialogue-run.multi .char-quote { flex: 0 1 auto; max-width: calc(100% - 52px); }
-.quote-wrap.side-right { flex-direction: row-reverse; }
-.quote-wrap.side-right .char-quote {
-  border-left: none;
-  border-right: 3px solid var(--accent, rgba(var(--edge-rgb),0.40));
-  border-radius: 4px 0 0 4px;
-}
 .dq-line + .dq-line { margin-top: 6px; }
 /* 前綴敘述（「卡拉克震驚」）：保留情境，字小一級 */
 .dq-lead {

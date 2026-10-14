@@ -3390,8 +3390,8 @@ function parseQuote(text) {
   return null;
 }
 
-// 連續對話收成一段：同一人連續發言合併成一個氣泡（頭像只出現一次），
-// 換人時左右交替，讀起來像來回對話而非一長串等高卡片
+// 連續對話收成一段：同一人連續發言合併成一個氣泡（頭像只出現一次）。
+// 一律靠左（使用者偏好，勿改回左右交替）
 function renderDialogueRun(quotes) {
   const groups = [];
   quotes.forEach(q => {
@@ -3400,11 +3400,10 @@ function renderDialogueRun(quotes) {
     else groups.push({ speaker: q.speaker, lines: [q] });
   });
   const multi = groups.length > 1;
-  const body = groups.map((g, gi) => {
-    const side = multi && gi % 2 === 1 ? ' side-right' : '';
+  const body = groups.map(g => {
     const lines = g.lines.map(q => `
       <div class="dq-line">${q.lead ? `<span class="dq-lead">${esc(q.lead)}</span>` : ''}${renderInline('「' + q.content + '」')}</div>`).join('');
-    return `<div class="quote-wrap${side}">
+    return `<div class="quote-wrap">
     <div class="char-avatar av-${esc(g.speaker)}" aria-hidden="true" data-tip="${esc(g.speaker)}">
       ${avImg(g.speaker)}
     </div>
