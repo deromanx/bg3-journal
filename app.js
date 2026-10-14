@@ -3584,10 +3584,14 @@ function escInject(text, c) {
 // ══════════════════════════════════════════════════════════
 let _storyScrollObserver = null;
 
+// 與日誌列表一致：最新篇章排最上
+const storyChaptersNewestFirst = () =>
+  (storyData.chapters || []).slice().sort((a, b) => b.session_id - a.session_id);
+
 function renderStoryNav() {
   const list = document.getElementById('story-chapter-list');
   if (!list) return;
-  const chapters = (storyData.chapters || []).slice().sort((a, b) => a.session_id - b.session_id);
+  const chapters = storyChaptersNewestFirst();
 
   list.innerHTML = chapters.map(ch => {
     return `<li class="session-item" id="story-nav-${ch.session_id}" tabindex="0" role="button"
@@ -3652,8 +3656,8 @@ function storyScrollTo(sid) {
   const t = document.getElementById('story-ch-' + sid);
   const sv = document.getElementById('story-view');
   if (t && sv) {
-    // 先載齊目標章與其之前所有章：上方高度定案後才算位置，避免落點被後補內容推走
-    const upTo = (storyData.chapters || []).filter(ch => ch.session_id <= sid);
+    // 先載齊目標章與其上方所有章（新到舊排列，上方是集數較大者）：高度定案後才算位置，避免落點被後補內容推走
+    const upTo = (storyData.chapters || []).filter(ch => ch.session_id >= sid);
     Promise.all(upTo.map(ch => loadStoryChapter(ch.session_id).catch(() => {}))).then(() => {
       const top = t.getBoundingClientRect().top - sv.getBoundingClientRect().top + sv.scrollTop - 24;
       sv.scrollTo({ top, behavior: 'smooth' });
@@ -3722,7 +3726,7 @@ function renderStory() {
   const inner = document.getElementById('story-inner');
   if (!inner) return;
 
-  const chapters = (storyData.chapters || []).slice().sort((a, b) => a.session_id - b.session_id);
+  const chapters = storyChaptersNewestFirst();
 
   if (!chapters.length) {
     inner.innerHTML = `
