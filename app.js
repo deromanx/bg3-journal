@@ -3530,7 +3530,7 @@ const ACTIONS = {
   setRoastPage, setRoastSort, filterRoastQuotes, filterRoastByPair, clearRoastFilter,
   setPraisePage, setPraiseSort, filterPraiseQuotes, clearPraiseFilter,
   ffSetFilter, ffSetSort, ffExpand,
-  renderQuiz, startQuiz, quizAnswer, quizNext, shareQuizScore,
+  renderQuiz, startQuiz, quizAnswer, quizNext, shareQuizScore, shareQuizImage,
 };
 // 需要觸發元素本身的 handler（舊寫法傳 this）
 const ACTIONS_WITH_EL = { showDeathCause, toggleCharQuotes };
@@ -3889,6 +3889,7 @@ function renderQuiz() {
         <div class="qz-sub">答對 ${saved.correct} / ${saved.grid.length} 題・${esc(quizRank(saved.score))}</div>
         <div class="qz-actions">
           <button class="qz-btn" ${act('shareQuizScore')} id="qz-share">${icon('link')} 分享成績</button>
+          <button class="qz-btn qz-btn-ghost" id="qz-img" ${act('shareQuizImage')}>${icon('copy')} 存成圖片</button>
           <button class="qz-btn qz-btn-ghost" ${act('startQuiz', true)}>再玩一次（練習，不計分）</button>
         </div>` : `
         <div class="qz-intro-label">本週 ${qs.length} 題</div>
@@ -3903,11 +3904,41 @@ function renderQuiz() {
     </div>`;
 }
 
+const QUIZ_COUNTDOWN_MS = 700;   // 開場 3、2、1 每拍長度
+const quizReduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 function startQuiz(practice) {
   const wk = quizWeek();
-  _quiz = { wk, qs: pickWeeklyQuiz(quizBank, wk), i: 0, answers: [], score: 0, streak: 0,
-            practice: !!practice || !!quizSaved(wk.key) };
-  renderQuizQuestion();
+  const z = _quiz = { wk, qs: pickWeeklyQuiz(quizBank, wk), i: 0, answers: [], score: 0, streak: 0,
+                      practice: !!practice || !!quizSaved(wk.key) };
+  if (quizReduceMotion()) { renderQuizQuestion(); return; }
+  const inner = document.getElementById('quiz-inner');
+  inner.innerHTML = '<div class="qz-countdown" aria-live="assertive"><span>3</span></div>';
+  const el = inner.querySelector('.qz-countdown span');
+  let n = 3;
+  _quizTimer = setInterval(() => {
+    if (_quiz !== z) { quizStopTimer(); return; }
+    if (--n > 0) {
+      el.textContent = n;
+      el.style.animation = 'none'; void el.offsetHeight; el.style.animation = '';   // 重播放大動畫
+    } else {
+      renderQuizQuestion();   // 內部會先停掉倒數計時器
+    }
+  }, QUIZ_COUNTDOWN_MS);
+}
+
+// 數字滾動（分數累加、結算）；減少動態時直接顯示終值
+function quizCountUp(el, from, to, ms, fmt = v => v.toLocaleString()) {
+  if (!el) return;
+  if (quizReduceMotion() || from === to) { el.textContent = fmt(to); return; }
+  const t0 = performance.now();
+  const step = now => {
+    const p = Math.min((now - t0) / ms, 1);
+    const eased = 1 - Math.pow(1 - p, 3);
+    el.textContent = fmt(Math.round(from + (to - from) * eased));
+    if (p < 1 && document.contains(el)) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
 }
 
 function renderQuizQuestion() {
@@ -3921,7 +3952,7 @@ function renderQuizQuestion() {
       <div class="qz-top">
         <span class="qz-progress">${z.i + 1} / ${z.qs.length}</span>
         <span class="qz-kind">${esc(QUIZ_KIND_LABEL[q.kind] || '')}</span>
-        <span class="qz-score">${z.score.toLocaleString()} 分${z.practice ? '・練習' : ''}</span>
+        <span class="qz-score"><b id="qz-score-n">${z.score.toLocaleString()}</b> 分${z.practice ? '・練習' : ''}</span>
       </div>
       <div class="qz-timer" role="progressbar" aria-label="剩餘時間"><div class="qz-timer-bar" id="qz-bar"></div><span id="qz-sec">${limit}</span></div>
       <h2 class="qz-q">${esc(q.q)}</h2>
@@ -3966,6 +3997,7 @@ function quizAnswer(n) {
   } else {
     z.streak = 0;
   }
+  const before = z.score;
   z.score += pts + bonus;
   z.answers.push({ id: q.id, pick: n, ok, pts: pts + bonus });
 
@@ -3975,13 +4007,13 @@ function quizAnswer(n) {
     b.classList.add(k === q.answer ? 'is-right' : k === n ? 'is-wrong' : 'is-dim');
   });
   const last = z.i === z.qs.length - 1;
-  const msg = ok ? `答對！+${pts}${bonus ? `<small>連對 ${z.streak} 題 +${bonus}</small>` : ''}`
+  const msg = ok ? `答對！<span class="qz-gain">+${pts}</span>${bonus ? `<small>連對 ${z.streak} 題 +${bonus}</small>` : ''}`
                  : n < 0 ? '時間到' : '答錯了';
   document.getElementById('qz-reveal').innerHTML = `
     <div class="qz-verdict ${ok ? 'ok' : 'ng'}">${msg}</div>
     ${q.source ? `<div class="qz-source"><span>${esc(chapterOf(q.sid))}</span>${esc(q.source)}</div>` : ''}
     <button class="qz-btn" id="qz-next" ${act('quizNext')}>${last ? '看成績' : '下一題'}</button>`;
-  document.querySelector('.qz-score').textContent = `${z.score.toLocaleString()} 分${z.practice ? '・練習' : ''}`;
+  quizCountUp(document.getElementById('qz-score-n'), before, z.score, 600);
   document.getElementById('qz-next').focus({ preventScroll: true });
 }
 
@@ -4005,11 +4037,12 @@ function renderQuizResult(rec) {
     </div>
     <div class="qz-card qz-intro">
       <div class="qz-intro-label">${z.practice ? '練習成績（不計入本週成績）' : '本週成績'}</div>
-      <div class="qz-big">${rec.score.toLocaleString()}<span>分</span></div>
-      <div class="qz-grid-line">${rec.grid.map(c => `<i class="${c ? 'ok' : 'ng'}"></i>`).join('')}</div>
-      <div class="qz-sub">答對 ${rec.correct} / ${rec.grid.length} 題・${esc(quizRank(rec.score))}</div>
+      <div class="qz-big"><b id="qz-final">0</b><span>分</span></div>
+      <div class="qz-grid-line qz-grid-anim">${rec.grid.map((c, i) => `<i class="${c ? 'ok' : 'ng'}" style="--i:${i}"></i>`).join('')}</div>
+      <div class="qz-sub qz-rank-reveal">答對 ${rec.correct} / ${rec.grid.length} 題・${esc(quizRank(rec.score))}</div>
       <div class="qz-actions">
-        ${z.practice ? '' : `<button class="qz-btn" id="qz-share" ${act('shareQuizScore')}>${icon('link')} 分享成績</button>`}
+        ${z.practice ? '' : `<button class="qz-btn" id="qz-share" ${act('shareQuizScore')}>${icon('link')} 分享成績</button>
+        <button class="qz-btn qz-btn-ghost" id="qz-img" ${act('shareQuizImage')}>${icon('copy')} 存成圖片</button>`}
         <button class="qz-btn qz-btn-ghost" ${act('renderQuiz')}>回到週測首頁</button>
       </div>
     </div>
@@ -4027,19 +4060,22 @@ function renderQuizResult(rec) {
       }).join('')}
     </div>`;
   document.getElementById('quiz-view').scrollTop = 0;
+  quizCountUp(document.getElementById('qz-final'), 0, rec.score, 1200);
 }
 
 // 成績分享（Wordle 式文字）：手機叫出系統分享選單，桌機複製到剪貼簿
+// 每週專屬分享頁（gen_share_pages.py 產生 q/YYYY-Www.html），LINE 預覽卡才會顯示週數
+const quizShareUrl = wk => `${location.origin}${location.pathname.replace(/[^/]*$/, '')}q/${wk.key}.html`;
+
 function quizShareText(wk, rec) {
-  const url = `${location.origin}${location.pathname}#quiz`;
+  const url = quizShareUrl(wk);
   return `柏德之門週測 ${wk.year} 第 ${wk.week} 週\n${rec.grid.map(c => (c ? '🟩' : '🟥')).join('')}\n` +
          `${rec.score.toLocaleString()} 分（答對 ${rec.correct}/${rec.grid.length}）${quizRank(rec.score)}\n${url}`;
 }
 
 function shareQuizScore() {
   const wk = quizWeek();
-  const rec = quizSaved(wk.key) || (_quiz && !_quiz.practice && {
-    score: _quiz.score, correct: _quiz.answers.filter(a => a.ok).length, grid: _quiz.answers.map(a => a.ok) });
+  const rec = quizCurrentRecord();
   if (!rec) return;
   const text = quizShareText(wk, rec);
   const btn = document.getElementById('qz-share');
@@ -4054,6 +4090,123 @@ function shareQuizScore() {
     navigator.clipboard.writeText(text).then(done).catch(() => prompt('複製以下成績：', text));
   } else {
     prompt('複製以下成績：', text);
+  }
+}
+
+// ── 成績圖卡（方形 PNG，沿用語錄卡的 canvas 工具）────────────
+function quizCurrentRecord() {
+  const wk = quizWeek();
+  return quizSaved(wk.key) || (_quiz && !_quiz.practice && _quiz.answers.length === _quiz.qs.length && {
+    score: _quiz.score, correct: _quiz.answers.filter(a => a.ok).length, grid: _quiz.answers.map(a => a.ok) });
+}
+
+async function _qzRenderBlob(wk, rec) {
+  const FONT = '"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif';
+  const crimson = '#7a1515', ink = '#3a3226', mute = '#8a7d63', rule = '#e2d6b4';
+  const W = 680, SCALE = 2;
+  const cv = document.createElement('canvas');
+  cv.width = W * SCALE; cv.height = W * SCALE;
+  const ctx = cv.getContext('2d');
+  ctx.scale(SCALE, SCALE);
+  ctx.fillStyle = '#f6efdd'; ctx.fillRect(0, 0, W, W);
+  ctx.strokeStyle = '#d9c89b'; ctx.lineWidth = 2; ctx.strokeRect(1, 1, W - 2, W - 2);
+  ctx.strokeStyle = rule; ctx.lineWidth = 1; ctx.strokeRect(16, 16, W - 32, W - 32);
+  ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+
+  ctx.fillStyle = crimson; ctx.font = `bold 30px ${FONT}`;
+  ctx.fillText('柏 德 之 門 週 測', W / 2, 88);
+  ctx.fillStyle = mute; ctx.font = `17px ${FONT}`;
+  ctx.fillText(`${wk.year} 第 ${wk.week} 週　${quizRange(wk)}`, W / 2, 120);
+
+  ctx.fillStyle = crimson; ctx.font = `bold 108px ${FONT}`;
+  const num = rec.score.toLocaleString();
+  const numW = ctx.measureText(num).width;
+  ctx.font = `bold 28px ${FONT}`;
+  const unitW = ctx.measureText(' 分').width;
+  const x0 = W / 2 - (numW + unitW) / 2;
+  ctx.textAlign = 'left';
+  ctx.font = `bold 108px ${FONT}`; ctx.fillText(num, x0, 262);
+  ctx.fillStyle = ink; ctx.font = `bold 28px ${FONT}`; ctx.fillText(' 分', x0 + numW, 262);
+  ctx.textAlign = 'center';
+
+  ctx.fillStyle = ink; ctx.font = `bold 26px ${FONT}`;
+  ctx.fillText(quizRank(rec.score), W / 2, 318);
+
+  // 對錯格子
+  const SQ = 40, GAP = 10, n = rec.grid.length;
+  let gx = W / 2 - (n * SQ + (n - 1) * GAP) / 2;
+  rec.grid.forEach(ok => {
+    ctx.fillStyle = ok ? '#3d6b35' : '#8a2a2a';
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(gx, 352, SQ, SQ, 4) : ctx.rect(gx, 352, SQ, SQ);
+    ctx.fill();
+    gx += SQ + GAP;
+  });
+  ctx.fillStyle = mute; ctx.font = `18px ${FONT}`;
+  ctx.fillText(`答對 ${rec.correct} / ${n} 題`, W / 2, 428);
+
+  // 隊伍頭像列（裝飾）
+  const AV = 56, AGAP = 18;
+  let ax = W / 2 - (CHAR_ORDER.length * AV + (CHAR_ORDER.length - 1) * AGAP) / 2 + AV / 2;
+  for (const c of CHAR_ORDER) {
+    const cy = 500;
+    try {
+      const img = await _qmLoadImg(`data/images/avatars/${c}.webp`);
+      ctx.save();
+      ctx.beginPath(); ctx.arc(ax, cy, AV / 2, 0, Math.PI * 2); ctx.clip();
+      const k = Math.max(AV / img.width, AV / img.height);
+      ctx.drawImage(img, ax - img.width * k / 2, cy - img.height * k / 2, img.width * k, img.height * k);
+      ctx.restore();
+    } catch (_) {
+      ctx.fillStyle = '#cdbf99'; ctx.beginPath(); ctx.arc(ax, cy, AV / 2, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.beginPath(); ctx.arc(ax, cy, AV / 2, 0, Math.PI * 2);
+    ctx.lineWidth = 2; ctx.strokeStyle = charColor(c) || '#a6492f'; ctx.stroke();
+    ax += AV + AGAP;
+  }
+
+  ctx.strokeStyle = rule; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(56, 572); ctx.lineTo(W - 56, 572); ctx.stroke();
+  ctx.fillStyle = mute; ctx.font = `16px ${FONT}`;
+  ctx.fillText('前進柏德之門・冒險日誌　deromanx.github.io/bg3-journal', W / 2, 610);
+
+  return await new Promise(res => cv.toBlob(res, 'image/png'));
+}
+
+// 手機：系統分享選單（可直接選 LINE）；桌機：複製圖片到剪貼簿；都不行就下載
+async function shareQuizImage() {
+  const wk = quizWeek(), rec = quizCurrentRecord();
+  if (!rec) return;
+  const btn = document.getElementById('qz-img');
+  const label = `${icon('copy')} 存成圖片`;
+  const flash = t => { if (!btn) return; btn.textContent = t; setTimeout(() => { btn.disabled = false; btn.innerHTML = label; }, 1800); };
+  if (btn) { btn.disabled = true; btn.textContent = '產生中…'; }
+  const name = `柏德之門週測-${wk.key}.png`;
+  const blobP = _qzRenderBlob(wk, rec).then(b => { if (!b) throw new Error('blob 產生失敗'); return b; });
+  try {
+    if (matchMedia('(pointer: coarse)').matches && navigator.canShare) {
+      const file = new File([await blobP], name, { type: 'image/png' });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], text: quizShareText(wk, rec) }).catch(() => {});
+        flash('✓ 已開啟分享');
+        return;
+      }
+    }
+    if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
+      try {
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blobP })]);
+        flash('✓ 已複製圖片，貼到群組吧');
+        return;
+      } catch (_) { /* 落到下載 */ }
+    }
+    const url = URL.createObjectURL(await blobP);
+    const a = document.createElement('a');
+    a.href = url; a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+    flash('✓ 已下載');
+  } catch (_) {
+    flash('產生失敗，請再試一次');
   }
 }
 

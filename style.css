@@ -5180,6 +5180,49 @@ a:focus-visible {
   .qz-q { font-size: var(--fs-6); margin: 24px 0 16px; }
   .qz-card { padding: 24px 16px; }
 }
+/* ── 週測動畫（減少動態時全部關閉）── */
+.qz-countdown {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+}
+.qz-countdown span {
+  font-family: var(--font-title);
+  font-size: var(--fs-d5);
+  color: var(--crimson);
+  animation: qz-count 0.7s ease-out both;
+}
+@keyframes qz-count {
+  0%   { transform: scale(1.8); opacity: 0; }
+  35%  { transform: scale(1);   opacity: 1; }
+  100% { transform: scale(0.9); opacity: 0.15; }
+}
+.qz-play .qz-q, .qz-play .qz-opt { animation: qz-rise 0.3s ease-out both; }
+.qz-play .qz-opt:nth-child(2) { animation-delay: 0.04s; }
+.qz-play .qz-opt:nth-child(3) { animation-delay: 0.08s; }
+.qz-play .qz-opt:nth-child(4) { animation-delay: 0.12s; }
+@keyframes qz-rise { from { transform: translateY(8px); opacity: 0; } to { transform: none; opacity: 1; } }
+.qz-opt.is-right { animation: qz-pop 0.4s ease-out; }
+.qz-opt.is-wrong { animation: qz-shake 0.4s ease-in-out; }
+@keyframes qz-pop { 0% { transform: scale(1); } 40% { transform: scale(1.05); } 100% { transform: scale(1); } }
+@keyframes qz-shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); } 40% { transform: translateX(6px); }
+  60% { transform: translateX(-4px); } 80% { transform: translateX(4px); }
+}
+.qz-verdict { animation: qz-verdict 0.35s ease-out both; }
+@keyframes qz-verdict { from { transform: scale(0.6); opacity: 0; } to { transform: none; opacity: 1; } }
+.qz-gain { display: inline-block; animation: qz-gain 0.6s ease-out both 0.1s; }
+@keyframes qz-gain { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+.qz-timer-bar.low { animation: qz-pulse 0.5s ease-in-out infinite alternate; }
+@keyframes qz-pulse { from { opacity: 1; } to { opacity: 0.45; } }
+.qz-grid-anim i { animation: qz-tile 0.3s ease-out both; animation-delay: calc(var(--i) * 0.09s + 0.2s); }
+@keyframes qz-tile { from { transform: scale(0); } 70% { transform: scale(1.2); } to { transform: scale(1); } }
+.qz-rank-reveal { animation: qz-rise 0.4s ease-out both 1.2s; }
+
 @media (prefers-reduced-motion: reduce) {
   .qz-timer-bar, .qz-opt { transition: none; }
+  .qz-countdown span, .qz-play .qz-q, .qz-play .qz-opt, .qz-opt.is-right, .qz-opt.is-wrong,
+  .qz-verdict, .qz-gain, .qz-timer-bar.low, .qz-grid-anim i, .qz-rank-reveal { animation: none; }
 }
