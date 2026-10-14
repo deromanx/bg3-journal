@@ -19,9 +19,31 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/webp" href="data/images/avatars/卡拉克.webp">
   <link rel="apple-touch-icon" sizes="180x180" href="data/images/apple-touch-icon.png">
-  <link rel="stylesheet" href="style.css?v=21">
+  <link rel="stylesheet" href="style.css?v=22">
 </head>
 <body>
+
+  <!-- 介面圖示（單色線條，跟隨文字色）：JS 以 icon(name) 引用，HTML 以 <use href="#i-name"> 引用 -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+    <symbol id="i-journal" viewBox="0 0 24 24"><path d="M2 4h6a4 4 0 0 1 4 4v13a3 3 0 0 0-3-3H2z"/><path d="M22 4h-6a4 4 0 0 0-4 4v13a3 3 0 0 1 3-3h7z"/></symbol>
+    <symbol id="i-party" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+    <symbol id="i-stats" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="M1 6v16l7-4 8 4 7-4V2l-7 4-8-4z"/><path d="M8 2v16"/><path d="M16 6v16"/></symbol>
+    <symbol id="i-tome" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/><path d="M9 7h7"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></symbol>
+    <symbol id="i-skull" viewBox="0 0 24 24"><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/><path d="M8 20v2h8v-2"/><path d="M12.5 17l-.5-1-.5 1z"/><path d="M16 20a2 2 0 0 0 1.56-3.25 8 8 0 1 0-11.12 0A2 2 0 0 0 8 20"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0z"/></symbol>
+    <symbol id="i-swords" viewBox="0 0 24 24"><path d="M14.5 17.5L3 6V3h3l11.5 11.5"/><path d="M13 19l6-6"/><path d="M16 16l4 4"/><path d="M19 21l2-2"/><path d="M14.5 6.5L18 3h3v3l-3.5 3.5"/><path d="M5 14l4 4"/><path d="M7 17l-3 3"/><path d="M3 19l2 2"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22z"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/></symbol>
+    <symbol id="i-trend" viewBox="0 0 24 24"><path d="M22 7l-8.5 8.5-5-5L2 17"/><path d="M16 7h6v6"/></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></symbol>
+    <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M16.24 7.76l-2.12 6.36-6.36 2.12 2.12-6.36z"/></symbol>
+    <symbol id="i-web" viewBox="0 0 24 24"><path d="M12 2l8.66 5v10L12 22l-8.66-5V7z"/><path d="M12 2v20"/><path d="M3.34 7l17.32 10"/><path d="M20.66 7L3.34 17"/><path d="M12 7l4.33 2.5v5L12 17l-4.33-2.5v-5z"/></symbol>
+    <symbol id="i-scroll" viewBox="0 0 24 24"><path d="M8 21h12a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M10 8h6"/><path d="M10 12h6"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="14" height="14" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></symbol>
+    <symbol id="i-wheel" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2"/><path d="M12 3v7"/><path d="M12 14v7"/><path d="M3 12h7"/><path d="M14 12h7"/><path d="M5.6 5.6l5 5"/><path d="M13.4 13.4l5 5"/><path d="M18.4 5.6l-5 5"/><path d="M10.6 13.4l-5 5"/></symbol>
+  </svg>
 
 <div id="app">
 
@@ -54,19 +76,19 @@
     <!-- ── 頁面切換 Tab ───────────────────────────── -->
     <div id="sidebar-tabs">
       <button class="stab active" data-view="journal" data-act="showView" data-args='["journal"]'>
-        <span class="stab-icon">📖</span><span class="stab-label">日誌</span>
+        <span class="stab-icon"><svg class="ico" aria-hidden="true"><use href="#i-journal"/></svg></span><span class="stab-label">日誌</span>
       </button>
       <button class="stab" data-view="characters" data-act="showView" data-args='["characters"]'>
-        <span class="stab-icon">👤</span><span class="stab-label">冒險隊伍</span>
+        <span class="stab-icon"><svg class="ico" aria-hidden="true"><use href="#i-party"/></svg></span><span class="stab-label">冒險隊伍</span>
       </button>
       <button class="stab" data-view="stats" data-act="showView" data-args='["stats"]'>
-        <span class="stab-icon">📊</span><span class="stab-label">統計</span>
+        <span class="stab-icon"><svg class="ico" aria-hidden="true"><use href="#i-stats"/></svg></span><span class="stab-label">統計</span>
       </button>
       <button class="stab" data-view="milestones" data-act="showView" data-args='["milestones"]'>
-        <span class="stab-icon">🗺</span><span class="stab-label">里程碑</span>
+        <span class="stab-icon"><svg class="ico" aria-hidden="true"><use href="#i-map"/></svg></span><span class="stab-label">里程碑</span>
       </button>
       <button class="stab" data-view="story" data-act="showView" data-args='["story"]'>
-        <span class="stab-icon">📕</span><span class="stab-label">瓦羅的故事集</span>
+        <span class="stab-icon"><svg class="ico" aria-hidden="true"><use href="#i-tome"/></svg></span><span class="stab-label">瓦羅的故事集</span>
       </button>
     </div>
 
@@ -87,7 +109,7 @@
     </div>
 
     <div class="sidebar-footer">
-      <span class="footer-rune">⚔ ✦ ⚔</span>
+      <span class="footer-rune">⚔︎ ✦ ⚔︎</span>
     </div>
   </aside>
 
@@ -136,7 +158,7 @@
           <div class="cast-roles">影心 · 阿斯代倫 · 曹 · 卡拉克 · 貓咕咕</div>
         </div>
         <button class="welcome-cta" data-act="loadLatestSession">
-          <span class="cta-arrow">⚔</span> 開始閱讀冒險日誌
+          <span class="cta-arrow">⚔︎</span> 開始閱讀冒險日誌
         </button>
         <p id="welcome-latest" class="welcome-latest"></p>
         <p class="welcome-hint">或從左側選擇章節</p>
@@ -155,8 +177,8 @@
           <span class="rule-line"></span>
         </div>
         <div class="header-actions">
-          <button id="share-btn" class="header-action hidden" data-act="shareSession" title="分享本集連結">🔗 分享本集</button>
-          <button id="story-link-btn" class="header-action hidden" data-act="openStoryFromSession" title="閱讀本集的小說改寫版">📕 小說版</button>
+          <button id="share-btn" class="header-action hidden" data-act="shareSession" title="分享本集連結"><svg class="ico" aria-hidden="true"><use href="#i-link"/></svg> 分享本集</button>
+          <button id="story-link-btn" class="header-action hidden" data-act="openStoryFromSession" title="閱讀本集的小說改寫版"><svg class="ico" aria-hidden="true"><use href="#i-tome"/></svg> 小說版</button>
         </div>
       </header>
 
@@ -172,7 +194,7 @@
           <span class="sf-title" id="sf-prev-title"></span>
         </button>
         <div class="sf-center">
-          <div class="sf-ornament">⚔</div>
+          <div class="sf-ornament">⚔︎</div>
           <div class="sf-progress" id="footer-progress"></div>
         </div>
         <button class="sf-card sf-next" id="next-btn" data-act="navigateSession" data-args="[1]">
@@ -207,6 +229,6 @@
 
 </div>
 
-<script src="app.js?v=24"></script>
+<script src="app.js?v=25"></script>
 </body>
 </html>

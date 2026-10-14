@@ -241,7 +241,7 @@ function shareSession() {
   const btn = document.getElementById('share-btn');
   const done = () => {
     btn.textContent = '✓ 已複製連結';
-    setTimeout(() => { btn.textContent = '🔗 分享本集'; }, 1600);
+    setTimeout(() => { btn.innerHTML = `${icon('link')} 分享本集`; }, 1600);
   };
   if (navigator.clipboard?.writeText) {
     navigator.clipboard.writeText(url).then(done).catch(() => prompt('複製此連結：', url));
@@ -404,20 +404,20 @@ function renderAwardCard(sessionId) {
   const items = [
     award.mvp ? `
       <div class="aw-item">
-        ${mvpChar ? awAvatar(mvpChar) : '<span class="aw-icon">🏆</span>'}
+        ${mvpChar ? awAvatar(mvpChar) : `<span class="aw-icon">${icon('trophy')}</span>`}
         <span class="aw-key">MVP</span>
         <span class="aw-val">${esc(award.mvp)}</span>
         ${award.mvp_reason ? `<span class="aw-sub">${esc(award.mvp_reason)}</span>` : ''}
       </div>` : '',
     award.best_quote ? `
       <div class="aw-item">
-        ${quoteChar ? awAvatar(quoteChar) : '<span class="aw-icon">💬</span>'}
+        ${quoteChar ? awAvatar(quoteChar) : `<span class="aw-icon">${icon('chat')}</span>`}
         <span class="aw-key">最佳金句</span>
         <span class="aw-val aw-quote">「${esc(award.best_quote)}」</span>
       </div>` : '',
     award.worst_moment ? `
       <div class="aw-item">
-        <span class="aw-icon">💀</span>
+        <span class="aw-icon">${icon('skull')}</span>
         <span class="aw-key">最慘時刻</span>
         <span class="aw-val">${esc(award.worst_moment)}</span>
       </div>` : '',
@@ -454,11 +454,11 @@ function renderSessionStatsRow(sessionId) {
   const fallenNum = st.downed ? `${st.deaths}<small>＋${st.downed} 倒地</small>` : st.deaths;
   const fallenAria = st.downed ? `${st.deaths} 次、倒地 ${st.downed} 次` : `${st.deaths} 次`;
   row.innerHTML = [
-    pill('☠', '陣亡', fallenNum, st.deaths + st.downed ? fallenAria : '0 次', 'stat-death', fallenTip),
-    pill('⚔', '決鬥', st.duels.length, `${st.duels.length} 場`, 'stat-duel', duelTip),
-    pill('💬', '靠北', st.roasts, `${st.roasts} 次`, 'stat-roast'),
-    pill('🌟', '稱讚', st.praises, `${st.praises} 次`, 'stat-praise'),
-    pill('🔥', '友傷', st.ff, `${st.ff} 次`, 'stat-ff'),
+    pill(icon('skull'), '陣亡', fallenNum, st.deaths + st.downed ? fallenAria : '0 次', 'stat-death', fallenTip),
+    pill(icon('swords'), '決鬥', st.duels.length, `${st.duels.length} 場`, 'stat-duel', duelTip),
+    pill(icon('chat'), '靠北', st.roasts, `${st.roasts} 次`, 'stat-roast'),
+    pill(icon('star'), '稱讚', st.praises, `${st.praises} 次`, 'stat-praise'),
+    pill(icon('flame'), '友傷', st.ff, `${st.ff} 次`, 'stat-ff'),
   ].join('');
 }
 
@@ -734,9 +734,9 @@ function renderDeathTimeline(chars) {
   const lanes = rows.map(r => {
     const dots = Object.entries(r.bySession).map(([sid, causes]) => {
       const s = +sid;
-      const tip = `第${s}集\n` + causes.map(x => '☠ ' + x).join('\n');
+      const tip = `第${s}集\n` + causes.map(x => '・' + x).join('\n');
       const cap = `<span class="dtl-cap-who">${esc(r.char)}</span><span class="dtl-cap-sid">S${s}</span>` +
-                  causes.map(x => `<span class="dtl-cap-cause">☠ ${esc(x)}</span>`).join('');
+                  causes.map(x => `<span class="dtl-cap-cause">${icon('skull')} ${esc(x)}</span>`).join('');
       const multi = causes.length > 1;
       return `<button class="swim-dot${multi ? ' swim-dot-multi' : ''}" style="left:${xOf(s).toFixed(2)}%"
                  data-tip="${esc(tip)}" data-cap="${esc(cap)}" ${act('showDeathCause')}
@@ -764,7 +764,7 @@ function renderDeathTimeline(chars) {
         <div class="swim-lane swim-axis-row"><span class="swim-name"></span><div class="swim-track">${axisHtml}</div></div>
         ${lanes}
       </div>
-      <div class="dtl-caption" id="dtl-caption"><span class="dtl-cap-hint">👆 點圓點看死因，圓點越大＝該集死越多次</span></div>
+      <div class="dtl-caption" id="dtl-caption"><span class="dtl-cap-hint">點圓點看死因，圓點越大＝該集死越多次</span></div>
     </div>`;
 }
 
@@ -819,7 +819,7 @@ function renderStats() {
           <span class="dc-char">${esc(c.char)}</span>
           <span class="dc-player">${esc(c.player)}</span>
         </div>
-        <div class="dc-skull">☠</div>
+        <div class="dc-skull">${icon('skull')}</div>
         <div class="dc-count">${c.deaths}</div>
         <div class="dc-unit">次陣亡</div>
         ${c.downed ? `<div class="dc-downed" title="僅計日誌明確記載的倒地，實際次數遠多於此">另有 ${c.downed} 次倒地紀錄</div>` : ''}
@@ -974,37 +974,37 @@ function renderStats() {
 
     <nav class="stats-jumpnav" aria-label="統計區塊">
       ${[
-        ['stat-death', '☠ 死亡'],
-        ffSection ? ['stat-ff', '🔥 友傷'] : null,
-        ['stat-mvp', '🏆 MVP'],
-        duelRows ? ['stat-duel', '⚔ 決鬥'] : null,
-        ['stat-roast', '💬 靠北'],
-        ['stat-praise', '🌟 稱讚'],
-        ['stat-activity', '📈 活躍度'],
-      ].filter(Boolean).map(([id, label]) =>
-        `<button class="sjn-btn" data-target="${id}" ${act('scrollToStat', id)}>${label}</button>`).join('')}
+        ['stat-death', 'skull', '死亡'],
+        ffSection ? ['stat-ff', 'flame', '友傷'] : null,
+        ['stat-mvp', 'trophy', 'MVP'],
+        duelRows ? ['stat-duel', 'swords', '決鬥'] : null,
+        ['stat-roast', 'chat', '靠北'],
+        ['stat-praise', 'star', '稱讚'],
+        ['stat-activity', 'trend', '活躍度'],
+      ].filter(Boolean).map(([id, ic, label]) =>
+        `<button class="sjn-btn" data-target="${id}" ${act('scrollToStat', id)}>${icon(ic)} ${label}</button>`).join('')}
     </nav>
 
     <div class="hero-stats-row">
       <div class="hero-stat">
-        <div class="hero-icon">⚔</div>
+        <div class="hero-icon">${icon('swords')}</div>
         <div class="hero-num" data-count="${base.count}">0</div>
         <div class="hero-label">場冒險</div>
       </div>
       <div class="hero-sep">✦</div>
       <div class="hero-stat">
-        <div class="hero-icon">🧭</div>
+        <div class="hero-icon">${icon('compass')}</div>
         <div class="hero-num" data-count="${base.weeks}">0</div>
         <div class="hero-label">冒險週數</div>
       </div>
     </div>
 
     <div class="stat-group" id="stat-death">
-      <div class="stat-group-title">☠ 死亡紀錄</div>
+      <div class="stat-group-title">${icon('skull')} 死亡紀錄</div>
       <div class="stats-section">
         <div class="stats-section-title-row">
           <div class="stats-section-title">各角色死亡次數</div>
-          <button class="dro-trigger" ${act('openDeathRoulette')} title="隨機抽一句死法">🎰 死法輪盤</button>
+          <button class="dro-trigger" ${act('openDeathRoulette')} title="隨機抽一句死法">${icon('wheel')} 死法輪盤</button>
         </div>
         <div class="death-grid">${deathCards}</div>
       </div>
@@ -1013,7 +1013,7 @@ function renderStats() {
     </div>
 
     <div class="stat-group" id="stat-mvp">
-      <div class="stat-group-title">🏆 MVP 排行</div>
+      <div class="stat-group-title">${icon('trophy')} MVP 排行</div>
       <div class="stats-section">
         <div class="stats-section-title">各集 MVP 獲選次數</div>
         <div class="duel-board">${mvpRows}</div>
@@ -1022,7 +1022,7 @@ function renderStats() {
 
     ${duelRows ? `
     <div class="stat-group" id="stat-duel">
-      <div class="stat-group-title">⚔ 決鬥統計</div>
+      <div class="stat-group-title">${icon('swords')} 決鬥統計</div>
       <div class="stats-section">
         <div class="stats-section-title">決鬥戰績排行</div>
         <div class="duel-board">${duelRows}</div>
@@ -1037,17 +1037,17 @@ function renderStats() {
     </div>` : ''}
 
     <div class="stat-group" id="stat-roast">
-      <div class="stat-group-title">💬 靠北統計</div>
+      <div class="stat-group-title">${icon('chat')} 靠北統計</div>
       ${renderRoastSection()}
     </div>
 
     <div class="stat-group" id="stat-praise">
-      <div class="stat-group-title">🌟 稱讚統計</div>
+      <div class="stat-group-title">${icon('star')} 稱讚統計</div>
       ${renderPraiseSection()}
     </div>
 
     <div class="stat-group" id="stat-activity">
-      <div class="stat-group-title">📈 角色活躍度</div>
+      <div class="stat-group-title">${icon('trend')} 角色活躍度</div>
       ${renderGrowthGrid(chars)}
     </div>`;
 
@@ -1232,7 +1232,7 @@ function renderFriendlyFire() {
 
   return `
     <div class="stats-section" id="stat-ff">
-      <div class="stats-section-title">⚔️ 友軍傷害榜</div>
+      <div class="stats-section-title">${icon('flame')} 友軍傷害榜</div>
       <div class="ff-ranking">
         <div class="ff-ranking-col">
           <div class="ff-ranking-label">最愛打人</div>
@@ -1541,7 +1541,7 @@ function _quoteModalInit(kind) {
       <div class="${pfx}-divider"></div>
       <div class="${pfx}-desc" id="${pfx}-desc"></div>
       <div class="qm-actions">
-        <button class="qm-copy" ${act('copyQuoteImage', kind)} title="複製成圖片，方便分享">📋 複製圖片</button>
+        <button class="qm-copy" ${act('copyQuoteImage', kind)} title="複製成圖片，方便分享">${icon('copy')} 複製圖片</button>
       </div>
     </div>`;
   el.addEventListener('click', e => { if (e.target === el) closeQuoteModal(kind); });
@@ -1601,10 +1601,20 @@ function closeQuoteModal(kind) {
 }
 
 // ── 死法輪盤 Modal（角色 death_notes 隨機抽一句，真圓盤旋轉） ──
-// 各角色色系取自 style.css 的 .av-{char} 邊框色，與全站頭像色一致
-const DRO_CHAR_COLORS = {
-  影心: '#4a80c0', 阿斯代倫: '#a07030', 曹: '#3a7a3c', 卡拉克: '#a02020', 貓咕咕: '#6a3aaa',
-};
+// 各角色色系由 charColor() 讀 style.css 的 --c-{slug}，與全站頭像色一致
+// 角色代表色單一來源：style.css :root 的 --c-{slug}（頭像、對話框、輪盤共用）
+const CHAR_SLUG = { 影心: 'shadowheart', 阿斯代倫: 'astarion', 曹: 'cao', 卡拉克: 'karlach', 貓咕咕: 'maogugu' };
+const _charColorCache = {};
+function charColor(c, variant = '') {
+  const key = c + variant;
+  if (!(key in _charColorCache)) {
+    const slug = CHAR_SLUG[c];
+    _charColorCache[key] = slug
+      ? getComputedStyle(document.documentElement).getPropertyValue(`--c-${slug}${variant}`).trim()
+      : '';
+  }
+  return _charColorCache[key] || '#8a7d63';
+}
 let _droActivePool   = [];   // 目前輪盤上的 note 陣列（依角色分組，決定弧段大小）
 let _droCumulative   = 0;    // 累計旋轉角度（只增不減，避免視覺倒轉）
 let _droSpinning     = false;
@@ -1658,7 +1668,7 @@ function _droBuildWheel(pool) {
   if (btn) btn.disabled = false;
   const seg = 360 / pool.length;
   const stops = pool.map((note, i) => {
-    const color = DRO_CHAR_COLORS[note.char] || '#8a7d63';
+    const color = charColor(note.char);
     return `${color} ${(i * seg).toFixed(3)}deg ${((i + 1) * seg).toFixed(3)}deg`;
   }).join(', ');
   wheel.style.background = `conic-gradient(from 0deg, ${stops})`;
@@ -1697,7 +1707,7 @@ function _droInit() {
       <button class="dro-close" ${act('closeDeathRoulette')} title="關閉 (Esc)" aria-label="關閉">✕</button>
       <div class="dro-title-row">
         <span class="dro-title-line"></span>
-        <div class="dro-title">🎰 死 法 輪 盤</div>
+        <div class="dro-title">${icon('wheel')} 死 法 輪 盤</div>
         <span class="dro-title-line"></span>
       </div>
       <div class="dro-wheel-wrap">
@@ -1712,7 +1722,7 @@ function _droInit() {
         </div>
         <div class="dro-wheel" id="dro-wheel">
           <div class="dro-wheel-chars" id="dro-wheel-chars"></div>
-          <div class="dro-wheel-hub">☠</div>
+          <div class="dro-wheel-hub">${icon('skull')}</div>
         </div>
         <div class="dro-wheel-burst" id="dro-wheel-burst"></div>
       </div>
@@ -1720,7 +1730,7 @@ function _droInit() {
         <div class="dro-result-hint">選好對象後轉動輪盤</div>
       </div>
       <div class="dro-actions">
-        <button class="dro-btn" id="dro-spin-btn" ${act('spinDeathRoulette')}>🎡 轉動輪盤</button>
+        <button class="dro-btn" id="dro-spin-btn" ${act('spinDeathRoulette')}>${icon('wheel')} 轉動輪盤</button>
         <button class="dro-btn dro-btn-ghost" ${act('closeDeathRoulette')}>關閉</button>
       </div>
     </div>`;
@@ -1774,14 +1784,14 @@ function spinDeathRoulette() {
 
   const reveal = () => {
     const r = pool[targetIdx];
-    const color = DRO_CHAR_COLORS[r.char] || '#8a7d63';
+    const color = charColor(r.char);
     const sRef = r.sid ? sessions.find(s => s.id === r.sid) : null;
     const epLine = sRef
       ? `<button class="dro-result-ep" ${act('droJumpToSession', r.sid)} title="前往該集日誌">
-           📖 ${esc(sRef.chapter)}・${esc(sRef.title)}${sRef.dateDisplay ? `　${esc(sRef.dateDisplay)}` : ''}
+           ${icon('journal')} ${esc(sRef.chapter)}・${esc(sRef.title)}${sRef.dateDisplay ? `　${esc(sRef.dateDisplay)}` : ''}
          </button>`
-      : (r.sid ? `<div class="dro-result-ep-plain">📖 第 ${r.sid} 集</div>` : '');
-    const hlLine = r.hl ? `<div class="dro-result-hl">⚔ ${esc(r.hl)}</div>` : '';
+      : (r.sid ? `<div class="dro-result-ep-plain">${icon('journal')} ${esc(chapterOf(r.sid))}</div>` : '');
+    const hlLine = r.hl ? `<div class="dro-result-hl">${icon('swords')} ${esc(r.hl)}</div>` : '';
     result.innerHTML = `
       <div class="dro-result-avatar av-${esc(r.char)}" style="border-color:${color};box-shadow:0 0 24px ${color}88, 0 0 60px ${color}44">
         ${avImg(r.char, 72)}
@@ -1810,7 +1820,7 @@ function spinDeathRoulette() {
 
   _droSpinning = true;
   btn.disabled = true;
-  result.innerHTML = '<div class="dro-result-hint">🎡 轉動中…</div>';
+  result.innerHTML = `<div class="dro-result-hint">${icon('wheel')} 轉動中…</div>`;
   wheel.classList.add('dro-blurring');
 
   if (reduceMotion) {
@@ -1869,7 +1879,7 @@ function _rvInit() {
       <button class="rv-close" ${act('closeRivalryPoster')} title="關閉 (Esc)" aria-label="關閉">✕</button>
       <div class="rv-poster" id="rv-poster"></div>
       <div class="qm-actions">
-        <button class="qm-copy" ${act('copyRivalryImage')} title="複製成圖片，方便分享">📋 複製圖片</button>
+        <button class="qm-copy" ${act('copyRivalryImage')} title="複製成圖片，方便分享">${icon('copy')} 複製圖片</button>
       </div>
     </div>`;
   el.addEventListener('click', e => { if (e.target === el) closeRivalryPoster(); });
@@ -2210,7 +2220,7 @@ function renderRoastQuotes() {
 
   return `
     <div class="stats-section" id="rq-section">
-      <div class="stats-section-title">📜 靠北語錄大全</div>
+      <div class="stats-section-title">${icon('scroll')} 靠北語錄大全</div>
       <div class="rq-filter-row">
         <span class="rq-filter-label">篩選角色：</span>
         ${filterBtns}
@@ -2510,11 +2520,11 @@ function renderPraiseSection() {
       <div class="roast-meta">全 ${sessions.filter(s => !s.placeholder).length} 集共計 <strong>${total}</strong> 次記錄在案的稱讚事件</div>
       <div class="roast-columns">
         <div class="roast-col">
-          <div class="roast-col-title">🌟 被稱讚次數</div>
+          <div class="roast-col-title">${icon('star')} 被稱讚次數</div>
           <div class="rb-board">${receivedRows}</div>
         </div>
         <div class="roast-col">
-          <div class="roast-col-title">💬 稱讚別人次數</div>
+          <div class="roast-col-title">${icon('chat')} 稱讚別人次數</div>
           <div class="rb-board">${initiatedRows}</div>
         </div>
       </div>
@@ -2848,7 +2858,7 @@ function renderPraiseQuotes() {
 
   return `
     <div class="stats-section" id="pq-section">
-      <div class="stats-section-title">📜 稱讚語錄大全</div>
+      <div class="stats-section-title">${icon('scroll')} 稱讚語錄大全</div>
       <div class="rq-filter-row">
         <span class="rq-filter-label">篩選角色：</span>
         ${filterBtns}
@@ -2945,16 +2955,16 @@ function renderRoastSection() {
 
       <div class="roast-columns">
         <div class="roast-col">
-          <div class="roast-col-title">☠ 被靠北次數</div>
+          <div class="roast-col-title">${icon('skull')} 被靠北次數</div>
           <div class="rb-board">${receivedRows}</div>
         </div>
         <div class="roast-col">
-          <div class="roast-col-title">💀 主動靠北次數</div>
+          <div class="roast-col-title">${icon('chat')} 主動靠北次數</div>
           <div class="ib-board">${initBadges}</div>
         </div>
       </div>
 
-      <div class="roast-col-title" style="margin-top:24px">🔥 靠北關係圖（點擊箭頭篩選語錄）</div>
+      <div class="roast-col-title" style="margin-top:24px">${icon('flame')} 靠北關係圖（點擊箭頭篩選語錄）</div>
       <div class="rg-wrap">
         ${renderRoastArrowGraph(charNames, roastMap, maxCell)}
       </div>
@@ -3154,7 +3164,7 @@ function renderRadarSection(c, allChars) {
   }).join('');
   return `
     <div class="cp-section">
-      <div class="cp-section-title">🕸 角色特質</div>
+      <div class="cp-section-title">${icon('web')} 角色特質</div>
       <div class="radar-wrap">
         <div class="radar-svg-box">${svg}</div>
         <div class="radar-stats">${statRows}</div>
@@ -3293,13 +3303,13 @@ function renderCharacters(charName) {
           <div class="cp-class-pill">${esc(c.class)}</div>
           <div class="cp-player-name">${esc(c.player)} 飾演</div>
           <div class="cp-quick-stats">
-            <span class="cp-qs-item"><span class="cp-qs-icon">☠</span>${c.deaths} 次陣亡</span>
+            <span class="cp-qs-item"><span class="cp-qs-icon">${icon('skull')}</span>${c.deaths} 次陣亡</span>
             <span class="cp-qs-sep">·</span>
-            <span class="cp-qs-item"><span class="cp-qs-icon">⚔</span>${c.duels?.wins || 0}勝${c.duels?.losses || 0}敗${(c.duels?.draws || 0) > 0 ? (c.duels.draws + '平') : ''}</span>
+            <span class="cp-qs-item"><span class="cp-qs-icon">${icon('swords')}</span>${c.duels?.wins || 0}勝${c.duels?.losses || 0}敗${(c.duels?.draws || 0) > 0 ? (c.duels.draws + '平') : ''}</span>
             <span class="cp-qs-sep">·</span>
             <span class="cp-qs-item ${pct >= 50 ? 'cp-qs-win' : 'cp-qs-lose'}">${pct}%</span>
             <span class="cp-qs-sep">·</span>
-            <span class="cp-qs-item"><span class="cp-qs-icon">🏆</span>${c.mvp_count || 0} 次 MVP</span>
+            <span class="cp-qs-item"><span class="cp-qs-icon">${icon('trophy')}</span>${c.mvp_count || 0} 次 MVP</span>
           </div>
         </div>
       </div>
@@ -3314,20 +3324,20 @@ function renderCharacters(charName) {
 
       ${c.quotes?.length ? `
       <div class="cp-section">
-        <div class="cp-section-title">💬 名言錄</div>
+        <div class="cp-section-title">${icon('chat')} 名言錄</div>
         <div class="cp-quotes">${quotesHtml}</div>
         ${quotesToggle}
       </div>` : ''}
 
       ${c.achievements?.length ? `
       <div class="cp-section">
-        <div class="cp-section-title">🏆 成就</div>
+        <div class="cp-section-title">${icon('trophy')} 成就</div>
         <div class="cp-achieves">${achieveHtml}</div>
       </div>` : ''}
 
       ${c.death_narrative ? `
       <div class="cp-section">
-        <div class="cp-section-title">☠ 死亡紀錄</div>
+        <div class="cp-section-title">${icon('skull')} 死亡紀錄</div>
         <p class="cp-narrative">${escInject(c.death_narrative, c)}</p>
         ${(c.death_notes || []).length ? `
         <div class="cp-death-notes">
@@ -3337,7 +3347,7 @@ function renderCharacters(charName) {
 
       ${(c.duels?.highlights || []).length ? `
       <div class="cp-section">
-        <div class="cp-section-title">⚔ 決鬥歷程</div>
+        <div class="cp-section-title">${icon('swords')} 決鬥歷程</div>
         <div class="cp-duel-highlights">
           ${c.duels.highlights.map(h => `<div class="cp-duel-entry"><span class="cp-duel-sid">S${h.session_id}</span>${esc(h.text)}</div>`).join('')}
         </div>
@@ -3360,31 +3370,55 @@ function resolveChar(name) {
   return null;
 }
 
-function makeQuoteWrap(speaker, content, attr) {
-  return `<div class="quote-wrap">
-    <div class="char-avatar av-${esc(speaker)}" aria-label="${esc(speaker)}" data-tip="${esc(speaker)}">
-      ${avImg(speaker)}
-    </div>
-    <blockquote class="char-quote">
-      ${renderInline('「' + content + '」')}
-      <cite class="dq-attr">—— ${esc(attr)}</cite>
-    </blockquote>
-  </div>`;
-}
-
-// ── 對話頭像偵測（p / li / li2 共用） ────────────────────
-function tryQuoteWrap(text) {
+// ── 對話（p / li / li2 共用） ─────────────────────────────
+// 解析一行對話 → { speaker, content, lead }；非對話回傳 null。
+// lead：前綴不只是角色名/暱稱時保留的敘述（「卡拉克震驚：「…」」的「卡拉克震驚」），
+// 舊版會把這段敘述整個丟掉；純名字、暱稱、玩家本名則不顯示（頭像已表明是誰）。
+function parseQuote(text) {
   const qm = text.match(/^「([\s\S]+?)」[—\-]{1,2}(.{1,12})$/);
   if (qm) {
-    const speaker = resolveChar(qm[2].trim());
-    if (speaker) return makeQuoteWrap(speaker, qm[1], qm[2].trim());
+    const who = qm[2].trim();
+    const speaker = resolveChar(who);
+    if (speaker) return { speaker, content: qm[1], lead: CHAR_ROSTER[who] ? '' : who };
   }
   const qm2 = text.match(/^([^「]{1,30})：「([\s\S]+?)」$/);
   if (qm2) {
-    const speaker = resolveChar(qm2[1]);
-    if (speaker) return makeQuoteWrap(speaker, qm2[2], speaker);
+    const who = qm2[1].trim();
+    const speaker = resolveChar(who);
+    if (speaker) return { speaker, content: qm2[2], lead: CHAR_ROSTER[who] ? '' : who };
   }
   return null;
+}
+
+// 連續對話收成一段：同一人連續發言合併成一個氣泡（頭像只出現一次），
+// 換人時左右交替，讀起來像來回對話而非一長串等高卡片
+function renderDialogueRun(quotes) {
+  const groups = [];
+  quotes.forEach(q => {
+    const last = groups[groups.length - 1];
+    if (last && last.speaker === q.speaker) last.lines.push(q);
+    else groups.push({ speaker: q.speaker, lines: [q] });
+  });
+  const multi = groups.length > 1;
+  const body = groups.map((g, gi) => {
+    const side = multi && gi % 2 === 1 ? ' side-right' : '';
+    const lines = g.lines.map(q => `
+      <div class="dq-line">${q.lead ? `<span class="dq-lead">${esc(q.lead)}</span>` : ''}${renderInline('「' + q.content + '」')}</div>`).join('');
+    return `<div class="quote-wrap${side}">
+    <div class="char-avatar av-${esc(g.speaker)}" aria-hidden="true" data-tip="${esc(g.speaker)}">
+      ${avImg(g.speaker)}
+    </div>
+    <blockquote class="char-quote"><span class="sr-only">${esc(g.speaker)}：</span>${lines}
+    </blockquote>
+  </div>`;
+  }).join('');
+  return `<div class="dialogue-run${multi ? ' multi' : ''}">${body}</div>`;
+}
+
+// 單行對話偵測（保留舊介面：新增段落類型時仍可直接套用）
+function tryQuoteWrap(text) {
+  const q = parseQuote(text);
+  return q ? renderDialogueRun([q]) : null;
 }
 
 // ── 結構化內容渲染 ────────────────────────────────────────
@@ -3395,7 +3429,20 @@ function renderContent(items) {
   const imgTotal = items.filter(it => it.t === 'img').length;
   const imgLabel = currentId !== null ? `${chapterOf(currentId)}插圖` : '插圖';
   let imgNo = 0;
-  return items.map((item, i) => {
+  // 連續的對話行（p/li/li2）先收集，遇到非對話時整段輸出
+  const out = [];
+  let run = [];
+  const flush = () => { if (run.length) { out.push(renderDialogueRun(run)); run = []; } };
+  items.forEach((item, i) => {
+    const q = ['p', 'li', 'li2'].includes(item.t || 'p') && item.v ? parseQuote(item.v) : null;
+    if (q) { run.push(q); return; }
+    flush();
+    out.push(renderItem(item, i));
+  });
+  flush();
+  return out.join('\n');
+
+  function renderItem(item, i) {
     switch (item.t) {
       case 'img':
         imgNo++;
@@ -3417,15 +3464,13 @@ function renderContent(items) {
         return `<div class="ai-note">${renderInline(item.v)}</div>`;
 
       case 'li':
-        return tryQuoteWrap(item.v) ?? `<div class="session-li">${renderInline(item.v)}</div>`;
+        return `<div class="session-li">${renderInline(item.v)}</div>`;
 
       case 'li2':
-        return tryQuoteWrap(item.v) ?? `<div class="session-li2">${renderInline(item.v)}</div>`;
+        return `<div class="session-li2">${renderInline(item.v)}</div>`;
 
       case 'p':
       default: {
-        const q = tryQuoteWrap(item.v);
-        if (q) return q;
         // 只有夠長的段落（≥40字）才套首字下沉，避免短句被誤觸
         if (!firstParaDone && item.v.length >= 40) {
           firstParaDone = true;
@@ -3435,7 +3480,7 @@ function renderContent(items) {
         return `<p>${renderInline(item.v)}</p>`;
       }
     }
-  }).join('\n');
+  }
 }
 
 // ── 行內格式 ──────────────────────────────────────────────
@@ -3444,6 +3489,10 @@ function renderInline(text) {
   s = s.replace(/「([^」]*)」/g, '<span class="dialogue">「$1」</span>');
   return s;
 }
+
+// ── 介面圖示：引用 index.html 的 SVG sprite（單色線條、跟隨文字色）。
+// 介面元素一律用這裡，彩色 emoji 只留在內容資料（成就、里程碑）與 canvas 匯出圖
+const icon = name => `<svg class="ico" aria-hidden="true"><use href="#i-${name}"/></svg>`;
 
 // ── 點擊事件委派（取代 inline onclick） ─────────────────────
 // 模板用 ${act('name', ...args)} 產生 data-act / data-args 屬性，由單一監聽器依白名單派發。
@@ -3587,7 +3636,7 @@ function openStoryFromSession() {
   if (currentId !== null) openStoryChapter(currentId);
 }
 
-// 日誌頁：本集有小說版才顯示「📕 小說版」（故事目錄很小，延遲載入不影響首屏）
+// 日誌頁：本集有小說版才顯示「小說版」（故事目錄很小，延遲載入不影響首屏）
 function updateStoryLink(id) {
   const btn = document.getElementById('story-link-btn');
   if (!btn) return;
@@ -3702,7 +3751,7 @@ function renderStory() {
           <div class="story-chapter" id="story-ch-${ch.session_id}">
             <div class="story-chapter-meta">
               <div class="story-chapter-eyebrow">${esc(chapterOf(ch.session_id))}</div>
-              <button class="story-journal-link" ${act('loadSession', ch.session_id)}>📖 原始日誌</button>
+              <button class="story-journal-link" ${act('loadSession', ch.session_id)}>${icon('journal')} 原始日誌</button>
             </div>
             <h2 class="story-chapter-title">${esc(ch.title || '')}</h2>
             ${body}

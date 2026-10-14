@@ -44,6 +44,29 @@
   --font-body:  'PingFang TC', 'Noto Sans TC', 'Microsoft JhengHei', 'Heiti TC', sans-serif;
 
   /* ── 主題色（加深加飽和） */
+  /* 角色代表色：全站單一來源（頭像、對話框、輪盤、圖表皆讀此；JS 用 charColor() 取值） */
+  --c-shadowheart: #4a80c0;  --c-shadowheart-bg: #0d1f3c;  --c-shadowheart-lt: #80b4e8;   /* 影心 */
+  --c-astarion: #a07030;  --c-astarion-bg: #221508;  --c-astarion-lt: #d4a060;   /* 阿斯代倫 */
+  --c-cao: #3a7a3c;  --c-cao-bg: #0a1a0c;  --c-cao-lt: #70b472;   /* 曹 */
+  --c-karlach: #a02020;  --c-karlach-bg: #1f0808;  --c-karlach-lt: #d46060;   /* 卡拉克 */
+  --c-maogugu: #6a3aaa;  --c-maogugu-bg: #160c28;  --c-maogugu-lt: #a878e0;   /* 貓咕咕 */
+  /* 勝負平手：古書色調（舊勝色 #4caf72 為 Material 亮綠，與羊皮紙風格衝突） */
+  --win-rgb:  61,107,53;   --win:  rgb(var(--win-rgb));    /* #3d6b35 */
+  --loss-rgb: 138,42,42;   --loss: rgb(var(--loss-rgb));   /* #8a2a2a */
+  --draw: rgba(var(--gold-deep-rgb),0.55);
+  /* 版面寬度：閱讀欄（日誌、故事、時間軸）與資料欄（統計、角色、里程碑），切換分頁時邊界一致 */
+  --w-read: 640px;   /* ≈35 個 18px 中文字／行 */
+  --w-data: 880px;
+  /* 疊放層級（全域）：元件內部的 0–4 局部堆疊不在此列。新增浮層從這裡挑，勿另寫大數字 */
+  --z-frame:    5;     /* 內容框裝飾 */
+  --z-progress: 10;    /* 閱讀進度條 */
+  --z-sticky:   20;    /* 統計跳轉列 */
+  --z-scrim:    140;   /* 手機側欄遮罩 */
+  --z-sidebar:  150;
+  --z-float:    200;   /* 回頂部、側欄開關 */
+  --z-modal:    300;   /* 語錄/輪盤/宿敵彈窗（舊版 300 與 9000 混用） */
+  --z-lightbox: 310;
+  --z-tooltip:  400;
   --crimson:    #7a1515;
   --crimson-lt: #a82828;
   --crimson-glow: rgba(122,21,21,0.18);
@@ -52,6 +75,19 @@
   --purple-bg:  rgba(56,26,84,0.07);
 
   --ease: 0.2s ease;
+  /* ── 設計規範 token（新樣式一律從這裡取值，勿寫散值） ── */
+  /* 字級：內文/介面 8 級 + 大字 5 級（大數字、裝飾符號）。9–11px 僅限圖表內部刻度 */
+  --fs-1: 12px;  --fs-2: 13px;  --fs-3: 14px;  --fs-4: 15px;
+  --fs-5: 16px;  --fs-6: 18px;  --fs-7: 20px;  --fs-8: 24px;
+  --fs-d1: 28px; --fs-d2: 32px; --fs-d3: 40px; --fs-d4: 52px; --fs-d5: 72px;
+  /* 圓角 */
+  --r-sm: 2px;  --r-md: 4px;  --r-lg: 8px;  --r-pill: 999px;
+  /* 陰影（單層投影）；內陰影、發光、圖片外框等特殊效果維持各自寫法 */
+  --shadow-1: 0 1px 3px rgba(60,35,10,0.14);
+  --shadow-2: 0 4px 16px rgba(60,35,10,0.20);
+  --shadow-3: 0 20px 60px rgba(0,0,0,0.45);
+  /* 字距 */
+  --ls-tight: 0.5px;  --ls-wide: 1.5px;  --ls-title: 4px;  --ls-display: 6px;
 }
 
 html, body { height: 100%; overflow: hidden; background: var(--bg-dark); }
@@ -63,7 +99,7 @@ html, body { height: 100%; overflow: hidden; background: var(--bg-dark); }
 body {
   font-family: var(--font-body);
   color: var(--gold);
-  font-size: 15px;
+  font-size: var(--fs-4);
 }
 
 button { font-family: inherit; cursor: pointer; border: none; background: none; }
@@ -92,7 +128,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   padding: 24px 20px 20px;
   flex-shrink: 0;
   border-bottom: 1px solid rgba(var(--gold-rgb),0.12);
@@ -103,23 +139,23 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .brand-title {
   font-weight: 700;
-  font-size: 15px;
+  font-size: var(--fs-4);
   color: var(--gold-bright);
-  letter-spacing: 1px;
+  letter-spacing: var(--ls-wide);
   line-height: 1.3;
 }
 
 .brand-subtitle {
-  font-size: 12px;
+  font-size: var(--fs-1);
   color: var(--gold-dim);
-  letter-spacing: 4px;
+  letter-spacing: var(--ls-title);
   margin-top: 5px;
 }
 
 .sidebar-divider {
   height: 1px;
   background: linear-gradient(to right, transparent, var(--gold-border), transparent);
-  margin: 0 14px;
+  margin: 0 16px;
   flex-shrink: 0;
 }
 
@@ -171,13 +207,13 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 #story-chapter-list::-webkit-scrollbar { width: 3px; }
 #story-chapter-list::-webkit-scrollbar-track { background: transparent; }
-#story-chapter-list::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 2px; }
+#story-chapter-list::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: var(--r-sm); }
 
 .nav-section-label {
   flex-shrink: 0;
   padding: 12px 20px 4px;
-  font-size: 12px;
-  letter-spacing: 3px;
+  font-size: var(--fs-1);
+  letter-spacing: var(--ls-title);
   color: rgba(var(--gold-rgb),0.55);
   font-family: 'Cinzel', serif;
 }
@@ -212,10 +248,10 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 #session-list::-webkit-scrollbar { width: 3px; }
 #session-list::-webkit-scrollbar-track { background: transparent; }
-#session-list::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 2px; }
+#session-list::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: var(--r-sm); }
 
 .session-item {
-  padding: 13px 20px 13px 17px;
+  padding: 12px 20px 12px 16px;
   cursor: pointer;
   border-left: 3px solid transparent;
   border-bottom: 1px solid rgba(var(--gold-rgb),0.06);
@@ -242,8 +278,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 /* 章節標籤 */
 .item-chapter {
-  font-size: 12px;
-  letter-spacing: 1.5px;
+  font-size: var(--fs-1);
+  letter-spacing: var(--ls-wide);
   color: rgba(var(--gold-rgb),0.70);
   margin-bottom: 4px;
   font-weight: 700;
@@ -252,13 +288,13 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .session-item.active .item-chapter { color: rgba(var(--gold-rgb),0.90); }
 
 .item-date {
-  font-size: 12px;
+  font-size: var(--fs-1);
   color: rgba(var(--gold-rgb),0.70);
   margin-bottom: 6px;
 }
 
 .item-title {
-  font-size: 16px;
+  font-size: var(--fs-5);
   font-weight: 600;
   color: rgba(var(--gold-rgb),0.90);
   line-height: 1.5;
@@ -269,7 +305,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 /* 側欄底部 */
 .sidebar-footer {
-  padding: 13px;
+  padding: 12px;
   text-align: center;
   border-top: 1px solid var(--gold-border);
   flex-shrink: 0;
@@ -280,7 +316,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .footer-rune {
   font-size: 11px;
   color: var(--gold-dim);
-  letter-spacing: 6px;
+  letter-spacing: var(--ls-display);
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -328,8 +364,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .hb-title {
   font-family: 'Cinzel', serif;
-  font-size: 13px;
-  letter-spacing: 4px;
+  font-size: var(--fs-2);
+  letter-spacing: var(--ls-title);
   color: #fff;
   text-shadow:
     0 0 8px rgba(0,0,0,0.95),
@@ -337,8 +373,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     0 2px 12px rgba(0,0,0,0.75);
 }
 .hb-cast {
-  font-size: 12px;
-  letter-spacing: 2px;
+  font-size: var(--fs-1);
+  letter-spacing: var(--ls-wide);
   color: rgba(255,255,255,0.88);
   text-shadow:
     0 0 6px rgba(0,0,0,0.95),
@@ -366,8 +402,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   height: 6px;
   width: 0%;
   background: linear-gradient(to right, var(--crimson), var(--gold-bright));
-  z-index: 10;
-  transition: width 0.1s linear;
+  z-index: var(--z-progress);
+  transition: width var(--ease);
   pointer-events: none;
   box-shadow:
     0 0 12px rgba(122, 21, 21, 0.35),
@@ -379,7 +415,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   position: absolute;
   inset: 16px;
   pointer-events: none;
-  z-index: 5;
+  z-index: var(--z-frame);
   border: 1px solid rgba(var(--edge-rgb),0.22);
 }
 
@@ -393,7 +429,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .corner {
   position: absolute;
-  font-size: 14px;
+  font-size: var(--fs-3);
   color: rgba(var(--edge-rgb),0.55);
   line-height: 1;
   display: flex;
@@ -440,7 +476,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 #welcome::-webkit-scrollbar { width: 4px; }
 #welcome::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); }
-#welcome::-webkit-scrollbar-thumb { background: rgba(var(--edge-rgb),0.25); border-radius: 2px; }
+#welcome::-webkit-scrollbar-thumb { background: rgba(var(--edge-rgb),0.25); border-radius: var(--r-sm); }
 
 /* 主視覺英雄橫幅 */
 .welcome-hero {
@@ -487,71 +523,71 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .welcome-title {
   font-family: 'Cinzel', serif;
-  font-size: 30px;
+  font-size: var(--fs-d2);
   font-weight: 700;
   color: var(--ink-mid);
   opacity: 0.90;
-  letter-spacing: 4px;
+  letter-spacing: var(--ls-title);
   margin-bottom: 8px;
 }
 
 .welcome-sub {
   font-family: 'Cinzel', serif;
-  font-size: 13px;
+  font-size: var(--fs-2);
   color: var(--ink-light);
-  letter-spacing: 5px;
+  letter-spacing: var(--ls-display);
   margin-bottom: 40px;
 }
 
-.welcome-cast-block { margin-bottom: 34px; }
+.welcome-cast-block { margin-bottom: 36px; }
 
 .cast-divider {
-  font-size: 12px;
+  font-size: var(--fs-1);
   color: var(--ink-light);
   opacity: 0.55;
-  letter-spacing: 3px;
+  letter-spacing: var(--ls-title);
   margin-bottom: 12px;
 }
 
 .cast-names {
-  font-size: 14px;
+  font-size: var(--fs-3);
   font-weight: 600;
   color: var(--ink-mid);
   opacity: 0.85;
-  letter-spacing: 1.5px;
+  letter-spacing: var(--ls-wide);
   margin-bottom: 5px;
 }
 
 .cast-roles {
-  font-size: 13px;
+  font-size: var(--fs-2);
   color: var(--ink-light);
-  letter-spacing: 0.5px;
+  letter-spacing: var(--ls-tight);
 }
 
 .welcome-cta {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   margin-top: 8px;
   padding: 12px 28px;
   background: var(--ink);
   border: 1px solid var(--gold-border);
   color: var(--gold-bright);
   font-family: 'Cinzel', serif;
-  font-size: 14px;
-  letter-spacing: 2px;
+  font-size: var(--fs-3);
+  letter-spacing: var(--ls-wide);
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
+  transition: background var(--ease), border-color var(--ease), color var(--ease), box-shadow var(--ease);
   animation: cta-pulse 2.8s ease-in-out infinite;
 }
 .welcome-cta:hover {
   background: rgba(24,14,4,0.88);
   border-color: var(--gold-bright);
   color: #fff8e8;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.35);
+  box-shadow: var(--shadow-2);
   animation: none;
 }
-.cta-arrow { font-size: 16px; }
+.cta-arrow { font-size: var(--fs-5); }
 
 @keyframes cta-pulse {
   0%, 100% { box-shadow: 0 4px 20px rgba(0,0,0,0.40), 0 0 0 0 rgba(var(--gold-deep-rgb),0); }
@@ -559,10 +595,10 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .welcome-hint {
-  font-size: 12px;
+  font-size: var(--fs-1);
   color: var(--ink-light);
-  letter-spacing: 2px;
-  margin-top: 14px;
+  letter-spacing: var(--ls-wide);
+  margin-top: 16px;
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -573,7 +609,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   min-height: 0;
   overflow-y: auto;
   padding: 48px 68px 96px;
-  max-width: 760px;
+  max-width: calc(var(--w-read) + 136px);   /* 內文寬 = --w-read（左右 padding 68px） */
   margin: 0 auto;
   position: relative;
   z-index: 1;
@@ -582,7 +618,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 #session-view::-webkit-scrollbar { width: 4px; }
 #session-view::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); }
-#session-view::-webkit-scrollbar-thumb { background: rgba(var(--edge-rgb),0.28); border-radius: 2px; }
+#session-view::-webkit-scrollbar-thumb { background: rgba(var(--edge-rgb),0.28); border-radius: var(--r-sm); }
 
 .hidden { display: none !important; }
 
@@ -591,8 +627,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .header-chapter {
   font-family: 'Cinzel', serif;
-  font-size: 13px;
-  letter-spacing: 5px;
+  font-size: var(--fs-2);
+  letter-spacing: var(--ls-display);
   color: var(--ink-light);
   margin-bottom: 20px;
   text-transform: uppercase;
@@ -600,16 +636,16 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .header-title {
   font-weight: 700;
-  font-size: 34px;
+  font-size: var(--fs-d2);
   color: var(--crimson);
   line-height: 1.35;
   margin-bottom: 16px;
-  letter-spacing: 1.5px;
+  letter-spacing: var(--ls-wide);
   text-shadow: 0 2px 16px rgba(122,21,21,0.20);
 }
 
 .header-date {
-  font-size: 14px;
+  font-size: var(--fs-3);
   color: var(--ink-light);
   opacity: 0.85;
   margin-bottom: 28px;
@@ -620,7 +656,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .header-rule {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 16px;
   max-width: 420px;
   margin: 0 auto;
 }
@@ -631,22 +667,22 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   background: linear-gradient(to right, transparent, var(--parchment-dk), transparent);
 }
 
-.rule-gem { font-size: 16px; color: var(--ink-light); opacity: 0.45; }
+.rule-gem { font-size: var(--fs-5); color: var(--ink-light); opacity: 0.45; }
 
 .header-actions {
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 10px;
+  margin-top: 12px;
 }
 .header-action {
-  font-size: 13px;
-  letter-spacing: 1px;
+  font-size: var(--fs-2);
+  letter-spacing: var(--ls-wide);
   color: var(--ink-mid);   /* 舊版 ink-light×opacity .65 對比僅約 3:1 */
-  padding: 4px 10px;
+  padding: 4px 12px;
   border: 1px solid rgba(110,80,48,0.22);
-  border-radius: 4px;
+  border-radius: var(--r-md);
   transition: background var(--ease), border-color var(--ease);
 }
 .header-action:hover,
@@ -670,7 +706,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 #session-body {
   color: var(--ink);
-  font-size: 18px;
+  font-size: var(--fs-6);
   line-height: 1.92;
   font-weight: 400;
   /* 全形標點懸掛行末，減少句末視覺缺口（Safari 支援，其餘瀏覽器無害忽略） */
@@ -733,10 +769,10 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 #session-body h2.section-h1 {
   font-family: 'Cinzel', serif;
   font-weight: 700;
-  font-size: 16px;
+  font-size: var(--fs-5);
   color: var(--crimson-lt);
   margin: 60px 0 28px;
-  letter-spacing: 4.5px;
+  letter-spacing: var(--ls-title);
   text-transform: uppercase;
   text-align: center;
   display: flex;
@@ -756,23 +792,23 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 /* ── 小節標題（左金線） */
 #session-body h3.section-h2 {
   font-weight: 700;
-  font-size: 19px;
+  font-size: var(--fs-7);
   color: var(--ink-mid);
   margin: 40px 0 16px;
   padding-left: 16px;
   border-left: 4px solid var(--gold);
   line-height: 1.4;
-  letter-spacing: 0.8px;
+  letter-spacing: var(--ls-tight);
   text-shadow: 0 1px 4px rgba(80,50,20,0.10);
   clear: both;
 }
 
 /* ── 縮排列表項（li = 一層，li2 = 兩層） */
 .session-li {
-  margin: 0 0 10px 1.4em;
+  margin: 0 0 12px 1.4em;
   padding-left: 0.9em;
   border-left: 2px solid rgba(var(--edge-rgb),0.22);
-  font-size: 17px;
+  font-size: var(--fs-6);
   line-height: 1.85;
   color: var(--ink-mid);
 }
@@ -780,7 +816,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   margin: 0 0 8px 2.6em;
   padding-left: 0.8em;
   border-left: 2px solid rgba(var(--edge-rgb),0.12);
-  font-size: 16px;
+  font-size: var(--fs-5);
   line-height: 1.8;
   color: var(--ink-mid);
 }
@@ -791,10 +827,10 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   border-left: 4px solid var(--purple-ink);
   border-top: 1px solid rgba(56,26,84,0.12);
   border-bottom: 1px solid rgba(56,26,84,0.12);
-  padding: 22px 26px 18px;
+  padding: 24px 28px 20px;
   margin: 36px 0;
   color: var(--purple-ink);
-  font-size: 16px;
+  font-size: var(--fs-5);
   line-height: 1.85;
   font-style: italic;
   clear: both;
@@ -804,9 +840,9 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   content: '✦  AI 觀點';
   display: block;
   font-family: 'Cinzel', serif;
-  font-size: 12px;
+  font-size: var(--fs-1);
   font-style: normal;
-  letter-spacing: 3px;
+  letter-spacing: var(--ls-title);
   color: rgba(56,26,84,0.50);
   margin-bottom: 12px;
 }
@@ -839,7 +875,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 /* 可點擊放大的插圖 */
 .session-img.zoomable img {
   cursor: zoom-in;
-  transition: filter 0.15s ease;
+  transition: filter var(--ease);
 }
 .session-img.zoomable img:hover {
   filter: brightness(1.05);
@@ -849,7 +885,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .lb-overlay {
   position: fixed;
   inset: 0;
-  z-index: 9500;
+  z-index: var(--z-lightbox);
   background: rgba(2,1,0,0.9);
   display: flex;
   align-items: center;
@@ -866,7 +902,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   opacity: 1;
   pointer-events: all;
   visibility: visible;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--ease);
 }
 .lb-img {
   max-width: 95vw;
@@ -874,9 +910,9 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   object-fit: contain;
   outline: 1px solid rgba(var(--gold-deep-rgb),0.4);
   outline-offset: 4px;
-  box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+  box-shadow: var(--shadow-3);
   transform: scale(0.97);
-  transition: transform 0.2s ease;
+  transition: transform var(--ease);
   cursor: zoom-out;
 }
 .lb-overlay.lb-open .lb-img {
@@ -889,12 +925,12 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   background: none;
   border: none;
   color: rgba(245,236,215,0.85);
-  font-size: 30px;
+  font-size: var(--fs-d2);
   line-height: 1;
   cursor: pointer;
   padding: 6px 12px;
   opacity: 0.75;
-  transition: opacity 0.15s, color 0.15s;
+  transition: opacity var(--ease), color var(--ease);
 }
 .lb-close:hover { opacity: 1; color: var(--gold); }
 
@@ -905,11 +941,11 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   transform: translateY(-50%);
   width: 52px;
   height: 72px;
-  font-size: 44px;
+  font-size: var(--fs-d3);
   line-height: 1;
   color: rgba(245,236,215,0.85);
   background: rgba(2,1,0,0.35);
-  border-radius: 4px;
+  border-radius: var(--r-md);
   transition: background var(--ease), color var(--ease);
 }
 .lb-nav:hover,
@@ -921,18 +957,18 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   bottom: 18px;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 13px;
-  letter-spacing: 2px;
+  font-size: var(--fs-2);
+  letter-spacing: var(--ls-wide);
   color: rgba(245,236,215,0.85);
   background: rgba(2,1,0,0.5);
   padding: 3px 12px;
-  border-radius: 12px;
+  border-radius: var(--r-lg);
 }
 .lb-counter:empty,
 .lb-single .lb-nav { display: none; }
 @media (max-width: 720px) {
   /* 手機以滑動為主，按鈕縮小貼邊 */
-  .lb-nav { width: 36px; height: 56px; font-size: 32px; }
+  .lb-nav { width: 36px; height: 56px; font-size: var(--fs-d2); }
   .lb-prev { left: 4px; }
   .lb-next { right: 4px; }
 }
@@ -975,13 +1011,13 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .sf-dir {
   font-family: 'Cinzel', serif;
-  font-size: 12px;
-  letter-spacing: 1.5px;
+  font-size: var(--fs-1);
+  letter-spacing: var(--ls-wide);
   color: var(--gold-dim);
   text-transform: uppercase;
 }
 .sf-chapter {
-  font-size: 12px;
+  font-size: var(--fs-1);
   color: var(--ink-light);
   white-space: nowrap;
   overflow: hidden;
@@ -990,7 +1026,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .sf-title {
   font-family: 'Cinzel', serif;
-  font-size: 13px;
+  font-size: var(--fs-2);
   color: var(--ink-mid);
   white-space: nowrap;
   overflow: hidden;
@@ -1010,13 +1046,13 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   padding: 0 16px;
 }
 .sf-ornament {
-  font-size: 16px;
+  font-size: var(--fs-5);
   opacity: 0.30;
 }
 .sf-progress {
   font-family: 'Cinzel', serif;
-  font-size: 12px;
-  letter-spacing: 2px;
+  font-size: var(--fs-1);
+  letter-spacing: var(--ls-wide);
   color: var(--ink-light);
   white-space: nowrap;
 }
@@ -1033,8 +1069,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     padding: 0;
     order: -1;
   }
-  .sf-card { padding: 12px 14px; }
-  .sf-title { font-size: 12px; }
+  .sf-card { padding: 12px 16px; }
+  .sf-title { font-size: var(--fs-1); }
 }
 .nav-arrow { font-family: sans-serif; }
 
@@ -1052,13 +1088,13 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   border: 1px solid var(--gold-border);
   color: var(--gold-bright);
   font-family: 'Cinzel', serif;
-  font-size: 15px;
+  font-size: var(--fs-4);
   cursor: pointer;
   opacity: 0;
   pointer-events: none;
   transform: translateY(8px);
-  transition: opacity 0.25s, transform 0.25s, background 0.2s;
-  z-index: 200;
+  transition: opacity var(--ease), transform var(--ease), background var(--ease);
+  z-index: var(--z-float);
 }
 #back-to-top.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
 #back-to-top:hover   { background: rgba(var(--gold-deep-rgb),0.10); }
@@ -1071,8 +1107,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   color: var(--gold);
   border: 1px solid var(--gold-border);
   width: 42px; height: 42px;
-  font-size: 16px;
-  z-index: 200;
+  font-size: var(--fs-5);
+  z-index: var(--z-float);
   align-items: center;
   justify-content: center;
 }
@@ -1082,11 +1118,11 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   display: none;
   position: fixed;
   inset: 0;
-  z-index: 140;
+  z-index: var(--z-scrim);
   background: rgba(0,0,0,0.45);
   backdrop-filter: blur(1px);
   opacity: 0;
-  transition: opacity 0.22s ease;
+  transition: opacity var(--ease);
 }
 
 @media (max-width: 720px) {
@@ -1094,15 +1130,15 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   #sidebar {
     position: fixed;
     inset: 0 auto 0 0;
-    z-index: 150;
+    z-index: var(--z-sidebar);
     transform: translateX(-100%);
     box-shadow: 4px 0 32px rgba(0,0,0,0.6);
   }
   #sidebar.open { transform: translateX(0); }
   #sidebar.open ~ #sidebar-toggle { display: none; }
-  #session-view { padding: 30px 24px 64px; }
-  .header-title { font-size: 24px; }
-  #session-body { font-size: 16px; }
+  #session-view { padding: 32px 24px 64px; }
+  .header-title { font-size: var(--fs-8); }
+  #session-body { font-size: var(--fs-5); }
   .content-frame { display: none; }
   #session-body > p.first-para::first-letter { font-size: 3.2em; }
   #session-body h2.section-h1:first-of-type + p::first-letter { font-size: 2.2em; }
@@ -1140,7 +1176,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 #sidebar-tabs {
   display: flex;
   flex-direction: column;
-  padding: 10px 12px 12px;
+  padding: 12px 12px 12px;
   gap: 3px;
   flex-shrink: 0;
   background: rgba(0,0,0,0.22);
@@ -1151,22 +1187,36 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   padding: 8px 12px;
-  font-size: 13px;
+  font-size: var(--fs-2);
   font-weight: 600;
   color: rgba(var(--gold-rgb),0.55);
   background: transparent;
   border: none;
-  border-radius: 7px;
+  border-radius: var(--r-md);
   text-align: left;
-  letter-spacing: 0.5px;
+  letter-spacing: var(--ls-tight);
   cursor: pointer;
   transition: color var(--ease), background var(--ease);
 }
 
+/* 介面圖示（index.html SVG sprite）：大小跟隨所在元素字級、顏色跟隨文字色 */
+.ico {
+  width: 1.15em;
+  height: 1.15em;
+  vertical-align: -0.2em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+.stab-icon .ico { display: block; margin: 0 auto; }
+
 .stab-icon {
-  font-size: 14px;
+  font-size: var(--fs-3);
   width: 20px;
   text-align: center;
   flex-shrink: 0;
@@ -1196,6 +1246,14 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 /* ══════════════════════════════════════════════════════════
    統計 / 里程碑 捲動容器
    ══════════════════════════════════════════════════════════ */
+/* 資料型分頁內容限寬置中（舊版無上限，寬螢幕會拉到 1500px+） */
+#stats-inner,
+#characters-inner,
+#milestones-inner {
+  max-width: var(--w-data);
+  margin: 0 auto;
+}
+
 .content-scroll {
   flex: 1;
   min-height: 0;
@@ -1207,7 +1265,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .content-scroll::-webkit-scrollbar { width: 4px; }
 .content-scroll::-webkit-scrollbar-track { background: rgba(0,0,0,0.05); }
-.content-scroll::-webkit-scrollbar-thumb { background: rgba(var(--edge-rgb),0.28); border-radius: 2px; }
+.content-scroll::-webkit-scrollbar-thumb { background: rgba(var(--edge-rgb),0.28); border-radius: var(--r-sm); }
 
 /* ── 子標題列 ──────────────────────────────────────────── */
 .sub-header {
@@ -1220,13 +1278,13 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   align-items: center;
   gap: 16px;
   max-width: 480px;
-  margin: 0 auto 10px;
+  margin: 0 auto 12px;
 }
 
 .sub-title {
   font-family: 'Cinzel', serif;
-  font-size: 14px;
-  letter-spacing: 6px;
+  font-size: var(--fs-3);
+  letter-spacing: var(--ls-display);
   color: var(--ink-mid);
   white-space: nowrap;
   flex-shrink: 0;
@@ -1237,7 +1295,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   color: var(--ink-light);
   font-style: italic;
   padding: 60px 0;
-  font-size: 14px;
+  font-size: var(--fs-3);
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -1251,12 +1309,12 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .stat-group-title {
   font-family: 'Cinzel', serif;
-  font-size: 13px;
-  letter-spacing: 4px;
+  font-size: var(--fs-2);
+  letter-spacing: var(--ls-title);
   color: var(--gold-bright);
   background: var(--ink);
   border: 1px solid var(--gold-border);
-  padding: 10px 20px;
+  padding: 12px 20px;
   margin-bottom: 28px;
   text-align: center;
   text-transform: uppercase;
@@ -1268,8 +1326,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .stats-section-title {
   font-family: 'Cinzel', serif;
-  font-size: 16px;
-  letter-spacing: 3px;
+  font-size: var(--fs-5);
+  letter-spacing: var(--ls-title);
   color: var(--crimson);
   margin-bottom: 20px;
   border-bottom: 2px solid rgba(122,21,21,0.28);
@@ -1300,7 +1358,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .timeline {
   position: relative;
   padding-left: 44px;
-  max-width: 640px;
+  max-width: var(--w-read);
   margin: 0 auto;
 }
 
@@ -1325,7 +1383,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   gap: 20px;
   margin-bottom: 32px;
   position: relative;
-  transition: transform 0.22s ease;
+  transition: transform var(--ease);
 }
 
 .ms-dot {
@@ -1336,7 +1394,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: var(--fs-6);
   background: var(--parchment-mid);
   border: 1.5px solid rgba(var(--edge-rgb),0.30);
   border-radius: 50%;
@@ -1348,41 +1406,41 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   flex: 1;
   background: rgba(255,255,255,0.32);
   border: 1px solid rgba(var(--edge-rgb),0.18);
-  padding: 18px 22px;
-  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  padding: 20px 24px;
+  transition: border-color var(--ease), box-shadow var(--ease), background var(--ease);
 }
 
 .ms-item:hover .ms-content {
   border-color: rgba(var(--edge-rgb),0.38);
-  box-shadow: 0 4px 18px rgba(0,0,0,0.10);
+  box-shadow: var(--shadow-2);
   background: rgba(255,255,255,0.44);
 }
 
 .ms-date {
-  font-size: 13px;
+  font-size: var(--fs-2);
   color: var(--ink-light);
-  letter-spacing: 1.5px;
+  letter-spacing: var(--ls-wide);
   margin-bottom: 7px;
 }
 
 .ms-title {
-  font-size: 19px;
+  font-size: var(--fs-7);
   font-weight: 700;
   color: var(--ink);
-  margin-bottom: 9px;
+  margin-bottom: 8px;
 }
 
 .ms-desc {
-  font-size: 15px;
+  font-size: var(--fs-4);
   color: var(--ink-mid);
   line-height: 1.70;
   margin-bottom: 12px;
 }
 
 .ms-link {
-  font-size: 14px;
+  font-size: var(--fs-3);
   color: var(--crimson);
-  letter-spacing: 0.5px;
+  letter-spacing: var(--ls-tight);
   transition: opacity var(--ease);
 }
 
@@ -1391,16 +1449,16 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .ms-meta {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   margin-bottom: 8px;
 }
 
 .ms-badge {
-  font-size: 12px;
-  letter-spacing: 1.5px;
+  font-size: var(--fs-1);
+  letter-spacing: var(--ls-wide);
   padding: 2px 8px;
   font-family: 'Cinzel', serif;
-  border-radius: 1px;
+  border-radius: var(--r-sm);
 }
 .ms-badge-start       { background: rgba(122,21,21,0.10);  color: #a83030; border: 1px solid rgba(122,21,21,0.28); }
 .ms-badge-boss        { background: rgba(90,13,13,0.13);   color: #a04040; border: 1px solid rgba(90,13,13,0.32); }
@@ -1434,17 +1492,17 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .award-label {
   font-family: 'Cinzel', serif;
-  font-size: 12px;
-  letter-spacing: 4px;
+  font-size: var(--fs-1);
+  letter-spacing: var(--ls-title);
   color: var(--ink-light);
-  padding: 9px 20px;
+  padding: 8px 20px;
   border-bottom: 1px solid rgba(var(--edge-rgb),0.14);
   background: rgba(var(--edge-rgb),0.03);
 }
 
 .aw-highlight {
-  padding: 14px 20px 12px;
-  font-size: 14px;
+  padding: 16px 20px 12px;
+  font-size: var(--fs-3);
   line-height: 1.75;
   color: var(--ink-mid);
   border-bottom: 1px solid rgba(var(--edge-rgb),0.10);
@@ -1468,7 +1526,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  padding: 10px 4px 9px;
+  padding: 12px 4px 8px;
   color: var(--ink-mid);
   border-right: 1px solid rgba(var(--edge-rgb),0.10);
   transition: background var(--ease);
@@ -1476,10 +1534,10 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .aw-stat:last-child { border-right: none; }
 .aw-stat:hover,
 .aw-stat:focus-visible { background: rgba(var(--edge-rgb),0.07); }
-.aw-stat-icon  { font-size: 15px; line-height: 1; }
-.aw-stat-label { font-size: 12px; letter-spacing: 1px; color: var(--ink-mid); }
-.aw-stat-num   { font-size: 18px; font-weight: 600; color: var(--ink); line-height: 1.2; }
-.aw-stat-num small { font-size: 12px; font-weight: 400; color: var(--ink-mid); margin-left: 2px; }
+.aw-stat-icon  { font-size: var(--fs-4); line-height: 1; }
+.aw-stat-label { font-size: var(--fs-1); letter-spacing: var(--ls-wide); color: var(--ink-mid); }
+.aw-stat-num   { font-size: var(--fs-6); font-weight: 600; color: var(--ink); line-height: 1.2; }
+.aw-stat-num small { font-size: var(--fs-1); font-weight: 400; color: var(--ink-mid); margin-left: 2px; }
 .aw-stat-zero .aw-stat-num { color: var(--ink-mid); font-weight: 400; }
 @media (max-width: 520px) {
   .aw-stat { padding: 8px 2px; }
@@ -1494,9 +1552,9 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   grid-template-columns: 34px 1fr;
   grid-template-rows: auto auto auto;
   align-items: start;
-  column-gap: 10px;
+  column-gap: 12px;
   row-gap: 2px;
-  padding: 14px 18px;
+  padding: 16px 20px;
   border-right: 1px solid rgba(var(--edge-rgb),0.10);
 }
 
@@ -1523,7 +1581,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .aw-icon {
   grid-column: 1;
   grid-row: 1 / 4;
-  font-size: 20px;
+  font-size: var(--fs-7);
   align-self: center;
   justify-self: center;
 }
@@ -1531,15 +1589,15 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .aw-key {
   grid-column: 2;
   grid-row: 1;
-  font-size: 12px;
-  letter-spacing: 1.5px;
+  font-size: var(--fs-1);
+  letter-spacing: var(--ls-wide);
   color: var(--ink-light);
 }
 
 .aw-val {
   grid-column: 2;
   grid-row: 2;
-  font-size: 14px;
+  font-size: var(--fs-3);
   font-weight: 600;
   color: var(--ink-mid);
   line-height: 1.35;
@@ -1553,7 +1611,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .aw-sub {
   grid-column: 2;
   grid-row: 3;
-  font-size: 12px;
+  font-size: var(--fs-1);
   color: var(--ink-light);
   font-style: italic;
   margin-top: 2px;
@@ -1593,7 +1651,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .hero-sep {
-  font-size: 20px;
+  font-size: var(--fs-7);
   color: var(--gold-dim);
   flex-shrink: 0;
   padding: 0 8px;
@@ -1613,7 +1671,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .hero-icon {
-  font-size: 28px;
+  font-size: var(--fs-d1);
   opacity: 0.55;
   display: block;
   margin-bottom: 12px;
@@ -1621,17 +1679,17 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .hero-num {
   font-family: 'Cinzel', serif;
-  font-size: 72px;
+  font-size: var(--fs-d5);
   font-weight: 700;
   line-height: 1;
   color: var(--gold-bright);
   text-shadow: 0 0 40px rgba(247,212,142,0.25);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .hero-label {
-  font-size: 13px;
-  letter-spacing: 4px;
+  font-size: var(--fs-2);
+  letter-spacing: var(--ls-title);
   color: var(--gold-dim);
 }
 
@@ -1641,19 +1699,19 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .death-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 10px;
+  gap: 12px;
   margin-bottom: 8px;
 }
 
 /* ── 死法輪盤（觸發鈕 + Modal） ────────────────────────────── */
 .dro-trigger {
   font-family: 'Cinzel', serif;
-  font-size: 12.5px;
-  letter-spacing: 1px;
+  font-size: var(--fs-2);
+  letter-spacing: var(--ls-wide);
   color: var(--crimson);
   border: 1px solid rgba(122,21,21,0.35);
-  border-radius: 6px;
-  padding: 7px 14px;
+  border-radius: var(--r-md);
+  padding: 7px 16px;
   background: rgba(122,21,21,0.06);
   transition: background var(--ease), transform var(--ease);
   flex-shrink: 0;
@@ -1662,12 +1720,12 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .dro-trigger:active { transform: translateY(0); }
 
 .dro-overlay {
-  position: fixed; inset: 0; z-index: 300;
+  position: fixed; inset: 0; z-index: var(--z-modal);
   display: none;
   align-items: center; justify-content: center;
   background: rgba(2,1,0,0.8);
   backdrop-filter: blur(3px);
-  opacity: 0; transition: opacity 0.25s ease;
+  opacity: 0; transition: opacity var(--ease);
   padding: 20px;
 }
 .dro-overlay.dro-open { display: flex; opacity: 1; }
@@ -1679,22 +1737,22 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   width: min(600px, 100%);
   max-height: 92vh;
   overflow-y: auto;
-  background: radial-gradient(ellipse at 50% -10%, rgba(217,176,122,0.13), transparent 60%), #0f0c09;
+  background: radial-gradient(ellipse at 50% -10%, rgba(217,176,122,0.13), transparent 60%), var(--ink-dark);
   border: 1px solid var(--gold-border);
   border-top: 3px solid var(--crimson);
-  border-radius: 12px;
+  border-radius: var(--r-lg);
   padding: 40px 36px 32px;
   text-align: center;
   box-shadow: 0 30px 100px rgba(0,0,0,0.8), 0 0 70px rgba(217,176,122,0.09);
   transform: scale(0.94) translateY(10px);
-  transition: transform 0.25s ease;
+  transition: transform var(--ease);
 }
 .dro-overlay.dro-open .dro-dialog { transform: scale(1) translateY(0); }
 
 /* 角落裝飾（呼應站內 content-frame 的四角花紋，換用金色貼合暗色主題） */
 .dro-corner {
   position: absolute;
-  font-size: 15px;
+  font-size: var(--fs-4);
   color: rgba(var(--gold-rgb),0.45);
   line-height: 1;
   pointer-events: none;
@@ -1706,14 +1764,14 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .dro-close {
   position: absolute; top: 12px; right: 40px;
-  font-size: 19px; color: var(--gold-dim); opacity: 0.7;
+  font-size: var(--fs-7); color: var(--gold-dim); opacity: 0.7;
   padding: 4px 8px; z-index: 2;
 }
 .dro-close:hover { opacity: 1; }
 
 .dro-title-row {
-  display: flex; align-items: center; gap: 14px;
-  margin-bottom: 26px;
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 28px;
 }
 .dro-title-line {
   flex: 1; height: 1px;
@@ -1721,7 +1779,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .dro-title {
   font-family: 'Cinzel', serif;
-  font-size: 19px; letter-spacing: 5px;
+  font-size: var(--fs-7); letter-spacing: var(--ls-display);
   color: var(--gold-bright);
   text-shadow: 0 0 20px rgba(247,212,142,0.4);
   white-space: nowrap;
@@ -1731,7 +1789,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .dro-wheel-wrap {
   position: relative;
   width: 340px; height: 340px;
-  margin: 10px auto 26px;
+  margin: 12px auto 28px;
   /* 頭像標記／金屬釘的半徑，用 CSS 變數讓行動版縮小輪盤時同步等比縮放 */
   --dro-mark-r: 130px;
   --dro-peg-r: 176px;
@@ -1784,7 +1842,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px;
   border-radius: 50%;
   background: radial-gradient(circle at 35% 30%, var(--gold-bright), var(--gold-deep) 70%);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  box-shadow: var(--shadow-1);
 }
 
 .dro-wheel-pointer {
@@ -1825,10 +1883,10 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .dro-wheel-mark {
   position: absolute; top: 50%; left: 50%;
-  width: 34px; height: 34px; margin: -17px 0 0 -17px;
+  width: 34px; height: 34px; margin: -16px 0 0 -16px;
   border-radius: 50%; overflow: hidden;
   border: 2px solid rgba(255,255,255,0.85);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.45);
+  box-shadow: var(--shadow-2);
 }
 .dro-wheel-mark img { width: 100%; height: 100%; object-fit: cover; }
 
@@ -1836,10 +1894,10 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   position: absolute; top: 50%; left: 50%;
   transform: translate(-50%, -50%);
   width: 50px; height: 50px; border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #241a0c, #0f0c09 75%);
+  background: radial-gradient(circle at 35% 30%, #241a0c, var(--ink-dark) 75%);
   border: 2px solid var(--gold-deep);
   display: flex; align-items: center; justify-content: center;
-  font-size: 20px;
+  font-size: var(--fs-7);
   box-shadow: 0 2px 8px rgba(0,0,0,0.5), inset 0 0 8px rgba(0,0,0,0.6);
   z-index: 1;
 }
@@ -1882,7 +1940,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   position: absolute;
   width: 3px; height: 18px; margin-left: -1.5px;
   background: linear-gradient(var(--spark-color), transparent);
-  border-radius: 2px;
+  border-radius: var(--r-sm);
   opacity: 0;
   transform: translateY(-20px);
 }
@@ -1906,13 +1964,13 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .dro-result {
   min-height: 96px;
   display: flex; align-items: center; justify-content: center;
-  gap: 16px; padding: 18px 16px;
+  gap: 16px; padding: 20px 16px;
   background: rgba(var(--gold-rgb),0.05);
   border: 1px dashed var(--gold-border);
-  border-radius: 10px;
+  border-radius: var(--r-lg);
   margin-bottom: 24px;
   text-align: left;
-  transition: box-shadow 0.3s ease;
+  transition: box-shadow var(--ease);
 }
 .dro-result.dro-result-pop { animation: dro-result-pop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
 @keyframes dro-result-pop {
@@ -1923,7 +1981,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   flex-shrink: 0;
   width: 72px; height: 72px; border-radius: 50%; overflow: hidden;
   border: 2px solid var(--gold-deep);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color var(--ease), box-shadow var(--ease);
 }
 .dro-result-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .dro-result-text {
@@ -1931,32 +1989,32 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   max-width: 380px;
 }
 .dro-result-desc {
-  font-size: 18px; color: var(--gold); line-height: 1.65;
+  font-size: var(--fs-6); color: var(--gold); line-height: 1.65;
 }
 .dro-result-ep {
   align-self: flex-start;
-  font-size: 12.5px; color: var(--gold-dim);
+  font-size: var(--fs-2); color: var(--gold-dim);
   border: 1px solid var(--gold-border);
-  border-radius: 5px;
-  padding: 3px 10px;
+  border-radius: var(--r-md);
+  padding: 3px 12px;
   opacity: 0.85;
   transition: background var(--ease), opacity var(--ease);
 }
 .dro-result-ep:hover { background: rgba(var(--gold-rgb),0.1); opacity: 1; }
-.dro-result-ep-plain { font-size: 12.5px; color: var(--gold-dim); opacity: 0.7; }
+.dro-result-ep-plain { font-size: var(--fs-2); color: var(--gold-dim); opacity: 0.7; }
 .dro-result-hl {
-  font-size: 13.5px; color: var(--gold-dim); line-height: 1.6;
+  font-size: var(--fs-3); color: var(--gold-dim); line-height: 1.6;
   opacity: 0.85; font-style: italic;
   border-left: 2px solid var(--gold-border);
-  padding-left: 10px;
+  padding-left: 12px;
 }
-.dro-result-hint { font-size: 13px; color: var(--gold-dim); opacity: 0.7; font-style: italic; }
+.dro-result-hint { font-size: var(--fs-2); color: var(--gold-dim); opacity: 0.7; font-style: italic; }
 
 .dro-actions { display: flex; gap: 12px; justify-content: center; }
 .dro-btn {
   font-family: 'Cinzel', serif;
-  font-size: 14px; letter-spacing: 1.5px;
-  padding: 11px 22px; border-radius: 6px;
+  font-size: var(--fs-3); letter-spacing: var(--ls-wide);
+  padding: 12px 24px; border-radius: var(--r-md);
   color: var(--bg-dark);
   background: var(--gold-bright);
   transition: background var(--ease), transform var(--ease), box-shadow var(--ease);
@@ -1975,7 +2033,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     --dro-mark-r: 84px;
   }
   .dro-peg { display: none; }
-  .dro-wheel-mark { width: 26px; height: 26px; margin: -13px 0 0 -13px; }
+  .dro-wheel-mark { width: 26px; height: 26px; margin: -12px 0 0 -12px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1992,12 +2050,12 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 /* ── 宿敵對戰海報（矩陣格點擊觸發） ────────────────────────── */
 .rv-overlay {
-  position: fixed; inset: 0; z-index: 300;
+  position: fixed; inset: 0; z-index: var(--z-modal);
   display: none;
   align-items: center; justify-content: center;
   background: rgba(2,1,0,0.72);
   backdrop-filter: blur(3px);
-  opacity: 0; transition: opacity 0.25s ease;
+  opacity: 0; transition: opacity var(--ease);
   padding: 20px;
 }
 .rv-overlay.rv-open { display: flex; opacity: 1; }
@@ -2010,63 +2068,63 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   overflow-y: auto;
   background: var(--parchment);
   border: 2px solid var(--gold-deep);
-  border-radius: 10px;
-  padding: 30px 30px 24px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  border-radius: var(--r-lg);
+  padding: 32px 32px 24px;
+  box-shadow: var(--shadow-3);
   transform: scale(0.94) translateY(10px);
-  transition: transform 0.25s ease;
+  transition: transform var(--ease);
 }
 .rv-overlay.rv-open .rv-dialog { transform: scale(1) translateY(0); }
 
 .rv-close {
   position: absolute; top: 10px; right: 12px;
-  font-size: 18px; color: var(--ink-mid); opacity: 0.69;
+  font-size: var(--fs-6); color: var(--ink-mid); opacity: 0.69;
   padding: 4px 8px; z-index: 1;
 }
 .rv-close:hover { opacity: 1; }
 
 .rv-title {
   font-family: 'Cinzel', serif;
-  font-size: 15px; letter-spacing: 4px; text-align: center;
-  color: var(--crimson); margin-bottom: 22px;
+  font-size: var(--fs-4); letter-spacing: var(--ls-title); text-align: center;
+  color: var(--crimson); margin-bottom: 24px;
 }
 
 .rv-matchup {
   display: flex; align-items: center; justify-content: center;
-  gap: 18px; margin-bottom: 8px;
+  gap: 20px; margin-bottom: 8px;
 }
 .rv-side { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 0; }
 .rv-av {
   width: 88px; height: 88px; border-radius: 50%; overflow: hidden;
   border: 2.5px solid var(--gold-deep);
-  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  box-shadow: var(--shadow-2);
 }
 .rv-av img { width: 100%; height: 100%; object-fit: cover; }
-.rv-char { font-weight: 700; font-size: 17px; color: var(--ink); margin-top: 4px; }
-.rv-player { font-size: 12px; color: var(--ink-light); }
-.rv-score { font-family: 'Cinzel', serif; font-size: 28px; font-weight: 700; color: var(--crimson); margin-top: 4px; }
+.rv-char { font-weight: 700; font-size: var(--fs-6); color: var(--ink); margin-top: 4px; }
+.rv-player { font-size: var(--fs-1); color: var(--ink-light); }
+.rv-score { font-family: 'Cinzel', serif; font-size: var(--fs-d1); font-weight: 700; color: var(--crimson); margin-top: 4px; }
 
 .rv-vs { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; }
 .rv-vs-text {
-  font-family: 'Cinzel', serif; font-size: 22px; font-weight: 700;
+  font-family: 'Cinzel', serif; font-size: var(--fs-8); font-weight: 700;
   color: var(--ink-mid); opacity: 0.7;
 }
-.rv-vs-total { font-size: 12px; color: var(--ink-light); white-space: nowrap; }
+.rv-vs-total { font-size: var(--fs-1); color: var(--ink-light); white-space: nowrap; }
 
-.rv-draw { text-align: center; font-size: 13px; color: var(--ink-light); margin-bottom: 12px; }
+.rv-draw { text-align: center; font-size: var(--fs-2); color: var(--ink-light); margin-bottom: 12px; }
 
 .rv-hl-list {
-  margin-top: 18px; padding-top: 18px;
+  margin-top: 20px; padding-top: 20px;
   border-top: 1px solid rgba(67,44,24,0.15);
   display: flex; flex-direction: column; gap: 12px;
 }
-.rv-hl-entry { font-size: 14px; color: var(--ink); line-height: 1.7; }
+.rv-hl-entry { font-size: var(--fs-3); color: var(--ink); line-height: 1.7; }
 .rv-hl-sid {
-  display: inline-block; font-family: 'Cinzel', serif; font-size: 12px;
+  display: inline-block; font-family: 'Cinzel', serif; font-size: var(--fs-1);
   color: var(--crimson); border: 1px solid rgba(122,21,21,0.3);
-  border-radius: 4px; padding: 1px 6px; margin-right: 8px; vertical-align: middle;
+  border-radius: var(--r-md); padding: 1px 6px; margin-right: 8px; vertical-align: middle;
 }
-.rv-hl-empty { font-size: 13px; color: var(--ink-light); font-style: italic; text-align: center; }
+.rv-hl-empty { font-size: var(--fs-2); color: var(--ink-light); font-style: italic; text-align: center; }
 
 .rv-dialog .qm-copy {
   border: 1px solid rgba(122,21,21,0.35);
@@ -2079,14 +2137,14 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 @media (max-width: 520px) {
-  .rv-matchup { gap: 10px; }
+  .rv-matchup { gap: 12px; }
   .rv-av { width: 68px; height: 68px; }
-  .rv-score { font-size: 22px; }
+  .rv-score { font-size: var(--fs-8); }
 }
 
 /* ── 死亡時間軸 / 死法圖鑑 ───────────────────────────── */
 .dtl-summary {
-  font-size: 13px;
+  font-size: var(--fs-2);
   color: var(--ink-mid);
   margin-bottom: 12px;
   line-height: 1.7;
@@ -2099,7 +2157,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   display: grid;
   grid-template-columns: 104px 1fr;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   min-height: 34px;
 }
 .swim-name { display: flex; align-items: center; gap: 7px; min-width: 0; }
@@ -2112,7 +2170,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .swim-av img { width: 100%; height: 100%; object-fit: cover; }
 .swim-nm {
-  font-size: 12px;
+  font-size: var(--fs-1);
   color: var(--ink-mid);
   font-weight: 600;
   white-space: nowrap;
@@ -2123,7 +2181,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   margin-left: auto;
   flex-shrink: 0;
   font-family: 'Cinzel', serif;
-  font-size: 12px;
+  font-size: var(--fs-1);
   font-weight: 700;
   color: var(--crimson);
   opacity: 0.8;
@@ -2145,7 +2203,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
    空間夠→填滿不捲；不夠→軌道維持最小寬、只有它橫向捲動，圓點間距恆定；名字欄 sticky 固定 */
 .swim-scroll { overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
 .swim-scroll::-webkit-scrollbar { height: 6px; }
-.swim-scroll::-webkit-scrollbar-thumb { background: rgba(var(--edge-rgb),0.28); border-radius: 3px; }
+.swim-scroll::-webkit-scrollbar-thumb { background: rgba(var(--edge-rgb),0.28); border-radius: var(--r-sm); }
 .swim-scroll .swim-lane { grid-template-columns: 104px minmax(var(--track-min, 0px), 1fr); }
 .swim-scroll .swim-name {
   position: sticky;
@@ -2186,7 +2244,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  transition: transform var(--ease), box-shadow var(--ease);
   z-index: 1;
 }
 .swim-dot:hover { transform: translate(-50%, -50%) scale(1.28); z-index: 3; }
@@ -2203,12 +2261,12 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .pal-gold   rect { fill: rgba(var(--gold-deep-rgb),0.88); }
 
 .dtl-caption {
-  margin-top: 10px;
+  margin-top: 12px;
   min-height: 22px;
   padding: 8px 12px;
   background: rgba(255,255,255,0.35);
   border-left: 3px solid rgba(122,21,21,0.32);
-  font-size: 13px;
+  font-size: var(--fs-2);
   line-height: 1.6;
   display: flex;
   flex-wrap: wrap;
@@ -2219,7 +2277,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .dtl-cap-who { font-weight: 700; color: var(--ink); }
 .dtl-cap-sid {
   font-family: 'Cinzel', serif;
-  font-size: 12px;
+  font-size: var(--fs-1);
   font-weight: 600;
   color: var(--crimson);
 }
@@ -2227,7 +2285,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .dtl-hint {
   margin-top: 8px;
-  font-size: 12px;
+  font-size: var(--fs-1);
   color: var(--ink-light);
   line-height: 1.6;
 }
@@ -2271,23 +2329,23 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   display: flex;
   flex-direction: column;
   gap: 3px;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .dc-char {
-  font-size: 16px;
+  font-size: var(--fs-5);
   font-weight: 700;
   color: var(--gold-bright);
-  letter-spacing: 0.5px;
+  letter-spacing: var(--ls-tight);
 }
 
 .dc-player {
-  font-size: 13px;
+  font-size: var(--fs-2);
   color: rgba(var(--gold-rgb),0.80);
 }
 
 .dc-skull {
-  font-size: 28px;
+  font-size: var(--fs-d1);
   display: block;
   margin-bottom: 8px;
   opacity: 0.70;
@@ -2300,7 +2358,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .dc-count {
   font-family: 'Cinzel', serif;
-  font-size: 40px;
+  font-size: var(--fs-d3);
   font-weight: 700;
   line-height: 1;
   color: rgba(var(--gold-rgb),0.85);
@@ -2317,26 +2375,26 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .dc-unit {
-  font-size: 12px;
-  letter-spacing: 1.5px;
+  font-size: var(--fs-1);
+  letter-spacing: var(--ls-wide);
   color: rgba(var(--gold-rgb),0.70);
 }
 
 .dc-downed {
-  font-size: 12px;
-  letter-spacing: 1px;
+  font-size: var(--fs-1);
+  letter-spacing: var(--ls-wide);
   color: rgba(var(--gold-rgb),0.62);
   margin-top: 3px;
 }
 
 .dc-narrative {
-  margin-top: 14px;
-  font-size: 12px;
+  margin-top: 16px;
+  font-size: var(--fs-1);
   line-height: 1.65;
   color: rgba(var(--gold-rgb),0.78);
   text-align: left;
   border-top: 1px solid rgba(var(--gold-rgb),0.10);
-  padding-top: 10px;
+  padding-top: 12px;
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -2352,11 +2410,11 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .ff-ranking-label {
-  font-size: 12px;
-  letter-spacing: 1.5px;
+  font-size: var(--fs-1);
+  letter-spacing: var(--ls-wide);
   text-transform: uppercase;
   color: var(--ink-light);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .ff-mini-board { display: flex; flex-direction: column; gap: 8px; }
@@ -2380,14 +2438,14 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .ff-mini-info { display: flex; flex-direction: column; gap: 4px; }
 
 .ff-mini-name {
-  font-size: 12px;
+  font-size: var(--fs-1);
   color: var(--ink-mid);
   line-height: 1;
 }
 
 .ff-mini-count {
   font-family: 'Cinzel', serif;
-  font-size: 13px;
+  font-size: var(--fs-2);
   font-weight: 700;
   color: var(--ink-mid);
   text-align: right;
@@ -2396,7 +2454,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .ff-mini-bar-perp {
   height: 4px;
-  background: linear-gradient(to right, #7a1515, #c94040);
+  background: linear-gradient(to right, var(--crimson), #c94040);
   transition: width 0.6s ease;
 }
 
@@ -2429,15 +2487,15 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .ff-sort-btn {
-  padding: 4px 10px;
-  font-size: 12px;
-  letter-spacing: 0.5px;
+  padding: 4px 12px;
+  font-size: var(--fs-1);
+  letter-spacing: var(--ls-tight);
   font-family: inherit;
   color: var(--ink-light);
   background: rgba(var(--edge-rgb),0.06);
   border: 1px solid rgba(var(--edge-rgb),0.22);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background var(--ease), color var(--ease);
 }
 .ff-sort-btn + .ff-sort-btn { border-left: none; }
 .ff-sort-btn:hover { background: rgba(var(--edge-rgb),0.13); color: var(--ink-mid); }
@@ -2449,13 +2507,13 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .ff-pill {
   padding: 4px 12px;
-  font-size: 12px;
+  font-size: var(--fs-1);
   font-family: inherit;
   color: var(--ink-light);
   background: rgba(var(--edge-rgb),0.08);
   border: 1px solid rgba(var(--edge-rgb),0.25);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition: background var(--ease), color var(--ease), border-color var(--ease);
 }
 .ff-pill:hover {
   background: rgba(var(--edge-rgb),0.16);
@@ -2473,15 +2531,15 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   display: block;
   width: 100%;
   margin-top: 12px;
-  padding: 10px;
-  font-size: 12px;
-  letter-spacing: 1px;
+  padding: 12px;
+  font-size: var(--fs-1);
+  letter-spacing: var(--ls-wide);
   font-family: inherit;
   color: var(--ink-light);
   background: rgba(var(--edge-rgb),0.06);
   border: 1px dashed rgba(var(--edge-rgb),0.30);
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background var(--ease), color var(--ease);
 }
 .ff-expand-btn:hover {
   background: rgba(var(--edge-rgb),0.13);
@@ -2527,22 +2585,22 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .ff-name {
   font-family: 'Cinzel', serif;
-  font-size: 15px;
-  letter-spacing: 1px;
+  font-size: var(--fs-4);
+  letter-spacing: var(--ls-wide);
   text-align: center;
 }
 .ff-perp  { color: rgba(200,60,60,0.9); }
 .ff-victim { color: var(--gold-bright); }
 
 .ff-role {
-  font-size: 12px;
-  letter-spacing: 1px;
+  font-size: var(--fs-1);
+  letter-spacing: var(--ls-wide);
   color: rgba(var(--gold-rgb),0.60);
   text-transform: uppercase;
 }
 
 .ff-arrow {
-  font-size: 26px;
+  font-size: var(--fs-d1);
   color: rgba(200,60,60,0.6);
   flex: 1;
   text-align: center;
@@ -2552,25 +2610,25 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .ff-chapter {
   font-family: 'Cinzel', serif;
-  font-size: 12px;
-  letter-spacing: 1px;
+  font-size: var(--fs-1);
+  letter-spacing: var(--ls-wide);
   color: rgba(var(--gold-rgb),0.55);
 }
 
 .ff-method {
-  font-size: 12px;
+  font-size: var(--fs-1);
   color: rgba(200,60,60,0.8);
   font-weight: 600;
-  letter-spacing: 0.5px;
+  letter-spacing: var(--ls-tight);
 }
 
 .ff-desc {
-  font-size: 13px;
+  font-size: var(--fs-2);
   line-height: 1.7;
   color: rgba(var(--gold-rgb),0.80);
   margin: 0;
@@ -2589,10 +2647,10 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   display: grid;
   grid-template-columns: 40px 32px 1fr 1fr 1fr 50px;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   background: var(--ink);
   border: 1px solid rgba(var(--edge-rgb),0.18);
-  padding: 10px 16px;
+  padding: 12px 16px;
   position: relative;
   overflow: hidden;
 }
@@ -2627,7 +2685,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .duel-row:first-child .dr-av { border-color: rgba(var(--gold-rgb),0.50); }
 
 .dr-rank {
-  font-size: 17px;
+  font-size: var(--fs-6);
   text-align: center;
   flex-shrink: 0;
   line-height: 1;
@@ -2640,24 +2698,24 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .dr-char {
-  font-size: 15px;
+  font-size: var(--fs-4);
   font-weight: 700;
   color: var(--gold-bright);
 }
 
 .dr-player {
-  font-size: 12px;
+  font-size: var(--fs-1);
   color: rgba(var(--gold-rgb),0.75);
 }
 
 .dr-w {
   font-weight: 700;
-  font-size: 15px;
+  font-size: var(--fs-4);
   color: var(--gold-bright);
 }
 
 .dr-l {
-  font-size: 15px;
+  font-size: var(--fs-4);
   color: rgba(var(--gold-rgb),0.72);
 }
 
@@ -2665,7 +2723,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   height: 8px;
   background: rgba(var(--edge-rgb),0.14);
   border: 1px solid rgba(var(--edge-rgb),0.18);
-  border-radius: 4px;
+  border-radius: var(--r-md);
   overflow: hidden;
 }
 
@@ -2679,9 +2737,9 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   transition: width 0.7s ease;
   flex-shrink: 0;
 }
-.dr-seg-w { background: #4caf72; animation-delay: 250ms !important; }
-.dr-seg-d { background: rgba(var(--gold-deep-rgb),0.55); animation-delay: 380ms !important; }
-.dr-seg-l { background: #b94040; animation-delay: 380ms !important; }
+.dr-seg-w { background: var(--win); animation-delay: 250ms !important; }
+.dr-seg-d { background: var(--draw); animation-delay: 380ms !important; }
+.dr-seg-l { background: var(--loss); animation-delay: 380ms !important; }
 
 .dr-bar {
   height: 100%;
@@ -2690,7 +2748,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .dr-pct {
   font-family: 'Cinzel', serif;
-  font-size: 14px;
+  font-size: var(--fs-3);
   font-weight: 700;
   color: var(--gold-bright);
   text-align: right;
@@ -2698,31 +2756,31 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .duel-note {
-  font-size: 12px;
+  font-size: var(--fs-1);
   color: var(--ink-light);
   margin-top: 12px;
-  letter-spacing: 0.3px;
+  letter-spacing: var(--ls-tight);
 }
 
 .duel-bar-legend {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-top: 10px;
-  font-size: 12px;
+  margin-top: 12px;
+  font-size: var(--fs-1);
   color: var(--ink-light);
 }
 .dbl-dot {
   width: 10px;
   height: 10px;
-  border-radius: 2px;
+  border-radius: var(--r-sm);
   display: inline-block;
   flex-shrink: 0;
 }
-.dbl-w { background: #4caf72; margin-left: 4px; }
-.dbl-d { background: rgba(var(--gold-deep-rgb),0.55); margin-left: 8px; }
-.dbl-l { background: #b94040; margin-left: 8px; }
-.dbl-note { margin-left: 10px; opacity: 0.65; }
+.dbl-w { background: var(--win); margin-left: 4px; }
+.dbl-d { background: var(--draw); margin-left: 8px; }
+.dbl-l { background: var(--loss); margin-left: 8px; }
+.dbl-note { margin-left: 12px; opacity: 0.65; }
 
 /* ══════════════════════════════════════════════════════════
    對戰勝率一覽（matchup split bars）
@@ -2739,7 +2797,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .msp-row {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .msp-av-group {
@@ -2766,7 +2824,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .msp-name {
-  font-size: 13px;
+  font-size: var(--fs-2);
   font-weight: 700;
   color: var(--gold-bright);
   flex: 1;
@@ -2792,22 +2850,22 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .msp-pct {
   font-family: 'Cinzel', serif;
-  font-size: 12px;
+  font-size: var(--fs-1);
   font-weight: 700;
   flex-shrink: 0;
   width: 40px;
-  letter-spacing: 0.5px;
+  letter-spacing: var(--ls-tight);
 }
 .msp-pct-a { color: #52a052; text-align: right; }
 .msp-pct-b { color: rgba(200,70,70,0.75); text-align: left; }
 
 .msp-score {
-  font-size: 12px;
+  font-size: var(--fs-1);
   color: rgba(var(--gold-rgb),0.55);
   width: 60px;
   flex-shrink: 0;
   text-align: right;
-  letter-spacing: 0.3px;
+  letter-spacing: var(--ls-tight);
 }
 
 /* ── 場次進度（頁尾中央） ─────────────────────────────────── */
@@ -2825,12 +2883,12 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .dr-d {
-  font-size: 14px;
+  font-size: var(--fs-3);
   color: rgba(var(--gold-rgb),0.75);
 }
 
 .dr-total {
-  font-size: 13px;
+  font-size: var(--fs-2);
   color: rgba(var(--gold-rgb),0.65);
   margin-left: 2px;
 }
@@ -2839,10 +2897,10 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
    對戰矩陣
    ══════════════════════════════════════════════════════════ */
 .matchup-note-row {
-  font-size: 13px;
+  font-size: var(--fs-2);
   color: var(--ink-light);
   margin-bottom: 12px;
-  letter-spacing: 0.5px;
+  letter-spacing: var(--ls-tight);
 }
 
 .matchup-wrap {
@@ -2855,13 +2913,13 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   width: 100%;
   min-width: 420px;
   border-collapse: collapse;
-  font-size: 13px;
+  font-size: var(--fs-2);
 }
 
 .mm-corner {
   font-size: 11px;
   color: var(--ink-light);
-  padding: 8px 10px;
+  padding: 8px 12px;
   text-align: center;
   border-bottom: 1px solid rgba(var(--edge-rgb),0.22);
   border-right: 1px solid rgba(var(--edge-rgb),0.22);
@@ -2873,32 +2931,64 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   border-bottom: 1px solid rgba(var(--edge-rgb),0.10);
 }
 
-.mm-cell.mm-win  { background: rgba(80,140,80,0.14); }
-.mm-cell.mm-lose { background: rgba(140,50,50,0.12); }
+.mm-cell.mm-win  { background: rgba(var(--win-rgb),0.14); }
+.mm-cell.mm-lose { background: rgba(var(--loss-rgb),0.12); }
 .mm-cell.mm-even { background: rgba(var(--edge-rgb),0.07); }
 
 .mm-empty {
   text-align: center;
   color: rgba(var(--gold-rgb),0.15);
-  font-size: 15px;
+  font-size: var(--fs-4);
   border-right: 1px solid rgba(var(--edge-rgb),0.10);
   border-bottom: 1px solid rgba(var(--edge-rgb),0.10);
-  padding: 10px 8px;
+  padding: 12px 8px;
   cursor: default;
 }
 
-.mm-w-ex { color: #3a8a3a; font-weight: 700; }
-.mm-l-ex { color: #8a2a2a; font-weight: 700; }
+.mm-w-ex { color: var(--win); font-weight: 700; }
+.mm-l-ex { color: var(--loss); font-weight: 700; }
 
 /* ══════════════════════════════════════════════════════════
    日誌：角色大頭貼 & 對話引文
    ══════════════════════════════════════════════════════════ */
+/* 對話段：連續對話收成一段，段內緊湊、段與敘述之間保留呼吸 */
+.dialogue-run {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 20px 0;
+}
 .quote-wrap {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  margin: 20px 0;
+  margin: 0;
   padding: 0;
+}
+/* 多人來回：氣泡依內容收縮，換人時靠右，形成對話節奏 */
+.dialogue-run.multi .char-quote { flex: 0 1 auto; max-width: calc(100% - 52px); }
+.quote-wrap.side-right { flex-direction: row-reverse; }
+.quote-wrap.side-right .char-quote {
+  border-left: none;
+  border-right: 3px solid var(--accent, rgba(var(--edge-rgb),0.40));
+  border-radius: 4px 0 0 4px;
+}
+.dq-line + .dq-line { margin-top: 6px; }
+/* 前綴敘述（「卡拉克震驚」）：保留情境，字小一級 */
+.dq-lead {
+  display: block;
+  font-size: var(--fs-2);
+  color: var(--ink-light);   /* 角色色當小字對比不足（影心 3.7:1），角色色留給氣泡邊線 */
+  margin-bottom: 1px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .char-avatar {
@@ -2926,7 +3016,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .av-initial {
   font-family: 'Cinzel', serif;
-  font-size: 16px;
+  font-size: var(--fs-5);
   font-weight: 700;
   position: relative;
   z-index: 1;
@@ -2934,37 +3024,37 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   display: none;
 }
 
-.av-影心    { background: #0d1f3c; border-color: #4a80c0; }
-.av-影心 .av-initial { color: #80b4e8; }
+.av-影心    { background: var(--c-shadowheart-bg); border-color: var(--c-shadowheart); }
+.av-影心 .av-initial { color: var(--c-shadowheart-lt); }
 
-.av-阿斯代倫 { background: #221508; border-color: #a07030; }
-.av-阿斯代倫 .av-initial { color: #d4a060; }
+.av-阿斯代倫 { background: var(--c-astarion-bg); border-color: var(--c-astarion); }
+.av-阿斯代倫 .av-initial { color: var(--c-astarion-lt); }
 
-.av-曹      { background: #0a1a0c; border-color: #3a7a3c; }
-.av-曹 .av-initial { color: #70b472; }
+.av-曹      { background: var(--c-cao-bg); border-color: var(--c-cao); }
+.av-曹 .av-initial { color: var(--c-cao-lt); }
 
-.av-卡拉克  { background: #1f0808; border-color: #a02020; }
-.av-卡拉克 .av-initial { color: #d46060; }
+.av-卡拉克  { background: var(--c-karlach-bg); border-color: var(--c-karlach); }
+.av-卡拉克 .av-initial { color: var(--c-karlach-lt); }
 
-.av-貓咕咕  { background: #160c28; border-color: #6a3aaa; }
-.av-貓咕咕 .av-initial { color: #a878e0; }
+.av-貓咕咕  { background: var(--c-maogugu-bg); border-color: var(--c-maogugu); }
+.av-貓咕咕 .av-initial { color: var(--c-maogugu-lt); }
 
-/* 對話氣泡依說話者上色：在容器層設 --accent（由 .char-quote 左緣與 .dq-attr 署名讀取），
+/* 對話氣泡依說話者上色：在容器層設 --accent（由 .char-quote 邊線讀取），
    不污染頭像本身樣式。:has() 不支援的舊瀏覽器會 fallback 回預設邊框/署名色。 */
-.quote-wrap:has(.av-影心)     { --accent: #4a80c0; }
-.quote-wrap:has(.av-阿斯代倫) { --accent: #a07030; }
-.quote-wrap:has(.av-曹)       { --accent: #3a7a3c; }
-.quote-wrap:has(.av-卡拉克)   { --accent: #a02020; }
-.quote-wrap:has(.av-貓咕咕)   { --accent: #6a3aaa; }
+.quote-wrap:has(.av-影心)     { --accent: var(--c-shadowheart); }
+.quote-wrap:has(.av-阿斯代倫) { --accent: var(--c-astarion); }
+.quote-wrap:has(.av-曹)       { --accent: var(--c-cao); }
+.quote-wrap:has(.av-卡拉克)   { --accent: var(--c-karlach); }
+.quote-wrap:has(.av-貓咕咕)   { --accent: var(--c-maogugu); }
 
 .char-quote {
   flex: 1;
-  font-size: 16px;
+  font-size: var(--fs-5);
   line-height: 1.85;
   color: var(--ink-mid);
   background: rgba(255, 248, 230, 0.85);
   border-left: 3px solid var(--accent, rgba(var(--edge-rgb),0.40));
-  padding: 9px 14px;
+  padding: 8px 16px;
   font-style: normal;
   quotes: none;
   border-radius: 0 4px 4px 0;
@@ -2972,30 +3062,19 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     0 1px 2px rgba(122, 80, 40, 0.06),
     inset 0 0 0 1px rgba(139, 90, 40, 0.10);
 }
-
-.dq-attr {
-  display: block;
-  font-size: 12px;
-  font-style: normal;
-  color: var(--accent, var(--ink-light));
-  opacity: 0.85;
-  margin-top: 8px;
-  letter-spacing: 0.3px;
-}
-
 /* ══════════════════════════════════════════════════════════
    靠北統計
    ══════════════════════════════════════════════════════════ */
 .roast-meta {
-  font-size: 13px;
+  font-size: var(--fs-2);
   color: var(--ink-light);
   margin-bottom: 20px;
-  letter-spacing: 0.4px;
+  letter-spacing: var(--ls-tight);
 }
 
 .roast-meta strong {
   color: var(--crimson);
-  font-size: 15px;
+  font-size: var(--fs-4);
 }
 
 .roast-columns {
@@ -3006,21 +3085,21 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .roast-col-title {
-  font-size: 13px;
-  letter-spacing: 1px;
+  font-size: var(--fs-2);
+  letter-spacing: var(--ls-wide);
   color: var(--ink);
   margin-bottom: 12px;
   font-weight: 600;
 }
 
 /* ── 被靠北 bar rows ─────────────────────────────────────  */
-.rb-board { display: flex; flex-direction: column; gap: 10px; }
+.rb-board { display: flex; flex-direction: column; gap: 12px; }
 
 .rb-row {
   display: grid;
   grid-template-columns: 36px 1fr 48px;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .rb-row.rb-crown .rb-count {
@@ -3043,14 +3122,14 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .rb-avatar .av-initial {
-  font-size: 13px;
+  font-size: var(--fs-2);
   position: relative; z-index: 1;
 }
 
 .rb-info { display: flex; flex-direction: column; gap: 5px; }
 
 .rb-name {
-  font-size: 14px;
+  font-size: var(--fs-3);
   font-weight: 700;
   color: var(--ink);
   display: flex;
@@ -3059,7 +3138,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .rb-player {
-  font-size: 12px;
+  font-size: var(--fs-1);
   font-weight: 400;
   color: var(--ink-light);
 }
@@ -3073,20 +3152,20 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .rb-bar-fill {
   height: 100%;
-  background: linear-gradient(to right, #7a1515, #c94040);
+  background: linear-gradient(to right, var(--crimson), #c94040);
   transition: width 0.6s ease;
 }
 
 .rb-count {
   font-family: 'Cinzel', serif;
-  font-size: 18px;
+  font-size: var(--fs-6);
   font-weight: 700;
   color: #c47c7c;
   text-align: right;
   line-height: 1;
 }
 
-.rb-unit { font-size: 12px; margin-left: 2px; color: var(--ink-light); font-family: inherit; }
+.rb-unit { font-size: var(--fs-1); margin-left: 2px; color: var(--ink-light); font-family: inherit; }
 
 /* ── 稱讚 bar 覆蓋色（綠金） */
 .rb-bar-fill.praise-bar,
@@ -3095,13 +3174,13 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .ib-count.praise-count  { color: #5aaa6a; }
 
 /* ── 主動靠北 rows ──────────────────────────────────────── */
-.ib-board { display: flex; flex-direction: column; gap: 10px; }
+.ib-board { display: flex; flex-direction: column; gap: 12px; }
 
 .ib-row {
   display: grid;
   grid-template-columns: 36px 1fr 48px;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .ib-row.rb-crown .ib-count { color: #e8c060; }
@@ -3126,7 +3205,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .ib-info { display: flex; flex-direction: column; gap: 5px; }
 
 .ib-name {
-  font-size: 14px;
+  font-size: var(--fs-3);
   font-weight: 700;
   color: var(--ink);
   display: flex;
@@ -3135,7 +3214,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .ib-player {
-  font-size: 12px;
+  font-size: var(--fs-1);
   font-weight: 400;
   color: var(--ink-light);
 }
@@ -3149,20 +3228,20 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .ib-bar-fill {
   height: 100%;
-  background: linear-gradient(to right, #7a1515, #c94040);
+  background: linear-gradient(to right, var(--crimson), #c94040);
   transition: width 0.6s ease;
 }
 
 .ib-count {
   font-family: 'Cinzel', serif;
-  font-size: 18px;
+  font-size: var(--fs-6);
   font-weight: 700;
   color: #c47c7c;
   text-align: right;
   line-height: 1;
 }
 
-.ib-unit { font-size: 12px; margin-left: 2px; color: var(--ink-light); font-family: inherit; }
+.ib-unit { font-size: var(--fs-1); margin-left: 2px; color: var(--ink-light); font-family: inherit; }
 
 /* ── 靠北熱力圖 ─────────────────────────────────────────── */
 
@@ -3171,7 +3250,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   text-align: center;
   color: var(--ink-light);
   padding: 32px;
-  font-size: 14px;
+  font-size: var(--fs-3);
 }
 
 /* ── 集數精華 ────────────────────────────────────────────  */
@@ -3183,20 +3262,20 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
    ══════════════════════════════════════════════════════════ */
 #tooltip {
   position: fixed;
-  z-index: 9999;
+  z-index: var(--z-tooltip);
   pointer-events: none;
   background: rgba(15, 10, 6, 0.96);
   border: 1px solid rgba(var(--gold-rgb),0.35);
   color: rgba(var(--gold-rgb),0.90);
-  font-size: 13px;
+  font-size: var(--fs-2);
   line-height: 1.65;
   padding: 8px 12px;
   max-width: 280px;
   white-space: pre-wrap;
   opacity: 0;
   transform: translateY(4px);
-  transition: opacity 0.15s ease, transform 0.15s ease;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  transition: opacity var(--ease), transform var(--ease);
+  box-shadow: var(--shadow-2);
 }
 
 #tooltip.visible {
@@ -3213,7 +3292,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   height: 48px;
   border-radius: 50%;
   overflow: hidden;
-  margin: 0 auto 10px;
+  margin: 0 auto 12px;
   border: 2px solid rgba(var(--gold-rgb),0.25);
   position: relative;
 }
@@ -3229,12 +3308,12 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 /* ── 對戰矩陣：大頭貼頭部 ──────────────────────────────── */
 .mm-hdr {
-  padding: 10px 6px 8px;
+  padding: 12px 6px 8px;
   text-align: center;
   border-bottom: 1px solid rgba(var(--edge-rgb),0.28);
   border-right: 1px solid rgba(var(--edge-rgb),0.12);
   vertical-align: bottom;
-  transition: background 0.15s;
+  transition: background var(--ease);
 }
 
 .mm-hdr.mm-col-active {
@@ -3263,21 +3342,21 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .mm-hchar {
   display: block;
-  font-size: 12px;
+  font-size: var(--fs-1);
   font-weight: 700;
   color: var(--ink);
 }
 
 .mm-row-hdr {
-  padding: 8px 14px 8px 10px;
+  padding: 8px 16px 8px 12px;
   text-align: left;
   border-right: 1px solid rgba(var(--edge-rgb),0.28);
   border-bottom: 1px solid rgba(var(--edge-rgb),0.10);
   white-space: nowrap;
   display: flex;
   align-items: center;
-  gap: 10px;
-  transition: background 0.15s;
+  gap: 12px;
+  transition: background var(--ease);
 }
 
 .mm-row-hdr.mm-row-active {
@@ -3291,55 +3370,55 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .mm-rchar {
-  font-size: 14px;
+  font-size: var(--fs-3);
   font-weight: 700;
   color: var(--ink);
 }
 
 .mm-rplayer {
-  font-size: 12px;
+  font-size: var(--fs-1);
   color: var(--ink-light);
 }
 
 .mm-cell {
   text-align: center;
-  padding: 10px 8px;
+  padding: 12px 8px;
   border-right: 1px solid rgba(var(--edge-rgb),0.12);
   border-bottom: 1px solid rgba(var(--edge-rgb),0.10);
   cursor: default;
-  transition: background 0.12s, transform 0.12s;
+  transition: background var(--ease), transform var(--ease);
 }
 
 .mm-cell:hover {
   transform: scale(1.06);
   z-index: 2;
   position: relative;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.35);
+  box-shadow: var(--shadow-2);
 }
 
 .mm-cell.mm-same-row, .mm-cell.mm-same-col {
   background: rgba(var(--gold-rgb),0.04) !important;
 }
 
-.mm-w { font-weight: 700; font-size: 18px; color: #3a8a3a; }
-.mm-sep { font-size: 14px; color: var(--ink-light); margin: 0 3px; }
-.mm-l { font-size: 18px; color: #8a2a2a; }
+.mm-w { font-weight: 700; font-size: var(--fs-6); color: var(--win); }
+.mm-sep { font-size: var(--fs-3); color: var(--ink-light); margin: 0 3px; }
+.mm-l { font-size: var(--fs-6); color: var(--loss); }
 .mm-d { font-size: 11px; color: var(--ink-light); display: block; margin-top: 2px; }
 
 /* ── 決鬥排行 / 里程碑：不做 hover 顏色變化，資訊改由 tooltip 呈現 ── */
 .duel-row { cursor: default; }
-.ms-item  { border-radius: 2px; }
+.ms-item  { border-radius: var(--r-sm); }
 
 /* ── 靠北欄位 hover ─────────────────────────────────────  */
-.rb-row { cursor: default; transition: background 0.15s; padding: 4px 0; border-radius: 2px; }
+.rb-row { cursor: default; transition: background var(--ease); padding: 4px 0; border-radius: var(--r-sm); }
 .rb-row:hover { background: rgba(var(--gold-rgb),0.03); }
-.ib-row { cursor: default; transition: background 0.15s; padding: 4px 0; border-radius: 2px; }
+.ib-row { cursor: default; transition: background var(--ease); padding: 4px 0; border-radius: var(--r-sm); }
 .ib-row:hover { background: rgba(var(--gold-rgb),0.03); }
 
 /* ── 響應式補充 ────────────────────────────────────────── */
 @media (max-width: 720px) {
-  .content-scroll { padding: 30px 22px 64px; }
-  .hero-num { font-size: 52px; }
+  .content-scroll { padding: 32px 24px 64px; }
+  .hero-num { font-size: var(--fs-d4); }
   .death-grid { grid-template-columns: repeat(3, 1fr); }
   .duel-row { grid-template-columns: 32px 24px 1fr auto 44px; }
   .dr-bar-wrap { display: none; }
@@ -3349,18 +3428,18 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   .aw-item { border-right: none; border-bottom: 1px solid rgba(var(--edge-rgb),0.10); }
   .aw-item:last-child { border-bottom: none; }
   .char-avatar { width: 34px; height: 34px; }
-  .av-initial { font-size: 13px; }
-  .char-quote { font-size: 15px; padding: 6px 10px; }
+  .av-initial { font-size: var(--fs-2); }
+  .char-quote { font-size: var(--fs-4); padding: 6px 12px; }
   .roast-columns { grid-template-columns: 1fr; }
   .ib-row { grid-template-columns: 36px 1fr 48px; }
 
   /* 對戰勝率一覽：縮減固定欄寬，隱藏分數欄 */
-  .msp-board { padding: 12px 10px; gap: 10px; }
+  .msp-board { padding: 12px 12px; gap: 12px; }
   .msp-row   { gap: 6px; }
   .msp-av-group { width: 68px; }
   .msp-av   { width: 22px; height: 22px; }
-  .msp-name { font-size: 12px; }
-  .msp-pct  { width: 32px; font-size: 12px; }
+  .msp-name { font-size: var(--fs-1); }
+  .msp-pct  { width: 32px; font-size: var(--fs-1); }
   .msp-bar-wrap { min-width: 0; }
   .msp-score { display: none; }
 }
@@ -3385,7 +3464,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   gap: 8px;
   cursor: pointer;
   opacity: 0.55;
-  transition: opacity 0.2s, transform 0.2s;
+  transition: opacity var(--ease), transform var(--ease);
   background: none;
   border: none;
   padding: 0;
@@ -3405,7 +3484,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   overflow: hidden;
   border: 3px solid rgba(var(--edge-rgb),0.25);
   position: relative;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: border-color var(--ease), box-shadow var(--ease);
 }
 .cp-portrait-btn.active .cp-pav {
   border-color: var(--gold);
@@ -3414,11 +3493,11 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .cp-pav img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 .cp-pname {
-  font-size: 12px;
+  font-size: var(--fs-1);
   font-weight: 600;
   color: var(--ink-light);
-  letter-spacing: 1px;
-  transition: color 0.2s;
+  letter-spacing: var(--ls-wide);
+  transition: color var(--ease);
 }
 .cp-portrait-btn.active .cp-pname { color: var(--ink); }
 
@@ -3426,7 +3505,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .cp-detail {
   background: rgba(255,255,255,0.22);
   border: 1px solid rgba(var(--edge-rgb),0.20);
-  max-width: 740px;
+  max-width: var(--w-data);
   margin: 0 auto;
 }
 
@@ -3446,7 +3525,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   overflow: hidden;
   border: 3px solid var(--gold-border);
   flex-shrink: 0;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.18);
+  box-shadow: var(--shadow-2);
 }
 .cp-hero-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
@@ -3454,29 +3533,29 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .cp-char-name {
   font-family: 'Cinzel', serif;
-  font-size: 28px;
+  font-size: var(--fs-d1);
   font-weight: 700;
   color: var(--ink-mid);
-  letter-spacing: 2px;
+  letter-spacing: var(--ls-wide);
   line-height: 1.2;
 }
 
 .cp-class-pill {
   display: inline-block;
-  font-size: 12px;
+  font-size: var(--fs-1);
   font-weight: 600;
   color: var(--crimson);
   background: rgba(122,21,21,0.08);
   border: 1px solid rgba(122,21,21,0.22);
   padding: 3px 12px;
-  letter-spacing: 1.5px;
+  letter-spacing: var(--ls-wide);
   align-self: flex-start;
 }
 
 .cp-player-name {
-  font-size: 14px;
+  font-size: var(--fs-3);
   color: var(--ink-light);
-  letter-spacing: 0.5px;
+  letter-spacing: var(--ls-tight);
 }
 
 .cp-quick-stats {
@@ -3488,14 +3567,14 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .cp-qs-item {
-  font-size: 13px;
+  font-size: var(--fs-2);
   color: var(--ink-light);
-  letter-spacing: 0.3px;
+  letter-spacing: var(--ls-tight);
 }
 .cp-qs-icon { margin-right: 4px; }
-.cp-qs-win  { color: #3a8a3a; font-weight: 700; }
-.cp-qs-lose { color: #8a2a2a; }
-.cp-qs-sep  { color: rgba(var(--edge-rgb),0.30); font-size: 16px; }
+.cp-qs-win  { color: var(--win); font-weight: 700; }
+.cp-qs-lose { color: var(--loss); }
+.cp-qs-sep  { color: rgba(var(--edge-rgb),0.30); font-size: var(--fs-5); }
 
 /* 各 section */
 .cp-section {
@@ -3506,15 +3585,15 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .cp-section-title {
   font-family: 'Cinzel', serif;
-  font-size: 12px;
-  letter-spacing: 3px;
+  font-size: var(--fs-1);
+  letter-spacing: var(--ls-title);
   color: var(--ink-light);
   margin-bottom: 16px;
   text-transform: uppercase;
 }
 
 .cp-intro {
-  font-size: 15px;
+  font-size: var(--fs-4);
   line-height: 1.85;
   color: var(--ink-mid);
   text-align: justify;
@@ -3524,18 +3603,18 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .cp-quotes {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .cp-quote-card {
   display: grid;
   grid-template-columns: 24px 1fr 32px;
   align-items: start;
-  gap: 10px;
+  gap: 12px;
   background: rgba(255,255,255,0.35);
   border: 1px solid rgba(var(--edge-rgb),0.15);
   border-left: 3px solid rgba(var(--edge-rgb),0.32);
-  padding: 10px 16px 10px 12px;
+  padding: 12px 16px 12px 12px;
 }
 
 /* 名言錄預設只顯示最近 8 句，其餘（extra）隱藏，展開後顯示 */
@@ -3544,17 +3623,17 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .cp-quotes-toggle {
   display: block;
-  margin: 10px auto 0;
-  padding: 6px 18px;
+  margin: 12px auto 0;
+  padding: 6px 20px;
   background: rgba(255,255,255,0.35);
   border: 1px solid rgba(var(--edge-rgb),0.22);
   color: var(--crimson);
   font-family: 'Cinzel', serif;
-  font-size: 12px;
+  font-size: var(--fs-1);
   font-weight: 600;
-  letter-spacing: 0.5px;
+  letter-spacing: var(--ls-tight);
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background var(--ease), border-color var(--ease);
 }
 .cp-quotes-toggle:hover {
   background: rgba(255,255,255,0.6);
@@ -3563,13 +3642,13 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .cp-qmark {
   font-family: 'Cinzel', serif;
-  font-size: 20px;
+  font-size: var(--fs-7);
   color: rgba(122,21,21,0.35);
   line-height: 1.2;
 }
 
 .cp-qtext {
-  font-size: 15px;
+  font-size: var(--fs-4);
   line-height: 1.7;
   color: var(--ink);
   font-style: italic;
@@ -3579,11 +3658,11 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .cp-qsession {
   font-family: 'Cinzel', serif;
-  font-size: 12px;
+  font-size: var(--fs-1);
   font-weight: 600;
   color: var(--crimson);
   opacity: 0.6;
-  letter-spacing: 0.5px;
+  letter-spacing: var(--ls-tight);
   text-align: right;
   margin-top: 4px;
 }
@@ -3601,11 +3680,11 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   align-items: flex-start;
   background: var(--ink);
   border: 1px solid var(--gold-border);
-  padding: 14px 18px;
+  padding: 16px 20px;
 }
 
 .cp-a-icon {
-  font-size: 24px;
+  font-size: var(--fs-8);
   flex-shrink: 0;
   line-height: 1.3;
 }
@@ -3614,31 +3693,31 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .cp-a-name {
   font-weight: 700;
-  font-size: 15px;
+  font-size: var(--fs-4);
   color: var(--gold-bright);
   margin-bottom: 5px;
-  letter-spacing: 0.5px;
+  letter-spacing: var(--ls-tight);
 }
 
 .cp-a-desc {
-  font-size: 13px;
+  font-size: var(--fs-2);
   color: rgba(var(--gold-rgb),0.75);
   line-height: 1.65;
 }
 
 /* 死亡紀錄 */
 .cp-narrative {
-  font-size: 15px;
+  font-size: var(--fs-4);
   line-height: 1.80;
   color: var(--ink-mid);
   font-style: italic;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .cp-death-notes { display: flex; flex-direction: column; gap: 6px; }
 
 .cp-death-note {
-  font-size: 13px;
+  font-size: var(--fs-2);
   color: var(--ink-light);
   padding-left: 12px;
   border-left: 2px solid rgba(122,21,21,0.30);
@@ -3651,21 +3730,21 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   gap: 6px;
 }
 .cp-duel-entry {
-  font-size: 13px;
+  font-size: var(--fs-2);
   line-height: 1.7;
   color: var(--ink-mid);
   background: rgba(var(--edge-rgb),0.05);
   border: 1px solid rgba(var(--edge-rgb),0.12);
-  padding: 8px 14px;
-  border-radius: 4px;
+  padding: 8px 16px;
+  border-radius: var(--r-md);
 }
 .cp-duel-sid {
   font-family: 'Cinzel', serif;
-  font-size: 12px;
+  font-size: var(--fs-1);
   font-weight: 700;
   color: var(--ink-light);
   margin-right: 8px;
-  letter-spacing: 0.5px;
+  letter-spacing: var(--ls-tight);
 }
 
 /* 角色滑動容器 */
@@ -3731,37 +3810,37 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     flex-direction: column;
     align-items: flex-start;
     gap: 2px;
-    padding: 6px 10px;
+    padding: 6px 12px;
     border-left: 2px solid rgba(var(--edge-rgb),0.22);
     background: rgba(var(--edge-rgb),0.04);
   }
 }
 .radar-stat-label {
   font-family: var(--font-title);
-  font-size: 12px;
+  font-size: var(--fs-1);
   color: var(--ink-mid);
-  letter-spacing: 0.5px;
+  letter-spacing: var(--ls-tight);
 }
 .radar-stat-val {
-  font-size: 14px;
+  font-size: var(--fs-3);
   font-weight: 700;
   color: var(--crimson);
 }
 .radar-stat-desc {
-  font-size: 12px;
+  font-size: var(--fs-1);
   color: var(--ink-light);
 }
 
 /* mobile */
 @media (max-width: 720px) {
-  .cp-portrait-row { gap: 10px; }
+  .cp-portrait-row { gap: 12px; }
   .cp-pav { width: 54px; height: 54px; }
-  .cp-pname { font-size: 12px; }
+  .cp-pname { font-size: var(--fs-1); }
   .cp-hero { flex-direction: column; align-items: center; text-align: center; padding: 20px; }
   .cp-class-pill { align-self: center; }
   .cp-quick-stats { justify-content: center; }
   .cp-section { padding: 20px; }
-  .cp-char-name { font-size: 22px; }
+  .cp-char-name { font-size: var(--fs-8); }
   .cp-quote-card { grid-template-columns: 20px 1fr 28px; }
 }
 
@@ -3772,14 +3851,14 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
   flex-wrap: wrap;
 }
 
 .rq-filter-label {
-  font-size: 12px;
+  font-size: var(--fs-1);
   color: var(--ink-light);
-  letter-spacing: 0.5px;
+  letter-spacing: var(--ls-tight);
   flex-shrink: 0;
 }
 
@@ -3790,7 +3869,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   gap: 5px;
   cursor: pointer;
   opacity: 0.50;
-  transition: opacity 0.18s, transform 0.18s;
+  transition: opacity var(--ease), transform var(--ease);
   background: none;
   border: none;
   padding: 0;
@@ -3803,7 +3882,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   border-radius: 50%;
   overflow: hidden;
   border: 2px solid rgba(var(--edge-rgb),0.25);
-  transition: border-color 0.18s, box-shadow 0.18s;
+  transition: border-color var(--ease), box-shadow var(--ease);
 }
 .rq-filter-btn.active .rq-fav {
   border-color: var(--crimson);
@@ -3812,10 +3891,10 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .rq-fav img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 .rq-fname {
-  font-size: 12px;
+  font-size: var(--fs-1);
   color: var(--ink-light);
-  letter-spacing: 0.5px;
-  transition: color 0.18s;
+  letter-spacing: var(--ls-tight);
+  transition: color var(--ease);
 }
 .rq-filter-btn.active .rq-fname { color: var(--crimson); font-weight: 600; }
 
@@ -3823,25 +3902,25 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 10px;
+  padding: 4px 12px;
   border: 1px solid rgba(var(--gold-rgb),0.35);
-  border-radius: 20px;
+  border-radius: var(--r-pill);
   background: transparent;
   color: var(--ink-light);
-  font-size: 12px;
+  font-size: var(--fs-1);
   font-family: var(--font-body);
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  transition: background var(--ease), color var(--ease);
 }
 .rq-clear-btn:hover { background: rgba(var(--gold-rgb),0.12); color: var(--gold); }
 
 .rq-total {
   margin-left: auto;
-  font-size: 12px;
+  font-size: var(--fs-1);
   color: var(--ink-light);
-  letter-spacing: 0.5px;
+  letter-spacing: var(--ls-tight);
 }
-.rq-total strong { color: var(--crimson); font-size: 14px; }
+.rq-total strong { color: var(--crimson); font-size: var(--fs-3); }
 
 /* ── 靠北關係圖（SVG 箭頭圖） ──────────────────── */
 .rg-wrap {
@@ -3858,7 +3937,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .rg-arrow {
-  transition: stroke-opacity 0.18s, stroke-width 0.18s, filter 0.15s, stroke-dashoffset 1.1s cubic-bezier(0.22,1,0.36,1);
+  transition: stroke-opacity var(--ease), stroke-width var(--ease), filter var(--ease), stroke-dashoffset 1.1s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* 透明寬命中路徑：讓整個游標/觸控區更大，視覺不變 */
@@ -3888,7 +3967,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 .rg-label {
   font-family: var(--font-body);
-  font-size: 12px;
+  font-size: var(--fs-1);
   font-weight: 600;
   fill: var(--ink-mid, #c2a06a);
   pointer-events: none;
@@ -3904,15 +3983,15 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .rq-sort-label {
-  font-size: 12px;
+  font-size: var(--fs-1);
   color: var(--ink-light);
   white-space: nowrap;
 }
 
 .rq-sort-btn {
   font-family: 'Cinzel', serif;
-  font-size: 12px;
-  letter-spacing: 1px;
+  font-size: var(--fs-1);
+  letter-spacing: var(--ls-wide);
   padding: 4px 12px;
   border: 1px solid rgba(var(--edge-rgb),0.28);
   color: var(--ink-mid);
@@ -3945,8 +4024,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 .rq-pg-btn {
   font-family: 'Cinzel', serif;
-  font-size: 12px;
-  letter-spacing: 1.5px;
+  font-size: var(--fs-1);
+  letter-spacing: var(--ls-wide);
   color: var(--ink-mid);
   padding: 7px 16px;
   border: 1px solid rgba(var(--edge-rgb),0.30);
@@ -3962,8 +4041,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .rq-pg-btn:disabled { opacity: 0.20; cursor: default; }
 .rq-pg-info {
   font-family: 'Cinzel', serif;
-  font-size: 12px;
-  letter-spacing: 1.5px;
+  font-size: var(--fs-1);
+  letter-spacing: var(--ls-wide);
   color: var(--ink-light);
   min-width: 80px;
   text-align: center;
@@ -3984,8 +4063,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   background: rgba(122,21,21,0.04);
   border: 1px solid rgba(122,21,21,0.14);
   border-left: 3px solid rgba(122,21,21,0.28);
-  padding: 10px 14px;
-  transition: background 0.15s, border-color 0.15s, transform 0.18s ease, box-shadow 0.18s ease;
+  padding: 12px 16px;
+  transition: background var(--ease), border-color var(--ease), transform var(--ease), box-shadow var(--ease);
 }
 
 .roast-quote-card:hover {
@@ -4009,13 +4088,13 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   box-shadow: 0 6px 20px rgba(0,0,0,0.16), 0 0 12px rgba(var(--gold-deep-rgb),0.12);
 }
 /* 稱讚卡片內元素覆蓋 */
-.praise-quote-card .rq-arrow { color: rgba(var(--gold-deep-rgb),0.70); font-size: 14px; }
+.praise-quote-card .rq-arrow { color: rgba(var(--gold-deep-rgb),0.70); font-size: var(--fs-3); }
 .praise-quote-card .rq-ep   { color: #8b6a14; opacity: 0.75; }
 .praise-quote-card .rq-quote {
   color: #7a5610;
-  font-size: 14px;
+  font-size: var(--fs-3);
   font-style: italic;
-  letter-spacing: 0.3px;
+  letter-spacing: var(--ls-tight);
 }
 .praise-quote-card .rq-text { color: var(--ink-mid); }
 
@@ -4045,7 +4124,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .rq-arrow {
-  font-size: 12px;
+  font-size: var(--fs-1);
   color: rgba(122,21,21,0.55);
   flex-shrink: 0;
 }
@@ -4054,7 +4133,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   margin-left: auto;
   flex-shrink: 0;
   font-family: 'Cinzel', serif;
-  font-size: 12px;
+  font-size: var(--fs-1);
   font-weight: 700;
   color: var(--crimson);
   opacity: 0.60;
@@ -4062,7 +4141,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 /* 原話引用 */
 .rq-quote {
-  font-size: 14px;
+  font-size: var(--fs-3);
   font-weight: 600;
   color: var(--crimson);
   line-height: 1.55;
@@ -4070,7 +4149,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 /* 摘要說明 */
 .rq-text {
-  font-size: 12px;
+  font-size: var(--fs-1);
   color: var(--ink-light);
   line-height: 1.5;
 }
@@ -4115,17 +4194,17 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   display: flex;
   gap: 4px;
   flex-wrap: wrap;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .gc-tab {
   background: rgba(var(--edge-rgb),0.06);
   border: 1px solid rgba(var(--edge-rgb),0.15);
   color: var(--ink-light);
-  font-size: 12px;
+  font-size: var(--fs-1);
   padding: 5px 12px;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all var(--ease);
 }
 
 .gc-tab.active {
@@ -4151,7 +4230,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
+  font-size: var(--fs-1);
   color: var(--ink-light);
 }
 
@@ -4190,7 +4269,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .gc-char-name {
-  font-size: 13px;
+  font-size: var(--fs-2);
   color: var(--ink-mid);
   white-space: nowrap;
 }
@@ -4206,13 +4285,13 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   flex: 1;
   min-width: 0;
   height: 26px;
-  border-radius: 4px;
+  border-radius: var(--r-md);
 }
 
 .gc-leg-dot {
   width: 16px;
   height: 16px;
-  border-radius: 3px;
+  border-radius: var(--r-sm);
   flex-shrink: 0;
 }
 
@@ -4259,7 +4338,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
 @media (max-width: 720px) {
   .gc-char-label { min-width: 80px; width: 80px; }
-  .gc-char-name { font-size: 12px; }
+  .gc-char-name { font-size: var(--fs-1); }
   .gc-cell { height: 18px; }
   .gc-leg-dot { width: 14px; height: 14px; }
   .gc-sid-label { font-size: 10px; }
@@ -4268,51 +4347,51 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 /* ── 桌機字級放大（≥ 1024px）─────────────────────────────── */
 @media (min-width: 1024px) {
   /* 分組 & 小節標題 */
-  .stat-group-title    { font-size: 15px; }
-  .stats-section-title { font-size: 18px; }
+  .stat-group-title    { font-size: var(--fs-4); }
+  .stats-section-title { font-size: var(--fs-6); }
 
   /* 死亡卡 */
-  .dc-char      { font-size: 18px; }
-  .dc-player    { font-size: 14px; }
-  .dc-narrative { font-size: 14px; line-height: 1.7; }
+  .dc-char      { font-size: var(--fs-6); }
+  .dc-player    { font-size: var(--fs-3); }
+  .dc-narrative { font-size: var(--fs-3); line-height: 1.7; }
 
   /* 死亡卡 */
-  .dc-downed { font-size: 12px; }
+  .dc-downed { font-size: var(--fs-1); }
 
   /* 決鬥排行 */
-  .dr-char   { font-size: 17px; }
-  .dr-player { font-size: 14px; }
-  .dr-pct    { font-size: 17px; }
-  .duel-note { font-size: 13px; }
+  .dr-char   { font-size: var(--fs-6); }
+  .dr-player { font-size: var(--fs-3); }
+  .dr-pct    { font-size: var(--fs-6); }
+  .duel-note { font-size: var(--fs-2); }
 
   /* 對戰勝率 */
-  .msp-pct   { font-size: 13px; }
-  .msp-name  { font-size: 14px; }
+  .msp-pct   { font-size: var(--fs-2); }
+  .msp-name  { font-size: var(--fs-3); }
 
   /* 靠北榜 */
-  .rb-name   { font-size: 16px; }
-  .rb-player { font-size: 13px; }
-  .rb-count  { font-size: 22px; }
-  .ib-name   { font-size: 16px; }
-  .ib-player { font-size: 13px; }
-  .ib-count  { font-size: 22px; }
+  .rb-name   { font-size: var(--fs-5); }
+  .rb-player { font-size: var(--fs-2); }
+  .rb-count  { font-size: var(--fs-8); }
+  .ib-name   { font-size: var(--fs-5); }
+  .ib-player { font-size: var(--fs-2); }
+  .ib-count  { font-size: var(--fs-8); }
 
   /* 友軍傷害榜 */
-  .ff-name    { font-size: 17px; }
-  .ff-chapter { font-size: 13px; }
-  .ff-method  { font-size: 14px; }
-  .ff-desc    { font-size: 15px; line-height: 1.75; }
+  .ff-name    { font-size: var(--fs-6); }
+  .ff-chapter { font-size: var(--fs-2); }
+  .ff-method  { font-size: var(--fs-3); }
+  .ff-desc    { font-size: var(--fs-4); line-height: 1.75; }
   .ff-ranking { grid-template-columns: 1fr; gap: 12px; }
-  .ff-mini-name { font-size: 13px; }
-  .ff-mini-count { font-size: 15px; }
+  .ff-mini-name { font-size: var(--fs-2); }
+  .ff-mini-count { font-size: var(--fs-4); }
 
   /* 對戰 */
-  .matchup-note-row { font-size: 14px; }
+  .matchup-note-row { font-size: var(--fs-3); }
 
   /* 里程碑 */
-  .ms-title { font-size: 21px; }
-  .ms-desc  { font-size: 16px; }
-  .ms-date  { font-size: 14px; }
+  .ms-title { font-size: var(--fs-7); }
+  .ms-desc  { font-size: var(--fs-5); }
+  .ms-date  { font-size: var(--fs-3); }
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -4322,20 +4401,20 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   text-align: center;
   padding: 80px 20px;
   color: var(--ink-light);
-  font-size: 15px;
+  font-size: var(--fs-4);
   line-height: 2;
 }
 .story-empty code {
   font-family: monospace;
   background: rgba(var(--edge-rgb),0.08);
   padding: 2px 6px;
-  border-radius: 3px;
+  border-radius: var(--r-sm);
 }
 
 .story-toc-header {
   font-family: var(--font-title);
-  font-size: 12px;
-  letter-spacing: 3px;
+  font-size: var(--fs-1);
+  letter-spacing: var(--ls-title);
   color: var(--gold);
   opacity: 0.7;
   text-align: center;
@@ -4343,7 +4422,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .story-chapters {
-  max-width: 680px;
+  max-width: var(--w-read);
   margin: 0 auto;
   padding-bottom: 80px;
 }
@@ -4351,8 +4430,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .story-sep {
   text-align: center;
   margin: 56px 0;
-  font-size: 13px;
-  letter-spacing: 8px;
+  font-size: var(--fs-2);
+  letter-spacing: var(--ls-display);
   color: var(--gold);
   opacity: 0.55;
 }
@@ -4366,11 +4445,11 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 .story-chapter-meta .story-chapter-eyebrow { margin-bottom: 0; }
 .story-journal-link {
-  font-size: 13px;
+  font-size: var(--fs-2);
   color: var(--crimson);
   white-space: nowrap;
   border-bottom: 1px solid transparent;
@@ -4380,17 +4459,17 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 .story-journal-link:focus-visible { border-bottom-color: currentColor; }
 .story-chapter-eyebrow {
   font-family: 'Cinzel', serif;
-  font-size: 12px;
-  letter-spacing: 4px;
+  font-size: var(--fs-1);
+  letter-spacing: var(--ls-title);
   color: var(--gold);
   opacity: 0.78;
   text-transform: uppercase;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .story-chapter-title {
   font-family: 'Cinzel', serif;
-  font-size: 22px;
+  font-size: var(--fs-8);
   font-weight: 700;
   color: var(--ink-dark);
   margin: 0 0 28px;
@@ -4402,7 +4481,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 .story-para {
-  font-size: 17px;
+  font-size: var(--fs-6);
   line-height: 2;
   margin: 0 0 1.2em;
   text-align: justify;
@@ -4420,8 +4499,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 }
 
 @media (max-width: 720px) {
-  .story-chapter-title { font-size: 18px; }
-  .story-para          { font-size: 16px; line-height: 1.9; }
+  .story-chapter-title { font-size: var(--fs-6); }
+  .story-para          { font-size: var(--fs-5); line-height: 1.9; }
   .story-para:first-child::first-letter { font-size: 2.2em; }
 }
 
@@ -4506,7 +4585,7 @@ a:focus-visible {
 .rm-overlay {
   position: fixed;
   inset: 0;
-  z-index: 9000;
+  z-index: var(--z-modal);
   background: rgba(2,1,0,0.82);
   display: flex;
   align-items: center;
@@ -4522,11 +4601,11 @@ a:focus-visible {
   opacity: 1;
   pointer-events: all;
   visibility: visible;
-  transition: opacity 0.2s ease;
+  transition: opacity var(--ease);
 }
 .rm-dialog {
   position: relative;
-  background: #0f0c09;
+  background: var(--ink-dark);
   border: 1px solid var(--gold-border);
   border-top: 3px solid var(--crimson);
   max-width: 560px;
@@ -4536,7 +4615,7 @@ a:focus-visible {
   padding: 28px 28px 24px;
   box-shadow: 0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(122,21,21,0.18);
   transform: translateY(8px);
-  transition: transform 0.2s ease;
+  transition: transform var(--ease);
 }
 .rm-overlay.rm-open .rm-dialog {
   transform: translateY(0);
@@ -4548,22 +4627,22 @@ a:focus-visible {
   background: none;
   border: none;
   color: var(--gold);   /* 深色彈窗底：ink-light 僅 2.6:1 */
-  font-size: 18px;
+  font-size: var(--fs-6);
   cursor: pointer;
   line-height: 1;
   padding: 4px 8px;
   opacity: 0.8;
-  transition: opacity 0.15s, color 0.15s;
+  transition: opacity var(--ease), color var(--ease);
 }
 .rm-close:hover { opacity: 1; color: var(--gold); }
 
 /* modal 角色區塊 */
-.rm-header { margin-bottom: 18px; }
+.rm-header { margin-bottom: 20px; }
 .rm-actors-row {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 .rm-char-block {
   display: flex;
@@ -4573,9 +4652,9 @@ a:focus-visible {
   min-width: 0;
 }
 .rm-char-label {
-  font-size: 12px;
+  font-size: var(--fs-1);
   font-family: 'Cinzel', serif;
-  letter-spacing: 1.5px;
+  letter-spacing: var(--ls-wide);
   color: var(--gold);
   opacity: 0.65;
   text-transform: uppercase;
@@ -4590,50 +4669,50 @@ a:focus-visible {
 }
 .rm-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .rm-av-group { display: flex; align-items: center; }
-.rm-av-group .rm-av + .rm-av { margin-left: -14px; border-color: rgba(var(--edge-rgb),0.55); }
+.rm-av-group .rm-av + .rm-av { margin-left: -16px; border-color: rgba(var(--edge-rgb),0.55); }
 .rm-char-names {
-  font-size: 12px;
+  font-size: var(--fs-1);
   font-weight: 600;
   color: var(--gold-bright);
   text-align: center;
   line-height: 1.4;
 }
 .rm-arrow {
-  font-size: 18px;
+  font-size: var(--fs-6);
   color: rgba(var(--gold-deep-rgb),0.55);
   flex-shrink: 0;
-  margin-top: 30px;
+  margin-top: 32px;
 }
 
 /* 集數標題 */
 .rm-ep-title {
-  font-size: 12px;
+  font-size: var(--fs-1);
   color: var(--gold);
   opacity: 0.65;
-  letter-spacing: 0.5px;
+  letter-spacing: var(--ls-tight);
   padding-top: 6px;
   border-top: 1px solid rgba(var(--gold-deep-rgb),0.15);
 }
 
 /* 靠北語錄大字 */
 .rm-quote {
-  font-size: 18px;
+  font-size: var(--fs-6);
   font-weight: 700;
   color: #e05858;
   line-height: 1.55;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 /* 分隔線 */
 .rm-divider {
   height: 1px;
   background: rgba(122,21,21,0.18);
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 /* 情境描述 */
 .rm-desc {
-  font-size: 14px;
+  font-size: var(--fs-3);
   color: var(--gold);
   opacity: 0.90;
   line-height: 1.80;
@@ -4655,12 +4734,12 @@ a:focus-visible {
   margin-top: 20px;
 }
 .qm-copy {
-  font-size: 13px;
+  font-size: var(--fs-2);
   padding: 7px 16px;
-  border-radius: 6px;
+  border-radius: var(--r-md);
   cursor: pointer;
   background: transparent;
-  transition: background 0.15s, color 0.15s, border-color 0.15s, opacity 0.15s;
+  transition: background var(--ease), color var(--ease), border-color var(--ease), opacity var(--ease);
   white-space: nowrap;
 }
 .qm-copy:disabled { cursor: default; opacity: 0.75; }
@@ -4689,7 +4768,7 @@ a:focus-visible {
 .pm-overlay {
   position: fixed;
   inset: 0;
-  z-index: 9000;
+  z-index: var(--z-modal);
   background: rgba(8,4,0,0.70);
   display: flex;
   align-items: center;
@@ -4705,7 +4784,7 @@ a:focus-visible {
   opacity: 1;
   pointer-events: all;
   visibility: visible;
-  transition: opacity 0.22s ease;
+  transition: opacity var(--ease);
 }
 .pm-dialog {
   position: relative;
@@ -4719,7 +4798,7 @@ a:focus-visible {
   padding: 28px 28px 24px;
   box-shadow: 0 20px 60px rgba(80,40,0,0.20), 0 0 0 1px rgba(var(--gold-deep-rgb),0.20);
   transform: scale(0.96);
-  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1);
+  transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 .pm-overlay.pm-open .pm-dialog {
   transform: scale(1);
@@ -4731,21 +4810,21 @@ a:focus-visible {
   background: none;
   border: none;
   color: #7a5610;
-  font-size: 18px;
+  font-size: var(--fs-6);
   cursor: pointer;
   line-height: 1;
   padding: 4px 8px;
   opacity: 0.50;
-  transition: opacity 0.15s, color 0.15s;
+  transition: opacity var(--ease), color var(--ease);
 }
 .pm-close:hover { opacity: 1; color: var(--gold-deep); }
 
-.pm-header { margin-bottom: 18px; }
+.pm-header { margin-bottom: 20px; }
 .pm-actors-row {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 .pm-char-block {
   display: flex;
@@ -4755,9 +4834,9 @@ a:focus-visible {
   min-width: 0;
 }
 .pm-char-label {
-  font-size: 12px;
+  font-size: var(--fs-1);
   font-family: 'Cinzel', serif;
-  letter-spacing: 1.5px;
+  letter-spacing: var(--ls-wide);
   color: #8b6914;
   opacity: 0.80;
   text-transform: uppercase;
@@ -4772,44 +4851,44 @@ a:focus-visible {
 }
 .pm-av img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .pm-av-group { display: flex; align-items: center; }
-.pm-av-group .pm-av + .pm-av { margin-left: -14px; border-color: rgba(var(--gold-deep-rgb),0.65); }
+.pm-av-group .pm-av + .pm-av { margin-left: -16px; border-color: rgba(var(--gold-deep-rgb),0.65); }
 .pm-char-names {
-  font-size: 12px;
+  font-size: var(--fs-1);
   font-weight: 600;
   color: #5a3e0a;
   text-align: center;
   line-height: 1.4;
 }
 .pm-arrow {
-  font-size: 16px;
+  font-size: var(--fs-5);
   color: var(--gold-deep);
   flex-shrink: 0;
-  margin-top: 30px;
+  margin-top: 32px;
   opacity: 0.80;
 }
 .pm-ep-title {
-  font-size: 12px;
+  font-size: var(--fs-1);
   color: #8b6914;
   opacity: 0.75;
-  letter-spacing: 0.5px;
+  letter-spacing: var(--ls-tight);
   padding-top: 6px;
   border-top: 1px solid rgba(var(--gold-deep-rgb),0.22);
 }
 .pm-quote {
-  font-size: 18px;
+  font-size: var(--fs-6);
   font-weight: 700;
   font-style: italic;
   color: #1a4d2e;
   line-height: 1.55;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 .pm-divider {
   height: 1px;
   background: rgba(var(--gold-deep-rgb),0.28);
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 .pm-desc {
-  font-size: 14px;
+  font-size: var(--fs-3);
   color: #3d2a08;
   opacity: 0.90;
   line-height: 1.80;
@@ -4825,30 +4904,30 @@ a:focus-visible {
 /* 首頁最新集標題 */
 .welcome-latest {
   display: inline-block;
-  font-size: 13px;
+  font-size: var(--fs-2);
   color: var(--ink-mid);
-  letter-spacing: 1px;
+  letter-spacing: var(--ls-wide);
   margin-top: 16px;
   margin-bottom: 0;
   min-height: 1em;
   padding: 6px 16px;
   border: 1px solid rgba(var(--edge-rgb),0.35);
   background: rgba(var(--edge-rgb),0.07);
-  border-radius: 2px;
+  border-radius: var(--r-sm);
 }
 
 /* 統計頁快速跳轉列 */
 .stats-jumpnav {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   justify-content: center;
   flex-wrap: wrap;
   margin-bottom: 40px;
   /* 捲動時固定在統計頁頂部 */
   position: sticky;
   top: 0;
-  z-index: 20;
-  padding: 10px 0;
+  z-index: var(--z-sticky);
+  padding: 12px 0;
   background: rgba(247,234,210,0.92);
   backdrop-filter: blur(6px);
   border-bottom: 1px solid rgba(var(--edge-rgb),0.14);
@@ -4877,15 +4956,15 @@ a:focus-visible {
 }
 .sjn-btn {
   font-family: 'Cinzel', serif;
-  font-size: 12px;
+  font-size: var(--fs-1);
   font-weight: 700;
-  letter-spacing: 1.5px;
+  letter-spacing: var(--ls-wide);
   color: var(--ink-mid);
   padding: 8px 20px;
   border: 1px solid rgba(var(--edge-rgb),0.55);
   background: rgba(var(--edge-rgb),0.08);
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
+  transition: background var(--ease), border-color var(--ease), color var(--ease), box-shadow var(--ease);
 }
 .sjn-btn:hover {
   background: rgba(122,21,21,0.10);
