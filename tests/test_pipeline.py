@@ -122,6 +122,25 @@ finally:
     shutil.rmtree(repo)
 
 
+# ── 4. 金句說話者以原文標示為準（S35 Gemini 把影心猜成曹、S26 把「阿：」猜成曹）──
+import gen_quote_by  # noqa: E402
+
+def _sess(*lines):
+    return {"content": [{"t": "p", "v": v} for v in lines]}
+
+check("前綴全名", gen_quote_by.find_speaker_in_text("假屌他不帶走？", _sess("影心：「假屌他不帶走？」")), "影心")
+check("前綴簡稱 阿：", gen_quote_by.find_speaker_in_text("在座各位都是垃圾，上吧！",
+      _sess("曹：「靠杯啊」", "阿：「不然我在這裡一挑三啦。在座各位都是垃圾，上吧！」")), "阿斯代倫")
+check("前綴帶描述", gen_quote_by.find_speaker_in_text("那邊潮濕啊，電一下很爽啊",
+      _sess("影心毫無悔意：「那邊潮濕啊（濕潤狀態雙倍傷害），電一下很爽啊。」")), "影心")
+check("後綴署名", gen_quote_by.find_speaker_in_text("你永遠知道哪個杯子上有洨。",
+      _sess("「那是一種精神上的汙染，你永遠知道哪個杯子上有洨。」—— 阿斯代倫")), "阿斯代倫")
+check("無標示回傳 None", gen_quote_by.find_speaker_in_text("台灣的所有水餃吊打日本所有水餃。",
+      _sess("「台灣的所有水餃吊打日本所有水餃。」—— 關於餃子的堅持")), None)
+check("兩處標示不同 → 歧義回傳 None", gen_quote_by.find_speaker_in_text("上吧",
+      _sess("曹：「上吧」", "卡：「上吧」")), None)
+
+
 if FAILURES:
     print(f"❌ pipeline 測試失敗（{len(FAILURES)} 項）：")
     print("\n".join(FAILURES))
