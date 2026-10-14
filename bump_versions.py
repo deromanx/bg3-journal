@@ -28,7 +28,8 @@ TOKENS = {
                      ("data/sessions-meta.json", "data/awards.json",
                       "data/character-stats.json", "data/ff-stats.json",
                       "data/milestones.json", "data/praise-stats.json",
-                      "data/roast-stats.json", "data/sessions/", "data/story/")),
+                      "data/roast-stats.json", "data/session-stats.json",
+                      "data/sessions/", "data/story/")),
 }
 
 

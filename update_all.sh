@@ -133,6 +133,9 @@ run python3 normalize_names.py
 # 10.5 每集分享 stub 頁（og 預覽卡；純本地生成，不呼叫 Gemini）
 run python3 gen_share_pages.py
 
+# 10.55 每集數據摘要（日誌頁戰報數字列；純本地，彙整 sessions-raw 與各統計 JSON）
+run python3 gen_session_stats.py
+
 # 10.6 故事集拆檔（story.json → data/story/ 逐章小檔，前端延遲載入用；純本地）
 run python3 gen_story_split.py
 

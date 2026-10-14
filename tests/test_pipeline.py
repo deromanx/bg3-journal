@@ -58,6 +58,7 @@ def sync_issues(with_raw, with_story):
         w("story.json", {"chapters": [{"session_id": 1}] + ([{"session_id": 2}] if with_story else [])})
         if with_raw:
             w("sessions-raw/2.json", {})
+        w("session-stats.json", {"2": {}})
         orig, verify_data.DATA = verify_data.DATA, tmp
         try:
             return verify_data.check_session_sync()

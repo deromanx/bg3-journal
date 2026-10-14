@@ -219,6 +219,10 @@ def check_session_sync():
     if not (DATA / "sessions-raw" / f"{latest}.json").exists():
         issues.append(f"第 {latest} 集未萃取（sessions-raw/{latest}.json 不存在），重跑 update_stats.py")
 
+    # 日誌頁戰報數字列
+    if str(latest) not in load("session-stats.json", {}):
+        issues.append(f"每集數據摘要缺第 {latest} 集，重跑 gen_session_stats.py")
+
     # 故事章節：gen_story.py 單集 JSON 解析失敗只印警告不中斷（S35 實例）
     story = load("story.json", {"chapters": []})
     if latest not in {c.get("session_id") for c in story.get("chapters", [])}:

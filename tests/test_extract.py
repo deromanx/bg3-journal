@@ -13,15 +13,23 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from extract import (classify, resolve_type, clean, is_meta, parse_folder,  # noqa: E402
-                     is_session_folder, title_from_docx)
+                     is_session_folder, title_from_docx, chapter_name)
 
 FAILURES = []
+CHECKS = [0]
 
 
 def check(desc, actual, expected):
+    CHECKS[0] += 1
     if actual != expected:
         FAILURES.append(f"  ✗ {desc}: got {actual!r}, want {expected!r}")
 
+
+# ── 章名：全部中文數字（舊版第 26 集起退化成「第26章」） ──
+for n, want in [(1, "第一章"), (10, "第十章"), (11, "第十一章"), (20, "第二十章"),
+                (26, "第二十六章"), (35, "第三十五章"), (100, "第一百章"),
+                (105, "第一百零五章"), (110, "第一百一十章")]:
+    check(f"章名 {n}", chapter_name(n), want)
 
 # ── 場次資料夾判斷（S33「20260915 PARTY」誤入、S35「20261006」被漏掉） ──
 check("日期-標題 → 場次", is_session_folder("20260922-印刷機靈、黑洞吸鼠"), True)
@@ -84,7 +92,7 @@ check(
 check("無日期資料夾", parse_folder("雜項"), (None, None, "雜項"))
 
 # ── 結果 ──────────────────────────────────────────────────
-total = 29
+total = CHECKS[0]
 if FAILURES:
     print(f"❌ extract.py 回歸測試失敗（{len(FAILURES)}/{total}）：")
     print("\n".join(FAILURES))

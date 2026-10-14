@@ -1,0 +1,704 @@
+{
+  "1": {
+    "deaths": 3,
+    "downed": 0,
+    "fallen_by": {
+      "影心": 1,
+      "卡拉克": 1,
+      "曹": 1
+    },
+    "duels": [],
+    "roasts": 8,
+    "praises": 14,
+    "ff": 0
+  },
+  "2": {
+    "deaths": 1,
+    "downed": 0,
+    "fallen_by": {
+      "影心": 1
+    },
+    "duels": [],
+    "roasts": 12,
+    "praises": 1,
+    "ff": 3
+  },
+  "3": {
+    "deaths": 1,
+    "downed": 3,
+    "fallen_by": {
+      "阿斯代倫": 1,
+      "卡拉克": 1,
+      "影心": 1,
+      "曹": 1
+    },
+    "duels": [
+      {
+        "draw": true,
+        "chars": [
+          "曹",
+          "影心"
+        ]
+      },
+      {
+        "winner": "曹",
+        "loser": "影心"
+      },
+      {
+        "winner": "影心",
+        "loser": "曹"
+      },
+      {
+        "winner": "曹",
+        "loser": "影心"
+      }
+    ],
+    "roasts": 6,
+    "praises": 1,
+    "ff": 2
+  },
+  "4": {
+    "deaths": 2,
+    "downed": 1,
+    "fallen_by": {
+      "阿斯代倫": 1,
+      "貓咕咕": 1,
+      "曹": 1
+    },
+    "duels": [],
+    "roasts": 4,
+    "praises": 3,
+    "ff": 0
+  },
+  "5": {
+    "deaths": 0,
+    "downed": 1,
+    "fallen_by": {
+      "影心": 1
+    },
+    "duels": [
+      {
+        "winner": "阿斯代倫",
+        "loser": "影心"
+      },
+      {
+        "winner": "貓咕咕",
+        "loser": "影心"
+      }
+    ],
+    "roasts": 2,
+    "praises": 2,
+    "ff": 3
+  },
+  "6": {
+    "deaths": 0,
+    "downed": 0,
+    "fallen_by": {},
+    "duels": [
+      {
+        "draw": true,
+        "chars": [
+          "影心",
+          "貓咕咕"
+        ]
+      },
+      {
+        "winner": "影心",
+        "loser": "貓咕咕"
+      },
+      {
+        "winner": "貓咕咕",
+        "loser": "影心"
+      }
+    ],
+    "roasts": 5,
+    "praises": 0,
+    "ff": 1
+  },
+  "7": {
+    "deaths": 1,
+    "downed": 0,
+    "fallen_by": {
+      "阿斯代倫": 1
+    },
+    "duels": [
+      {
+        "winner": "阿斯代倫",
+        "loser": "影心"
+      },
+      {
+        "winner": "影心",
+        "loser": "阿斯代倫"
+      },
+      {
+        "winner": "影心",
+        "loser": "阿斯代倫"
+      }
+    ],
+    "roasts": 2,
+    "praises": 1,
+    "ff": 2
+  },
+  "8": {
+    "deaths": 2,
+    "downed": 0,
+    "fallen_by": {
+      "卡拉克": 1,
+      "曹": 1
+    },
+    "duels": [],
+    "roasts": 6,
+    "praises": 1,
+    "ff": 2
+  },
+  "9": {
+    "deaths": 0,
+    "downed": 0,
+    "fallen_by": {},
+    "duels": [],
+    "roasts": 3,
+    "praises": 1,
+    "ff": 2
+  },
+  "10": {
+    "deaths": 4,
+    "downed": 0,
+    "fallen_by": {
+      "貓咕咕": 1,
+      "影心": 1,
+      "阿斯代倫": 1,
+      "曹": 1
+    },
+    "duels": [],
+    "roasts": 8,
+    "praises": 6,
+    "ff": 1
+  },
+  "11": {
+    "deaths": 1,
+    "downed": 0,
+    "fallen_by": {
+      "曹": 1
+    },
+    "duels": [
+      {
+        "winner": "曹",
+        "loser": "影心"
+      },
+      {
+        "winner": "影心",
+        "loser": "曹"
+      },
+      {
+        "winner": "影心",
+        "loser": "曹"
+      },
+      {
+        "winner": "影心",
+        "loser": "阿斯代倫"
+      },
+      {
+        "winner": "阿斯代倫",
+        "loser": "影心"
+      },
+      {
+        "winner": "阿斯代倫",
+        "loser": "影心"
+      }
+    ],
+    "roasts": 1,
+    "praises": 0,
+    "ff": 1
+  },
+  "12": {
+    "deaths": 0,
+    "downed": 0,
+    "fallen_by": {},
+    "duels": [],
+    "roasts": 6,
+    "praises": 8,
+    "ff": 0
+  },
+  "13": {
+    "deaths": 2,
+    "downed": 0,
+    "fallen_by": {
+      "阿斯代倫": 1,
+      "卡拉克": 1
+    },
+    "duels": [],
+    "roasts": 3,
+    "praises": 1,
+    "ff": 2
+  },
+  "14": {
+    "deaths": 1,
+    "downed": 2,
+    "fallen_by": {
+      "影心": 2,
+      "曹": 1
+    },
+    "duels": [
+      {
+        "winner": "阿斯代倫",
+        "loser": "影心"
+      },
+      {
+        "winner": "曹",
+        "loser": "影心"
+      }
+    ],
+    "roasts": 2,
+    "praises": 20,
+    "ff": 6
+  },
+  "15": {
+    "deaths": 0,
+    "downed": 6,
+    "fallen_by": {
+      "影心": 3,
+      "阿斯代倫": 2,
+      "曹": 1
+    },
+    "duels": [
+      {
+        "winner": "貓咕咕",
+        "loser": "曹"
+      },
+      {
+        "winner": "貓咕咕",
+        "loser": "阿斯代倫"
+      },
+      {
+        "winner": "貓咕咕",
+        "loser": "影心"
+      },
+      {
+        "winner": "卡拉克",
+        "loser": "貓咕咕"
+      }
+    ],
+    "roasts": 8,
+    "praises": 13,
+    "ff": 4
+  },
+  "16": {
+    "deaths": 0,
+    "downed": 0,
+    "fallen_by": {},
+    "duels": [
+      {
+        "winner": "卡拉克",
+        "loser": "曹"
+      },
+      {
+        "winner": "卡拉克",
+        "loser": "阿斯代倫"
+      }
+    ],
+    "roasts": 8,
+    "praises": 1,
+    "ff": 0
+  },
+  "17": {
+    "deaths": 1,
+    "downed": 0,
+    "fallen_by": {
+      "阿斯代倫": 1
+    },
+    "duels": [
+      {
+        "draw": true,
+        "chars": [
+          "影心",
+          "阿斯代倫"
+        ]
+      },
+      {
+        "winner": "影心",
+        "loser": "阿斯代倫"
+      },
+      {
+        "winner": "阿斯代倫",
+        "loser": "影心"
+      }
+    ],
+    "roasts": 3,
+    "praises": 0,
+    "ff": 1
+  },
+  "18": {
+    "deaths": 2,
+    "downed": 0,
+    "fallen_by": {
+      "貓咕咕": 1,
+      "曹": 1
+    },
+    "duels": [
+      {
+        "winner": "曹",
+        "loser": "貓咕咕"
+      },
+      {
+        "winner": "曹",
+        "loser": "貓咕咕"
+      },
+      {
+        "winner": "影心",
+        "loser": "曹"
+      },
+      {
+        "winner": "曹",
+        "loser": "影心"
+      },
+      {
+        "winner": "曹",
+        "loser": "影心"
+      }
+    ],
+    "roasts": 5,
+    "praises": 4,
+    "ff": 3
+  },
+  "19": {
+    "deaths": 0,
+    "downed": 0,
+    "fallen_by": {},
+    "duels": [
+      {
+        "winner": "阿斯代倫",
+        "loser": "影心"
+      },
+      {
+        "winner": "阿斯代倫",
+        "loser": "影心"
+      },
+      {
+        "winner": "阿斯代倫",
+        "loser": "影心"
+      },
+      {
+        "winner": "曹",
+        "loser": "阿斯代倫"
+      },
+      {
+        "winner": "阿斯代倫",
+        "loser": "曹"
+      },
+      {
+        "winner": "曹",
+        "loser": "阿斯代倫"
+      },
+      {
+        "winner": "卡拉克",
+        "loser": "曹"
+      },
+      {
+        "winner": "阿斯代倫",
+        "loser": "曹"
+      },
+      {
+        "winner": "曹",
+        "loser": "影心"
+      }
+    ],
+    "roasts": 5,
+    "praises": 5,
+    "ff": 2
+  },
+  "20": {
+    "deaths": 3,
+    "downed": 0,
+    "fallen_by": {
+      "影心": 1,
+      "阿斯代倫": 1,
+      "貓咕咕": 1
+    },
+    "duels": [
+      {
+        "winner": "卡拉克",
+        "loser": "曹"
+      },
+      {
+        "winner": "曹",
+        "loser": "卡拉克"
+      },
+      {
+        "winner": "卡拉克",
+        "loser": "曹"
+      },
+      {
+        "winner": "卡拉克",
+        "loser": "曹"
+      },
+      {
+        "winner": "影心",
+        "loser": "曹"
+      },
+      {
+        "winner": "曹",
+        "loser": "影心"
+      },
+      {
+        "winner": "曹",
+        "loser": "影心"
+      },
+      {
+        "winner": "曹",
+        "loser": "阿斯代倫"
+      },
+      {
+        "winner": "阿斯代倫",
+        "loser": "曹"
+      },
+      {
+        "winner": "阿斯代倫",
+        "loser": "曹"
+      }
+    ],
+    "roasts": 10,
+    "praises": 4,
+    "ff": 3
+  },
+  "21": {
+    "deaths": 2,
+    "downed": 0,
+    "fallen_by": {
+      "阿斯代倫": 2
+    },
+    "duels": [],
+    "roasts": 5,
+    "praises": 11,
+    "ff": 0
+  },
+  "22": {
+    "deaths": 2,
+    "downed": 2,
+    "fallen_by": {
+      "影心": 1,
+      "貓咕咕": 1,
+      "阿斯代倫": 1,
+      "曹": 1
+    },
+    "duels": [
+      {
+        "winner": "卡拉克",
+        "loser": "影心"
+      }
+    ],
+    "roasts": 10,
+    "praises": 3,
+    "ff": 2
+  },
+  "23": {
+    "deaths": 1,
+    "downed": 1,
+    "fallen_by": {
+      "阿斯代倫": 1,
+      "貓咕咕": 1
+    },
+    "duels": [],
+    "roasts": 5,
+    "praises": 4,
+    "ff": 3
+  },
+  "24": {
+    "deaths": 0,
+    "downed": 0,
+    "fallen_by": {},
+    "duels": [],
+    "roasts": 30,
+    "praises": 23,
+    "ff": 2
+  },
+  "25": {
+    "deaths": 3,
+    "downed": 0,
+    "fallen_by": {
+      "影心": 2,
+      "阿斯代倫": 1
+    },
+    "duels": [],
+    "roasts": 25,
+    "praises": 6,
+    "ff": 2
+  },
+  "26": {
+    "deaths": 0,
+    "downed": 0,
+    "fallen_by": {},
+    "duels": [
+      {
+        "winner": "阿斯代倫",
+        "loser": "曹"
+      }
+    ],
+    "roasts": 54,
+    "praises": 20,
+    "ff": 2
+  },
+  "27": {
+    "deaths": 1,
+    "downed": 1,
+    "fallen_by": {
+      "貓咕咕": 1,
+      "卡拉克": 1
+    },
+    "duels": [
+      {
+        "winner": "影心",
+        "loser": "曹"
+      }
+    ],
+    "roasts": 21,
+    "praises": 7,
+    "ff": 3
+  },
+  "28": {
+    "deaths": 0,
+    "downed": 0,
+    "fallen_by": {},
+    "duels": [
+      {
+        "winner": "貓咕咕",
+        "loser": "影心"
+      },
+      {
+        "winner": "影心",
+        "loser": "貓咕咕"
+      },
+      {
+        "winner": "影心",
+        "loser": "貓咕咕"
+      },
+      {
+        "draw": true,
+        "chars": [
+          "影心",
+          "貓咕咕"
+        ]
+      }
+    ],
+    "roasts": 13,
+    "praises": 13,
+    "ff": 4
+  },
+  "29": {
+    "deaths": 3,
+    "downed": 2,
+    "fallen_by": {
+      "影心": 2,
+      "阿斯代倫": 1,
+      "貓咕咕": 1,
+      "卡拉克": 1
+    },
+    "duels": [],
+    "roasts": 25,
+    "praises": 3,
+    "ff": 1
+  },
+  "30": {
+    "deaths": 0,
+    "downed": 0,
+    "fallen_by": {},
+    "duels": [
+      {
+        "winner": "影心",
+        "loser": "阿斯代倫"
+      },
+      {
+        "winner": "影心",
+        "loser": "卡拉克"
+      },
+      {
+        "winner": "影心",
+        "loser": "曹"
+      },
+      {
+        "winner": "貓咕咕",
+        "loser": "影心"
+      },
+      {
+        "winner": "卡拉克",
+        "loser": "曹"
+      },
+      {
+        "winner": "卡拉克",
+        "loser": "影心"
+      },
+      {
+        "winner": "貓咕咕",
+        "loser": "曹"
+      },
+      {
+        "winner": "影心",
+        "loser": "阿斯代倫"
+      }
+    ],
+    "roasts": 10,
+    "praises": 5,
+    "ff": 1
+  },
+  "31": {
+    "deaths": 0,
+    "downed": 3,
+    "fallen_by": {
+      "影心": 1,
+      "阿斯代倫": 1,
+      "曹": 1
+    },
+    "duels": [],
+    "roasts": 23,
+    "praises": 5,
+    "ff": 3
+  },
+  "32": {
+    "deaths": 2,
+    "downed": 0,
+    "fallen_by": {
+      "曹": 1,
+      "貓咕咕": 1
+    },
+    "duels": [],
+    "roasts": 22,
+    "praises": 7,
+    "ff": 1
+  },
+  "33": {
+    "deaths": 0,
+    "downed": 0,
+    "fallen_by": {},
+    "duels": [],
+    "roasts": 14,
+    "praises": 1,
+    "ff": 0
+  },
+  "34": {
+    "deaths": 0,
+    "downed": 1,
+    "fallen_by": {
+      "影心": 1
+    },
+    "duels": [
+      {
+        "winner": "影心",
+        "loser": "曹"
+      }
+    ],
+    "roasts": 31,
+    "praises": 8,
+    "ff": 2
+  },
+  "35": {
+    "deaths": 4,
+    "downed": 0,
+    "fallen_by": {
+      "影心": 3,
+      "卡拉克": 1
+    },
+    "duels": [],
+    "roasts": 20,
+    "praises": 8,
+    "ff": 9
+  }
+}

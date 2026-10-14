@@ -38,13 +38,28 @@ IMAGES_DIR = BASE_DIR / "data" / "images"
 FOLDERS_MAP = BASE_DIR / "data" / ".session_folders.json"
 
 # ── 章節名 ────────────────────────────────────────────────────
-CHAPTERS = [
-    "第一章", "第二章", "第三章", "第四章", "第五章",
-    "第六章", "第七章", "第八章", "第九章", "第十章",
-    "第十一章", "第十二章", "第十三章", "第十四章", "第十五章",
-    "第十六章", "第十七章", "第十八章", "第十九章", "第二十章",
-    "第二十一章", "第二十二章", "第二十三章", "第二十四章", "第二十五章",
-]
+# 全站章名單一來源（前端、故事集、分享頁都讀 sessions-meta 的 chapter）。
+# 舊版寫死 25 個中文章名，第 26 集起退化成「第26章」，造成全站混用兩種格式。
+_CN_DIGITS = "零一二三四五六七八九"
+
+def cn_number(n: int) -> str:
+    """1–999 轉中文數字：10→十、11→十一、20→二十、105→一百零五、110→一百一十。"""
+    if not 0 < n < 1000:
+        return str(n)
+    h, t, o = n // 100, n // 10 % 10, n % 10
+    out = ""
+    if h:
+        out += _CN_DIGITS[h] + "百"
+    if t:
+        out += ("" if (t == 1 and not h) else _CN_DIGITS[t]) + "十"
+    elif h and o:
+        out += "零"
+    if o:
+        out += _CN_DIGITS[o]
+    return out
+
+def chapter_name(n: int) -> str:
+    return f"第{cn_number(n)}章"
 
 # ── 文字清洗 ──────────────────────────────────────────────────
 _BAD_CHARS = str.maketrans({
@@ -296,7 +311,7 @@ def main():
     id_dates = {}   # id → 資料夾日期前綴（YYYYMMDD），用於位移偵測
     for idx, folder in enumerate(entries):
         date_iso, date_display, title = parse_folder(folder.name)
-        chapter = CHAPTERS[idx] if idx < len(CHAPTERS) else f"第{idx+1}章"
+        chapter = chapter_name(idx + 1)
         id_dates[idx + 1] = folder.name[:8]
 
         has_pdf   = find_pdf(folder)

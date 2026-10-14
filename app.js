@@ -15,8 +15,9 @@ const CHAR_ORDER = [...new Set(Object.values(CHAR_ROSTER))];
 const CHARS_SET  = new Set(CHAR_ORDER);
 
 // ── 羅馬數字（故事章節）────────────────────────────────────
-const ROMAN = ['I','II','III','IV','V','VI','VII','VIII','IX','X',
-  'XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX'];
+// 章名單一來源：sessions-meta 的 chapter（extract.py 產生的中文數字）。
+// 故事集舊用羅馬數字且只到 XX、又按陣列位置編號，會與日誌集數錯開
+const chapterOf = sid => sessions.find(s => s.id === sid)?.chapter || `第${sid}集`;
 
 // ── 視圖 ID 清單（新增視圖時在此加入即可）────────────────────
 const VIEW_IDS = ['welcome', 'session-view', 'hero-band',
@@ -33,6 +34,7 @@ let charStats     = { characters: [] };
 let roastStats    = { matrix: [], highlights: [] };
 let praiseStats   = { matrix: [], highlights: [] };
 let ffStats       = { incidents: [], total: 0 };
+let sessionStats  = {};   // 每集數據摘要（gen_session_stats.py）
 let _ffFilter     = '全部';
 let _ffSort       = 'desc';
 let storyData     = { chapters: [] };
@@ -66,6 +68,8 @@ const DATA_SOURCES = {
                    praiseStats = d;
                    (praiseStats.quotes || []).forEach((q, i) => { q._pidx = i; });
                  } },
+  sessionStats:{ url: 'data/session-stats.json',   fallback: {},
+                 assign: d => { sessionStats = d; } },
   ffStats:     { url: 'data/ff-stats.json',        fallback: { incidents: [], total: 0 },
                  assign: d => { ffStats = d; } },
   // 故事只抓章節目錄；各章全文由 loadStoryChapter() 捲動接近時再抓
@@ -160,6 +164,7 @@ function restoreFromHash() {
   if (h === '#stats')      { showView('stats');      return; }
   if (h === '#milestones') { showView('milestones'); return; }
   if (h === '#story')      { showView('story');      return; }
+  if (/^#story-\d+$/.test(h)) { openStoryChapter(parseInt(h.slice(7))); return; }
   if (h === '#home')       { goHome(); return; }
   // 預設：載入最新集
   const first = reversedSessions().find(s => !s.placeholder) || sessions[sessions.length - 1];
@@ -311,16 +316,17 @@ function loadSession(id) {
   document.getElementById('header-title').textContent   = session.title;
   document.getElementById('header-date').textContent    = session.dateDisplay ?? '';
   document.getElementById('share-btn')?.classList.toggle('hidden', !!session.placeholder);
+  updateStoryLink(id);
 
   renderAwardCard(id);
 
   const body = document.getElementById('session-body');
   if (session.placeholder) {
-    body.innerHTML = '<p style="text-align:center;color:var(--ink-light);opacity:.4;margin-top:80px;font-style:italic">✦ 本集日誌尚待記錄… ✦</p>';
+    body.innerHTML = '<p class="body-status">✦ 本集日誌尚待記錄… ✦</p>';
   } else if (_contentCache[id]) {
     body.innerHTML = renderContent(_contentCache[id]);
   } else {
-    body.innerHTML = '<p style="text-align:center;color:var(--ink-light);opacity:.4;margin-top:80px;font-style:italic">✦ 載入中… ✦</p>';
+    body.innerHTML = '<p class="body-status">✦ 載入中… ✦</p>';
     // 同集去重：多次點擊只發一次請求
     _contentPromises[id] ||= fetch(dataUrl(`data/sessions/${id}.json`))
       .then(r => {
@@ -335,7 +341,7 @@ function loadSession(id) {
       .catch(() => {
         delete _contentPromises[id];   // 失敗後允許重試
         if (currentId === id) {
-          body.innerHTML = '<p style="text-align:center;color:var(--crimson-lt);opacity:.7;margin-top:80px;font-style:italic">⚠ 無法載入本集內容，請稍後重試</p>';
+          body.innerHTML = '<p class="body-status body-status-error">⚠ 無法載入本集內容，請稍後重試</p>';
         }
       });
   }
@@ -423,7 +429,44 @@ function renderAwardCard(sessionId) {
       <div class="award-label">✦ 本集戰報</div>
       ${highlight}
       <div class="award-body">${items}</div>
+      <div class="aw-stats" id="aw-stats"></div>
     </div>`;
+  loadData('sessionStats').then(() => {
+    if (currentId === sessionId) renderSessionStatsRow(sessionId);
+  });
+}
+
+// ── 本集數據列（戰報底部；點擊跳到統計頁對應區塊） ──────────
+function renderSessionStatsRow(sessionId) {
+  const row = document.getElementById('aw-stats');
+  const st = sessionStats?.[sessionId];
+  if (!row || !st) return;
+  const fallenTip = Object.entries(st.fallen_by || {}).map(([c, n]) => `${c} ×${n}`).join('、');
+  const duelTip = (st.duels || []).map(d => d.draw
+    ? `${d.chars.join(' vs ')}（平手）` : `${d.winner} 勝 ${d.loser}`).join('\n');
+  const pill = (icon, label, value, aria, target, tip) => `
+    <button class="aw-stat${aria.startsWith('0') ? ' aw-stat-zero' : ''}" ${act('gotoStat', target)}
+            ${tip ? `data-tip="${esc(tip)}"` : ''} aria-label="${esc(`${label} ${aria}，前往統計`)}">
+      <span class="aw-stat-icon" aria-hidden="true">${icon}</span>
+      <span class="aw-stat-label">${label}</span>
+      <span class="aw-stat-num">${value}</span>
+    </button>`;
+  const fallenNum = st.downed ? `${st.deaths}<small>＋${st.downed} 倒地</small>` : st.deaths;
+  const fallenAria = st.downed ? `${st.deaths} 次、倒地 ${st.downed} 次` : `${st.deaths} 次`;
+  row.innerHTML = [
+    pill('☠', '陣亡', fallenNum, st.deaths + st.downed ? fallenAria : '0 次', 'stat-death', fallenTip),
+    pill('⚔', '決鬥', st.duels.length, `${st.duels.length} 場`, 'stat-duel', duelTip),
+    pill('💬', '靠北', st.roasts, `${st.roasts} 次`, 'stat-roast'),
+    pill('🌟', '稱讚', st.praises, `${st.praises} 次`, 'stat-praise'),
+    pill('🔥', '友傷', st.ff, `${st.ff} 次`, 'stat-ff'),
+  ].join('');
+}
+
+// 從日誌頁跳到統計頁某區塊：統計頁渲染完才捲動
+function gotoStat(id) {
+  showView('stats');
+  loadData('charStats', 'roastStats', 'praiseStats', 'ffStats')
+    .then(() => requestAnimationFrame(() => scrollToStat(id)));
 }
 
 // ── 閱讀進度條（rAF 節流）─────────────────────────────────
@@ -929,12 +972,17 @@ function renderStats() {
       <div class="sub-rule"><span class="rule-line"></span><span class="sub-title">冒 險 統 計</span><span class="rule-line"></span></div>
     </div>
 
-    <nav class="stats-jumpnav">
-      <button class="sjn-btn" ${act('scrollToStat', 'stat-death')}>☠ 死亡</button>
-      <button class="sjn-btn" ${act('scrollToStat', 'stat-mvp')}>🏆 MVP</button>
-      ${duelRows ? `<button class="sjn-btn" ${act('scrollToStat', 'stat-duel')}>⚔ 決鬥</button>` : ''}
-      <button class="sjn-btn" ${act('scrollToStat', 'stat-roast')}>💬 靠北</button>
-      <button class="sjn-btn" ${act('scrollToStat', 'stat-praise')}>🌟 稱讚</button>
+    <nav class="stats-jumpnav" aria-label="統計區塊">
+      ${[
+        ['stat-death', '☠ 死亡'],
+        ffSection ? ['stat-ff', '🔥 友傷'] : null,
+        ['stat-mvp', '🏆 MVP'],
+        duelRows ? ['stat-duel', '⚔ 決鬥'] : null,
+        ['stat-roast', '💬 靠北'],
+        ['stat-praise', '🌟 稱讚'],
+        ['stat-activity', '📈 活躍度'],
+      ].filter(Boolean).map(([id, label]) =>
+        `<button class="sjn-btn" data-target="${id}" ${act('scrollToStat', id)}>${label}</button>`).join('')}
     </nav>
 
     <div class="hero-stats-row">
@@ -998,13 +1046,38 @@ function renderStats() {
       ${renderPraiseSection()}
     </div>
 
-    <div class="stat-group">
+    <div class="stat-group" id="stat-activity">
       <div class="stat-group-title">📈 角色活躍度</div>
       ${renderGrowthGrid(chars)}
     </div>`;
 
   _statsRendered = true;
-  requestAnimationFrame(() => { initStatsAnimations(inner); ffInit(); });
+  requestAnimationFrame(() => { initStatsAnimations(inner); ffInit(); initStatsScrollSpy(inner); });
+}
+
+// 統計頁跳轉列（sticky）標示目前所在區塊
+let _statsSpy = null;
+function initStatsScrollSpy(inner) {
+  _statsSpy?.disconnect();
+  const root = document.getElementById('stats-view');
+  const btns = [...inner.querySelectorAll('.sjn-btn[data-target]')];
+  const targets = btns.map(b => document.getElementById(b.dataset.target)).filter(Boolean);
+  if (!root || !targets.length || typeof IntersectionObserver === 'undefined') return;
+  const visible = new Set();
+  _statsSpy = new IntersectionObserver(entries => {
+    entries.forEach(en => en.isIntersecting ? visible.add(en.target.id) : visible.delete(en.target.id));
+    // 取文件順序中第一個可見的區塊（友傷在死亡區塊內，可見時優先標友傷）
+    const order = targets.map(t => t.id);
+    const vis = order.filter(id => visible.has(id));
+    const current = vis.includes('stat-ff') ? 'stat-ff' : vis[0];
+    if (!current) return;
+    btns.forEach(b => {
+      const on = b.dataset.target === current;
+      b.classList.toggle('active', on);
+      if (on) b.setAttribute('aria-current', 'true'); else b.removeAttribute('aria-current');
+    });
+  }, { root, rootMargin: '-70px 0px -55% 0px', threshold: 0 });
+  targets.forEach(t => _statsSpy.observe(t));
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1158,7 +1231,7 @@ function renderFriendlyFire() {
   }).join('');
 
   return `
-    <div class="stats-section">
+    <div class="stats-section" id="stat-ff">
       <div class="stats-section-title">⚔️ 友軍傷害榜</div>
       <div class="ff-ranking">
         <div class="ff-ranking-col">
@@ -1993,44 +2066,90 @@ async function copyRivalryImage() {
 // ── 插圖燈箱 lightbox ─────────────────────────────────────
 // 事件委派：點 session 內文插圖即放大檢視。一個監聽器涵蓋所有
 // 現有與未來載入的插圖，不需逐圖綁定。
+// 開啟後可在同一集插圖間切換：← → 鍵、左右按鈕、觸控左右滑。
+let _lbImgs = [], _lbIdx = 0, _lbTouchX = null, _lbTouchY = null;
+
 function initLightbox() {
   const el = document.createElement('div');
   el.id = 'lb-overlay';
   el.className = 'lb-overlay';
   el.innerHTML = `
     <button class="lb-close" aria-label="關閉 (Esc)">✕</button>
-    <img class="lb-img" id="lb-img" alt="">`;
-  // 點 overlay 任何地方（背景、圖片、關閉鈕）都關閉
-  el.addEventListener('click', () => closeLightbox());
+    <button class="lb-nav lb-prev" aria-label="上一張 (←)">‹</button>
+    <img class="lb-img" id="lb-img" alt="">
+    <button class="lb-nav lb-next" aria-label="下一張 (→)">›</button>
+    <div class="lb-counter" id="lb-counter" aria-live="polite"></div>`;
+  // 點背景、圖片、關閉鈕都關閉；左右按鈕只切換
+  el.addEventListener('click', e => {
+    const nav = e.target.closest('.lb-nav');
+    if (nav) { lightboxStep(nav.classList.contains('lb-prev') ? -1 : 1); return; }
+    closeLightbox();
+  });
+  el.addEventListener('touchstart', e => {
+    _lbTouchX = e.touches[0].clientX; _lbTouchY = e.touches[0].clientY;
+  }, { passive: true });
+  el.addEventListener('touchend', e => {
+    if (_lbTouchX === null) return;
+    const dx = e.changedTouches[0].clientX - _lbTouchX;
+    const dy = e.changedTouches[0].clientY - _lbTouchY;
+    _lbTouchX = null;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      e.preventDefault();   // 滑動切圖，不要再觸發點擊關閉
+      lightboxStep(dx > 0 ? -1 : 1);
+    }
+  });
   document.body.appendChild(el);
 
   document.addEventListener('click', e => {
     const img = e.target.closest('.session-img img');
-    if (img) openLightbox(img.src, img.alt);
+    if (img) openLightbox(img);
   });
 }
 
-function openLightbox(src, alt) {
+function openLightbox(imgEl) {
   const overlay = document.getElementById('lb-overlay');
   if (!overlay) return;
-  const img = document.getElementById('lb-img');
-  img.src = src;
-  img.alt = alt || '';
+  _lbImgs = [...document.querySelectorAll('#session-body .session-img img')];
+  _lbIdx = Math.max(0, _lbImgs.indexOf(imgEl));
+  overlay.classList.toggle('lb-single', _lbImgs.length < 2);
+  _lbShow();
   overlay.classList.add('lb-open');
-  document.addEventListener('keydown', _lbEsc);
-  _modalOpened(overlay, alt ? `插圖：${alt}` : '插圖');
+  document.addEventListener('keydown', _lbKey);
+  _modalOpened(overlay, '插圖檢視');
+}
+
+function _lbShow() {
+  const src = _lbImgs[_lbIdx];
+  if (!src) return;
+  const img = document.getElementById('lb-img');
+  img.src = src.src;
+  img.alt = src.alt || '';
+  document.getElementById('lb-counter').textContent =
+    _lbImgs.length > 1 ? `${_lbIdx + 1} / ${_lbImgs.length}` : '';
+}
+
+function lightboxStep(delta) {
+  if (_lbImgs.length < 2) return;
+  _lbIdx = (_lbIdx + delta + _lbImgs.length) % _lbImgs.length;
+  _lbShow();
 }
 
 function closeLightbox() {
   const overlay = document.getElementById('lb-overlay');
   if (!overlay) return;
-  document.removeEventListener('keydown', _lbEsc);
+  document.removeEventListener('keydown', _lbKey);
   _modalClosed(overlay);
   // 直接移除 lb-open，靠 .lb-overlay 既有的 opacity transition 淡出
   overlay.classList.remove('lb-open');
+  // 關閉後把頁面捲到最後看的那張，從燈箱翻了幾張再回來不會迷路
+  _lbImgs[_lbIdx]?.scrollIntoView({ block: 'center' });
 }
 
-function _lbEsc(e) { if (e.key === 'Escape') closeLightbox(); }
+function _lbKey(e) {
+  if (e.key === 'Escape') closeLightbox();
+  else if (e.key === 'ArrowLeft')  { e.preventDefault(); lightboxStep(-1); }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); lightboxStep(1); }
+}
 
 // ── 靠北卡片渲染 ──────────────────────────────────────────
 // 靠北 / 稱讚共用卡片。差異：箭頭、資料索引、稱讚卡額外 class、
@@ -3270,14 +3389,18 @@ function tryQuoteWrap(text) {
 
 // ── 結構化內容渲染 ────────────────────────────────────────
 function renderContent(items) {
-  if (!items?.length) return '<p style="text-align:center;opacity:.4">尚無內容</p>';
+  if (!items?.length) return '<p class="body-status">尚無內容</p>';
 
   let firstParaDone = false;
+  const imgTotal = items.filter(it => it.t === 'img').length;
+  const imgLabel = currentId !== null ? `${chapterOf(currentId)}插圖` : '插圖';
+  let imgNo = 0;
   return items.map((item, i) => {
     switch (item.t) {
       case 'img':
+        imgNo++;
         return `<figure class="session-img zoomable">
-          <img src="${esc(item.v)}" alt="插圖（點擊放大）" loading="lazy"${item.w ? ` width="${item.w}" height="${item.h}"` : ''}>
+          <img src="${esc(item.v)}" alt="${esc(`${imgLabel} ${imgNo}/${imgTotal}（點擊放大）`)}" loading="lazy"${item.w ? ` width="${item.w}" height="${item.h}"` : ''}>
         </figure>`;
 
       case 'h1': {
@@ -3340,6 +3463,7 @@ function loadLatestSession() {
 
 const ACTIONS = {
   goHome, showView, toggleSidebar, scrollToTop, shareSession, navigateSession, loadLatestSession,
+  openStoryFromSession, gotoStat,
   loadSession, scrollToStat, storyScrollTo, renderCharacters, switchGrowthTab,
   openQuoteAt, closeQuoteModal, copyQuoteImage,
   openDeathRoulette, closeDeathRoulette, spinDeathRoulette, droJumpToSession,
@@ -3417,11 +3541,10 @@ function renderStoryNav() {
   if (!list) return;
   const chapters = (storyData.chapters || []).slice().sort((a, b) => a.session_id - b.session_id);
 
-  list.innerHTML = chapters.map((ch, i) => {
-    const num = ROMAN[i] || (i + 1);
+  list.innerHTML = chapters.map(ch => {
     return `<li class="session-item" id="story-nav-${ch.session_id}" tabindex="0" role="button"
         ${act('storyScrollTo', ch.session_id)}>
-      <div class="item-chapter">第 ${num} 章</div>
+      <div class="item-chapter">${esc(chapterOf(ch.session_id))}</div>
       <div class="item-title">${esc(ch.title || '')}</div>
     </li>`;
   }).join('');
@@ -3439,6 +3562,7 @@ function renderStoryNav() {
           nav.classList.add('active');
           nav.scrollIntoView({ block: 'nearest' });
         }
+        if (currentView === 'story') history.replaceState(null, '', '#story-' + sid);
       }
     });
   }, { root: sv, rootMargin: '-5% 0px -50% 0px', threshold: 0 });
@@ -3452,7 +3576,31 @@ function renderStoryNav() {
   });
 }
 
+// 從日誌頁或網址 #story-N 直接開到故事某章
+function openStoryChapter(sid) {
+  showView('story');
+  // showView 先註冊的 renderStory 會先跑完，這裡再捲動
+  loadData('storyData').then(() => requestAnimationFrame(() => storyScrollTo(sid)));
+}
+
+function openStoryFromSession() {
+  if (currentId !== null) openStoryChapter(currentId);
+}
+
+// 日誌頁：本集有小說版才顯示「📕 小說版」（故事目錄很小，延遲載入不影響首屏）
+function updateStoryLink(id) {
+  const btn = document.getElementById('story-link-btn');
+  if (!btn) return;
+  btn.classList.add('hidden');
+  loadData('storyData').then(() => {
+    const has = (storyData.chapters || []).some(ch => ch.session_id === id);
+    if (currentId === id) btn.classList.toggle('hidden', !has);
+  });
+}
+
 function storyScrollTo(sid) {
+  // 可分享的章節網址；replaceState 不觸發 hashchange、不堆歷史紀錄
+  history.replaceState(null, '', '#story-' + sid);
   const t = document.getElementById('story-ch-' + sid);
   const sv = document.getElementById('story-view');
   if (t && sv) {
@@ -3545,7 +3693,6 @@ function renderStory() {
     </div>
     <div class="story-chapters">
       ${chapters.map((ch, i) => {
-        const num = ROMAN[i] || (i + 1);
         const loaded = ch.session_id in _storyText;
         const body = loaded
           ? `<div class="story-body">${storyParas(_storyText[ch.session_id])}</div>`
@@ -3553,7 +3700,10 @@ function renderStory() {
         return `
           ${i > 0 ? '<div class="story-sep">✦ ✦ ✦</div>' : ''}
           <div class="story-chapter" id="story-ch-${ch.session_id}">
-            <div class="story-chapter-eyebrow">第 ${num} 章</div>
+            <div class="story-chapter-meta">
+              <div class="story-chapter-eyebrow">${esc(chapterOf(ch.session_id))}</div>
+              <button class="story-journal-link" ${act('loadSession', ch.session_id)}>📖 原始日誌</button>
+            </div>
             <h2 class="story-chapter-title">${esc(ch.title || '')}</h2>
             ${body}
           </div>`;
