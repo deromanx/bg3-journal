@@ -173,20 +173,22 @@ try:
 finally:
     gen_quiz.call_gemini = _orig_call
 
-_sess = [{"id": 1, "chapter": "第一章", "title": "T1", "content": []}]
+_sess = [{"id": 1, "chapter": "第一章", "title": "T1", "content": []},
+         {"id": 2, "chapter": "第二章", "title": "T2", "content": []}]
 qs = gen_quiz.data_questions(
-    _sess, {}, {1: {"deaths": [{"char": "影心", "note": "被小貓咬死"}, {"char": "曹", "note": "被小貓咬死"},
-                               {"char": "卡拉克", "note": "墜崖而死"}]}},
-    {"1": {"duels": [{"winner": "曹", "loser": "影心"}, {"winner": "影心", "loser": "曹"},
-                     {"winner": "卡拉克", "loser": "曹"}]}},
-    {"_ff": [{"session": 1, "perp": "影心", "victim": "曹", "method": "閃電"},
-             {"session": 1, "perp": "卡拉克", "victim": "曹", "method": "閃電"},
-             {"session": 1, "perp": "貓咕咕", "victim": "曹", "method": "火球"}]}, [])
-kinds = sorted(q["kind"] + ":" + q["q"][-12:] for q in qs)
-check("資料題：多人同死因不出、單人死因出", sum(q["kind"] == "death" for q in qs), 1)
-check("資料題：同一對打兩場不出、只打一場的出", sum(q["kind"] == "duel" for q in qs), 1)
-check("資料題：同手法同受害者多位加害者不出", [q["options"][q["answer"]] for q in qs if q["kind"] == "ff"], ["貓咕咕"])
-
+    _sess,
+    {1: {"deaths": [{"char": "影心", "note": "被小貓咬死了"}, {"char": "卡拉克", "note": "墜落懸崖摔死"}]},
+     2: {"deaths": [{"char": "曹", "note": "被小貓咬死了"}]}},
+    [{"session": 1, "perp": "影心", "victim": "曹", "method": "閃電",
+      "desc": "影心召雷劈向敵人，結果把曹一起電成焦炭，坑隊友不手軟。"},
+     {"session": 2, "perp": "貓咕咕", "victim": "曹", "method": "火球", "desc": "太短"}])
+check("資料題：只出死因與友傷（不出 MVP／誰說的／章名／里程碑）", {q["kind"] for q in qs}, {"death", "ff"})
+check("資料題：題目不帶章節", any("章" in q["q"] for q in qs), False)
+check("資料題：死因跨集重複（不同人）不出、全戰役唯一才出", [q["q"] for q in qs if q["kind"] == "death"],
+      ["是誰「墜落懸崖摔死」？"])
+ff = [q for q in qs if q["kind"] == "ff"]
+check("資料題：友傷用事件描述並遮住加害者", (len(ff), "影心" in ff[0]["q"], "○○" in ff[0]["q"]), (1, False, True))
+check("情節題：擋下考記憶的題型", bool(gen_quiz.BANNED_Q.search("「假屌他不帶走」是誰說的？")), True)
 
 if FAILURES:
     print(f"❌ pipeline 測試失敗（{len(FAILURES)} 項）：")

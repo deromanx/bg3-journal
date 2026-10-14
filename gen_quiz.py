@@ -3,9 +3,10 @@
 週測題庫（Kahoot 式問答）：data/quiz/bank.json
 
 兩類題目：
-- 資料題：從既有統計（MVP、死亡、友傷、決鬥、名言、章名、里程碑）組題，答案取自資料，不呼叫 Gemini。
-  只出「單集事實」，不出累計排名這類會隨新集數變動的題目。
-- 情節題：每集 1 次 Gemini，從日誌原文出 6 題，每題附原文出處；出處在原文找不到就整題丟棄。
+- 情節題（主力）：每集 2 次 Gemini（出題＋逐題驗證），考劇情內容與玩家互動，每題附原文出處；
+  出處對不上原文、有一題多解嫌疑的整題丟棄。
+- 資料題（少量）：從死亡、友傷統計組題，答案取自資料，不呼叫 Gemini。
+不出「這句是誰說的」「發生在哪一章」這類純考記憶的題（使用者 2026-10-14 要求）。
   存在 data/quiz/plot.json，已有的集數不重出（內容指紋變了才重出）。
 
 每週題目由前端依「週數 + 題目 id」決定性挑選，題庫只需持續累積。
@@ -27,7 +28,6 @@ import subprocess
 from datetime import datetime, timedelta, timezone
 
 from common import DATA, content_fingerprint, load_json, save_json
-from gen_quote_by import find_speaker_in_text
 
 QUIZ_DIR = DATA / "quiz"
 BANK_F = QUIZ_DIR / "bank.json"
@@ -35,7 +35,7 @@ PLOT_F = QUIZ_DIR / "plot.json"
 CHARS = ['影心', '阿斯代倫', '曹', '卡拉克', '貓咕咕']
 # 玩家本名不得出現在題目（網站不顯示本名）
 REAL_NAMES = ['游尚傑', '林昱宇', '曹祐誠', '丁丁', '昱如']
-PLOT_PER_SESSION = 6
+PLOT_PER_SESSION = 8
 TPE = timezone(timedelta(hours=8))
 
 _norm = lambda t: re.sub(r'[^\w]', '', t or '')
@@ -75,110 +75,46 @@ def has_real_name(*texts):
 
 # ── 資料題 ─────────────────────────────────────────────────
 
-def data_questions(sessions, awards, raws, sstats, chars, milestones):
+def data_questions(sessions, raws, ff_incidents):
+    """只出劇情與玩家互動相關的資料題（死因、友傷）。
+    不出「第幾章」「誰說的」「MVP」這類考記憶的題（使用者 2026-10-14 明確要求避開）；
+    題目不帶章節，所以事實必須在整個戰役中唯一，否則不出。"""
     out = []
     meta = {s['id']: s for s in sessions}
 
     def add(sid, kind, key, q, options, answer, source=''):
         i = qid(kind, sid, key)
-        opts, ans = shuffled(options, answer, i) if kind != 'duel' else (options, options.index(answer))
+        opts, ans = shuffled(options, answer, i)
         if has_real_name(q, source, *opts):
             return
         out.append({'id': i, 'sid': sid, 'kind': kind, 'q': q, 'options': opts,
                     'answer': ans, 'source': source})
 
-    for s in sessions:
-        sid = s['id']
-        ch = s['chapter']
-        aw = awards.get(str(sid), {})
-
-        # MVP
-        if aw.get('mvp') in CHARS:
-            opts, _ = char_options(aw['mvp'], qid('mvp', sid))
-            add(sid, 'mvp', '', f"{ch}《{s['title']}》的 MVP 是誰？", opts, aw['mvp'],
-                aw.get('mvp_reason', ''))
-
-        # 最佳金句：說話者要能在原文驗證，Gemini 猜的不出題（S35 曾猜錯）
-        bq = aw.get('best_quote')
-        if bq and aw.get('best_quote_by') in CHARS and \
-                find_speaker_in_text(bq, s) == aw['best_quote_by']:
-            opts, _ = char_options(aw['best_quote_by'], qid('bq', sid))
-            add(sid, 'quote', 'best', f"{ch}的最佳金句「{bq}」是誰說的？", opts, aw['best_quote_by'])
-
-        # 死亡：本集只有一位角色符合這個死因才出題
-        raw = raws.get(sid, {})
-        notes = {}
+    # 死因：全戰役只有一位角色這樣死過才出
+    notes = {}
+    for sid, raw in raws.items():
         for d in raw.get('deaths', []):
-            if d.get('is_downed') or d.get('char') not in CHARS or len(d.get('note', '')) < 3:
+            if d.get('is_downed') or d.get('char') not in CHARS or len(d.get('note', '')) < 5:
                 continue
-            notes.setdefault(d['note'], set()).add(d['char'])
-        for note, who in notes.items():
-            if len(who) == 1:
-                c = next(iter(who))
-                opts, _ = char_options(c, qid('death', sid, note))
-                add(sid, 'death', note, f"{ch}裡，是誰「{note}」？", opts, c)
+            notes.setdefault(d['note'], set()).add((sid, d['char']))
+    for note, hits in notes.items():
+        if len({c for _, c in hits}) == 1 and len(hits) == 1:
+            sid, c = next(iter(hits))
+            opts, _ = char_options(c, qid('death', sid, note))
+            add(sid, 'death', note, f"是誰「{note}」？", opts, c)
 
-        # 決鬥：有勝負才出（平手當選項之一）；同一對本集打不只一場就有歧義，不出
-        duels = sstats.get(str(sid), {}).get('duels', [])
-        pair = lambda d: frozenset(d.get('chars') or [d.get('winner'), d.get('loser')])
-        pair_n = {}
-        for d in duels:
-            pair_n[pair(d)] = pair_n.get(pair(d), 0) + 1
-        for di, d in enumerate(duels):
-            w, l = d.get('winner'), d.get('loser')
-            if w in CHARS and l in CHARS and pair_n[pair(d)] == 1:
-                a, b = sorted([w, l], key=CHARS.index)
-                add(sid, 'duel', di, f"{ch}，{a}和{b}的決鬥，結果是？",
-                    [f'{a}贏', f'{b}贏', '平手'], f'{w}贏')
-
-    # 友軍傷害：同集「手法＋受害者」相同但加害者不同就有歧義，不出
-    ff_key = lambda x: (x['session'], x.get('victim'), x.get('method'))
-    ff_perps = {}
-    for inc in chars.get('_ff', []):
-        ff_perps.setdefault(ff_key(inc), set()).add(inc.get('perp'))
-    for inc in chars.get('_ff', []):
-        if len(ff_perps[ff_key(inc)]) > 1:
+    # 友傷：用事件描述出題、遮住加害者（只給手法太空泛，例如「普攻」根本無從答起）
+    for inc in ff_incidents:
+        sid, perp, victim, desc = inc['session'], inc.get('perp'), inc.get('victim'), inc.get('desc', '')
+        if sid not in meta or perp not in CHARS or victim not in CHARS or perp == victim:
             continue
-        sid, perp, victim, method = inc['session'], inc.get('perp'), inc.get('victim'), inc.get('method', '')
-        if perp in CHARS and victim in CHARS and perp != victim and method and sid in meta:
-            others = [c for c in CHARS if c not in (perp, victim)]
-            random.Random(qid('ff', sid, method)).shuffle(others)
-            add(sid, 'ff', f'{perp}{method}', f"{meta[sid]['chapter']}，是誰用「{method}」誤傷了{victim}？",
-                [perp] + others[:3], perp, inc.get('desc', ''))
-
-    # 名言錄：說話者要能在原文驗證
-    for c in chars.get('characters', []):
-        for qt in c.get('quotes', []):
-            sid, text = qt.get('session'), qt.get('text', '')
-            if sid in meta and len(_norm(text)) >= 4 and find_speaker_in_text(text, meta[sid]) == c['char']:
-                opts, _ = char_options(c['char'], qid('cq', sid, text))
-                add(sid, 'quote', text, f"「{text.strip('「」')}」是誰說的？（{meta[sid]['chapter']}）",
-                    opts, c['char'])
-
-    # 章名：本章標題是哪一個（干擾項取前後章）
-    real = [s for s in sessions if not s.get('placeholder')]
-    for i, s in enumerate(real):
-        near = [x['title'] for x in real[max(0, i - 4):i + 5] if x['id'] != s['id']]
-        random.Random(qid('title', s['id'])).shuffle(near)
-        if len(near) >= 3:
-            add(s['id'], 'title', '', f"{s['chapter']}的標題是？", [s['title']] + near[:3], s['title'])
-
-    # 里程碑：發生在哪一章（干擾項取相鄰章）
-    for m in milestones:
-        sid = m.get('session_id')
-        if sid not in meta or not m.get('title'):
+        if perp not in desc or len(desc) < 20:
             continue
-        ids = [x['id'] for x in real]
-        k = ids.index(sid) if sid in ids else None
-        if k is None:
-            continue
-        near = [ids[j] for j in range(max(0, k - 3), min(len(ids), k + 4)) if j != k]
-        random.Random(qid('ms', sid, m['title'])).shuffle(near)
-        if len(near) < 3:
-            continue
-        opts = [meta[x]['chapter'] for x in [sid] + near[:3]]
-        add(sid, 'milestone', m['title'], f"里程碑「{m['title']}」發生在哪一章？", opts, meta[sid]['chapter'],
-            m.get('desc', ''))
+        masked = desc.replace(perp, '○○')
+        others = [c for c in CHARS if c not in (perp, victim)]
+        random.Random(qid('ff', sid, desc)).shuffle(others)
+        add(sid, 'ff', f'{perp}{inc.get("method", "")}', f"「{masked}」這是誰幹的好事？",
+            [perp] + others[:3], perp)
     return out
 
 
@@ -187,9 +123,14 @@ def data_questions(sessions, awards, raws, sstats, chars, milestones):
 PLOT_PROMPT = """你是《柏德之門3》TRPG 團的問答出題者。以下是第{sid}集「{title}」的日誌原文。
 角色只有：影心、阿斯代倫、曹、卡拉克、貓咕咕。
 
-請出 {n} 題四選一的情節題，讓有讀過這集的隊友答得出來、沒讀過的會猶豫。規則：
+請出 {n} 題四選一的題目，讓有玩過、讀過這集的隊友答得出來、沒讀過的會猶豫。
+題目範圍，兩類大約各半：
+- 劇情內容：冒險中發生了什麼事、隊伍做了什麼決定、戰鬥怎麼打贏或翻車、NPC 做了什麼
+- 玩家互動：隊友之間的吐槽、互坑、誤傷、決鬥、閒聊的話題、搞笑操作、對彼此行為的反應
+規則：
 - 題目必須能從原文直接找到答案，不可推測或補充原文沒有的細節
-- 優先考好笑、荒謬或關鍵的劇情，不考無聊細節（例如數字、裝備名）
+- 優先考好笑、荒謬或關鍵的事，不考無聊細節
+- 不要出這些題型：「這句話是誰說的」「發生在第幾章／哪一集」、考數字（傷害、血量、骰值、金額）、考裝備或法術名稱
 - 四個選項同類型、長度相近；四個之中只能有一個符合原文
 - 錯誤選項必須是這一集「沒有發生」的事：要合理、像這群人會做的事，但原文沒有。
   不可以拿原文裡別的真實事件、或對同一題也說得通的描述當錯誤選項（例：問「影心被變成什麼」，
@@ -276,6 +217,10 @@ def distractor_from_text(opts, ans, src, session, thresh=0.75):
     return None
 
 
+# 不要的題型（考記憶而非劇情）：Gemini 偶爾仍會出，本地再擋
+BANNED_Q = re.compile(r'是誰說的|誰說了這句|哪一章|第幾章|哪一集|第幾集|幾滴血|多少血|多少傷害|骰出幾')
+
+
 def validate_plot(items, session):
     """丟棄出處對不上原文、選項不完整、含本名的題目。回傳 (保留, 丟棄原因列表)。"""
     text = _norm(session_text(session))
@@ -291,6 +236,8 @@ def validate_plot(items, session):
             why = '出處不在原文'
         elif has_real_name(q, src, *map(str, opts)):
             why = '含本名'
+        elif BANNED_Q.search(q):
+            why = '題型考記憶（誰說的／哪一章／數字）'
         elif (o := distractor_from_text(opts, ans, src, session)):
             why = f'錯誤選項「{o}」用字取自原文，可能也成立'
         if why:
@@ -382,11 +329,7 @@ def main():
         fill_plot(sessions, plot, args.backfill)
 
     raws = {s['id']: load_json(DATA / 'sessions-raw' / f"{s['id']}.json", {}) for s in sessions}
-    chars = load_json(DATA / 'character-stats.json', {})
-    chars['_ff'] = load_json(DATA / 'ff-stats.json', {}).get('incidents', [])
-    qs = data_questions(sessions, load_json(DATA / 'awards.json', {}), raws,
-                        load_json(DATA / 'session-stats.json', {}), chars,
-                        load_json(DATA / 'milestones.json', []))
+    qs = data_questions(sessions, raws, load_json(DATA / 'ff-stats.json', {}).get('incidents', []))
     qs += plot_questions(plot)
 
     # 同 id 去重；保留舊題的 added，週中重建不會讓本週題目變動

@@ -3785,9 +3785,9 @@ function renderStory() {
 let quizBank = [];
 const QUIZ_LEN = 10;
 const QUIZ_FROM_LATEST = 4;          // 每週約 4 題出自最新一集，其餘出自舊集數
-const QUIZ_KIND_CAP = { plot: 5, quote: 2, death: 1, ff: 1, mvp: 1, duel: 1, title: 1, milestone: 1 };
-const QUIZ_KIND_LABEL = { plot: '劇情', quote: '誰說的', death: '死因', ff: '友傷', mvp: 'MVP',
-  duel: '決鬥', title: '章名', milestone: '里程碑' };
+// 以劇情與玩家互動為主；不出「誰說的」「哪一章」這類純考記憶的題（使用者 2026-10-14 要求）
+const QUIZ_KIND_CAP = { plot: 7, ff: 2, death: 1 };
+const QUIZ_KIND_LABEL = { plot: '劇情', ff: '友傷', death: '死因' };
 const QUIZ_SHAPES = ['triangle', 'diamond', 'circle', 'square'];
 let _quiz = null;          // 進行中的一輪
 let _quizTimer = null;
