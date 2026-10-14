@@ -141,6 +141,53 @@ check("兩處標示不同 → 歧義回傳 None", gen_quote_by.find_speaker_in_t
       _sess("曹：「上吧」", "卡：「上吧」")), None)
 
 
+# ── 5. 週測出題防呆 ──────────────────────────────────────────
+import gen_quiz  # noqa: E402
+
+_s = {"id": 9, "content": [{"t": "p", "v": "影心：「把卡拉克從屋頂往地面摔，所幸沒死，還有4滴血。」"}]}
+_ok = {"q": "影心對卡拉克做了什麼？", "options": ["從屋頂往地面摔", "推下懸崖", "丟進河裡", "關進籠子"],
+       "answer": 0, "source": "把卡拉克從屋頂往地面摔，所幸沒死"}
+keep, drop = gen_quiz.validate_plot([
+    _ok,
+    {**_ok, "source": "原文沒有這句話喔喔喔喔"},
+    {**_ok, "options": ["a", "a", "b", "c"]},
+    {**_ok, "q": "游尚傑做了什麼？"},
+    {**_ok, "answer": 4},
+], _s)
+check("情節題：只保留出處在原文、選項相異、無本名的題目", len(keep), 1)
+check("情節題：丟棄原因各自標明", len(drop), 4)
+
+_s2 = {"id": 32, "content": [{"t": "p", "v": "隊伍惦記著四人行願望，把好感度列為第一要務，還刻意不去找雙胞胎卓爾，當作驚喜。"}]}
+check("情節題：錯誤選項用字取自原文 → 丟棄（S32 一題多解）",
+      gen_quiz.distractor_from_text(["刻意不找卓爾", "將好感度列為第一要務", "送她禮物", "幫她報仇"], 0,
+                                    "還刻意不去找雙胞胎卓爾", _s2), "將好感度列為第一要務")
+check("情節題：錯誤選項是原文沒有的事 → 保留",
+      gen_quiz.distractor_from_text(["刻意不找卓爾", "幫她買蛋糕", "送她禮物", "幫她報仇"], 0,
+                                    "還刻意不去找雙胞胎卓爾", _s2), None)
+
+_orig_call = gen_quiz.call_gemini
+try:
+    gen_quiz.call_gemini = lambda prompt: [{"i": 0, "ok": True}, {"i": 1, "ok": False, "reason": "選項C也成立"}]
+    keep, drop = gen_quiz.verify_plot([_ok, _ok, _ok], _s)
+    check("驗證：只保留明確判為合格的題目（不合格、未回覆都丟）", (len(keep), len(drop)), (1, 2))
+finally:
+    gen_quiz.call_gemini = _orig_call
+
+_sess = [{"id": 1, "chapter": "第一章", "title": "T1", "content": []}]
+qs = gen_quiz.data_questions(
+    _sess, {}, {1: {"deaths": [{"char": "影心", "note": "被小貓咬死"}, {"char": "曹", "note": "被小貓咬死"},
+                               {"char": "卡拉克", "note": "墜崖而死"}]}},
+    {"1": {"duels": [{"winner": "曹", "loser": "影心"}, {"winner": "影心", "loser": "曹"},
+                     {"winner": "卡拉克", "loser": "曹"}]}},
+    {"_ff": [{"session": 1, "perp": "影心", "victim": "曹", "method": "閃電"},
+             {"session": 1, "perp": "卡拉克", "victim": "曹", "method": "閃電"},
+             {"session": 1, "perp": "貓咕咕", "victim": "曹", "method": "火球"}]}, [])
+kinds = sorted(q["kind"] + ":" + q["q"][-12:] for q in qs)
+check("資料題：多人同死因不出、單人死因出", sum(q["kind"] == "death" for q in qs), 1)
+check("資料題：同一對打兩場不出、只打一場的出", sum(q["kind"] == "duel" for q in qs), 1)
+check("資料題：同手法同受害者多位加害者不出", [q["options"][q["answer"]] for q in qs if q["kind"] == "ff"], ["貓咕咕"])
+
+
 if FAILURES:
     print(f"❌ pipeline 測試失敗（{len(FAILURES)} 項）：")
     print("\n".join(FAILURES))

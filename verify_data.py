@@ -274,6 +274,29 @@ def check_deploy_artifacts():
                 issues.append(f"data/story/{sid}.json 與 story.json 內容不同步，重跑 gen_story_split.py")
                 break
 
+    # D3. 週測題庫：題目結構合法、不含本名；最新集要有題目（情節題缺 = Gemini 失敗或額度用盡）
+    bank = load("quiz/bank.json", {}).get("questions", [])
+    real_names = ['游尚傑', '林昱宇', '曹祐誠', '丁丁', '昱如']
+    bad = [q.get("id") for q in bank
+           if not (2 <= len(q.get("options", [])) <= 4)
+           or len(set(q["options"])) != len(q["options"])
+           or not (0 <= q.get("answer", -1) < len(q["options"]))
+           or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", q.get("added", ""))]
+    if bad:
+        issues.append(f"週測題庫有 {len(bad)} 題結構錯誤（選項/answer/added）：{bad[:5]}，重跑 gen_quiz.py")
+    leaked = [q["id"] for q in bank if any(n in json.dumps(q, ensure_ascii=False) for n in real_names)]
+    if leaked:
+        issues.append(f"週測題庫有 {len(leaked)} 題含玩家本名：{leaked[:5]}")
+    ids = [m["id"] for m in meta if not m.get("placeholder")]
+    if bank and ids:
+        latest_kinds = {q["kind"] for q in bank if q["sid"] == max(ids)}
+        if not latest_kinds:
+            issues.append(f"週測題庫沒有第 {max(ids)} 集的題目，重跑 gen_quiz.py")
+        elif "plot" not in latest_kinds:
+            issues.append(f"週測題庫缺第 {max(ids)} 集情節題（Gemini 失敗或額度用盡），改天重跑 gen_quiz.py")
+    elif ids:
+        issues.append("缺週測題庫 data/quiz/bank.json，重跑 gen_quiz.py")
+
     # D2. 前端資源（app.js / style.css / data JSON）相對 HEAD 有變更時，
     #     index.html 對應版本號須已遞增（逐一比對版本號，不只看 index.html 有沒有改）
     try:

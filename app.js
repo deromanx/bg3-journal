@@ -21,7 +21,7 @@ const chapterOf = sid => sessions.find(s => s.id === sid)?.chapter || `第${sid}
 
 // ── 視圖 ID 清單（新增視圖時在此加入即可）────────────────────
 const VIEW_IDS = ['welcome', 'session-view', 'hero-band',
-  'characters-view', 'stats-view', 'milestones-view', 'story-view'];
+  'characters-view', 'stats-view', 'milestones-view', 'story-view', 'quiz-view'];
 
 let sessions      = [];
 let milestones    = [];
@@ -75,6 +75,8 @@ const DATA_SOURCES = {
   // 故事只抓章節目錄；各章全文由 loadStoryChapter() 捲動接近時再抓
   storyData:   { url: 'data/story/index.json',     fallback: { chapters: [] },
                  assign: d => { storyData = d; } },
+  quizBank:    { url: 'data/quiz/bank.json',       fallback: { questions: [] },
+                 assign: d => { quizBank = d.questions || []; } },
 };
 const _dataPromises = {};
 
@@ -126,16 +128,17 @@ function _setHash(h) {
   location.hash = h;
 }
 
-const ALL_VIEWS = ['journal', 'characters', 'stats', 'milestones', 'story'];
+const ALL_VIEWS = ['journal', 'characters', 'stats', 'milestones', 'story', 'quiz'];
 
 // ── 分頁標題（隨章節/視圖更新，利於多分頁辨識與書籤） ──────
 const BASE_TITLE = '前進柏德之門 — 冒險日誌';
-const VIEW_TITLES = { characters: '冒險隊伍', stats: '統計', milestones: '里程碑', story: '瓦羅的故事集' };
+const VIEW_TITLES = { characters: '冒險隊伍', stats: '統計', milestones: '里程碑', story: '瓦羅的故事集', quiz: '週測' };
 function updateTitle(prefix) {
   document.title = prefix ? `${prefix}｜前進柏德之門` : BASE_TITLE;
 }
 
 function hideAllViews() {
+  quizStopTimer();   // 作答中切走：停表，回來時重新從週測首頁開始
   VIEW_IDS.forEach(id => document.getElementById(id)?.classList.add('hidden'));
 }
 
@@ -164,6 +167,7 @@ function restoreFromHash() {
   if (h === '#stats')      { showView('stats');      return; }
   if (h === '#milestones') { showView('milestones'); return; }
   if (h === '#story')      { showView('story');      return; }
+  if (h === '#quiz')       { showView('quiz');       return; }
   if (/^#story-\d+$/.test(h)) { openStoryChapter(parseInt(h.slice(7))); return; }
   if (h === '#home')       { goHome(); return; }
   // 預設：載入最新集
@@ -189,6 +193,7 @@ function showView(view) {
   if (view === 'stats')      document.getElementById('stats-view').classList.remove('hidden');
   if (view === 'milestones') document.getElementById('milestones-view').classList.remove('hidden');
   if (view === 'story')      document.getElementById('story-view').classList.remove('hidden');
+  if (view === 'quiz')       document.getElementById('quiz-view').classList.remove('hidden');
 
   // 章節列表只在日誌分頁顯示，故事目錄只在故事分頁顯示
   const journalNav = document.getElementById('journal-nav');
@@ -211,6 +216,11 @@ function showView(view) {
   if (view === 'story') {
     _setHash('#story');
     loadData('storyData').then(() => { renderStory(); renderStoryNav(); });
+  }
+  if (view === 'quiz') {
+    _setHash('#quiz');
+    // 選項頭像、章名都靠 sessions（首屏已載入）；題庫首次切到週測才抓
+    loadData('quizBank').then(() => renderQuiz());
   }
   if (view === 'journal')    { _setHash(currentId ? '#s' + currentId : '#home'); }
 
@@ -496,6 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initLightbox();
   initModalFocusTrap();
   initActions();
+  initQuizKeys();
   window.addEventListener('hashchange', () => {
     if (_ignoreHash) { _ignoreHash = false; return; }
     restoreFromHash();
@@ -3519,6 +3530,7 @@ const ACTIONS = {
   setRoastPage, setRoastSort, filterRoastQuotes, filterRoastByPair, clearRoastFilter,
   setPraisePage, setPraiseSort, filterPraiseQuotes, clearPraiseFilter,
   ffSetFilter, ffSetSort, ffExpand,
+  renderQuiz, startQuiz, quizAnswer, quizNext, shareQuizScore,
 };
 // 需要觸發元素本身的 handler（舊寫法傳 this）
 const ACTIONS_WITH_EL = { showDeathCause, toggleCharQuotes };
@@ -3762,4 +3774,295 @@ function renderStory() {
       }).join('')}
     </div>`;
   observeStoryChapters(chapters);
+}
+
+// ══════════════════════════════════════════════════════════
+// 週測（Kahoot 式問答）
+// 題庫 data/quiz/bank.json 由 gen_quiz.py 產生；每週題目在前端依「週數＋題目 id」決定性挑選，
+// 所有人同一週拿到同一份題目。只用本週一（台北時間）之前加入題庫的題目，週中補題不影響本週。
+// 成績只存在玩家自己的瀏覽器（第一次完整作答才算），分享靠複製成績文字貼到群組。
+// ══════════════════════════════════════════════════════════
+let quizBank = [];
+const QUIZ_LEN = 10;
+const QUIZ_FROM_LATEST = 4;          // 每週約 4 題出自最新一集，其餘出自舊集數
+const QUIZ_KIND_CAP = { plot: 5, quote: 2, death: 1, ff: 1, mvp: 1, duel: 1, title: 1, milestone: 1 };
+const QUIZ_KIND_LABEL = { plot: '劇情', quote: '誰說的', death: '死因', ff: '友傷', mvp: 'MVP',
+  duel: '決鬥', title: '章名', milestone: '里程碑' };
+const QUIZ_SHAPES = ['triangle', 'diamond', 'circle', 'square'];
+let _quiz = null;          // 進行中的一輪
+let _quizTimer = null;
+
+// 台北時間的 ISO 週：{ key: '2026-W42', year, week, monday: 'YYYY-MM-DD', sunday }
+function quizWeek(now = new Date()) {
+  const t = new Date(now.getTime() + 8 * 3600e3);          // 平移到台北時間後一律用 UTC getter
+  const day = (t.getUTCDay() + 6) % 7;                     // 週一 = 0
+  const mon = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate() - day));
+  const thu = new Date(mon.getTime() + 3 * 864e5);         // ISO 週的年份以週四為準
+  const year = thu.getUTCFullYear();
+  const week = 1 + Math.floor((thu - Date.UTC(year, 0, 1)) / 864e5 / 7);
+  const ymd = d => d.toISOString().slice(0, 10);
+  return { key: `${year}-W${String(week).padStart(2, '0')}`, year, week,
+           monday: ymd(mon), sunday: ymd(new Date(mon.getTime() + 6 * 864e5)) };
+}
+
+// FNV-1a：同一週、同一題永遠得到同一個排序值
+function quizHash(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  return h >>> 0;
+}
+
+function pickWeeklyQuiz(bank, wk) {
+  const pool = bank.filter(q => q.added < wk.monday);
+  if (!pool.length) return [];
+  const latest = Math.max(...pool.map(q => q.sid));
+  const rank = q => quizHash(wk.key + q.id);
+  const sorted = pool.slice().sort((a, b) => rank(a) - rank(b));
+  const picked = new Set(), count = {};
+  const take = (cands, n, capped = true) => {
+    for (const q of cands) {
+      if (n <= 0) break;
+      if (picked.has(q) || (capped && (count[q.kind] || 0) >= (QUIZ_KIND_CAP[q.kind] || 1))) continue;
+      picked.add(q); count[q.kind] = (count[q.kind] || 0) + 1; n--;
+    }
+  };
+  take(sorted.filter(q => q.sid === latest && q.kind === 'plot'), QUIZ_FROM_LATEST - 1);
+  take(sorted.filter(q => q.sid === latest), QUIZ_FROM_LATEST - picked.size);
+  take(sorted.filter(q => q.sid !== latest), QUIZ_LEN - picked.size);
+  take(sorted, QUIZ_LEN - picked.size, false);             // 題庫太小時放寬題型上限
+  return [...picked].sort((a, b) => rank(a) - rank(b));
+}
+
+// 計分（Kahoot 規則）：答對 500–1000 分，越快越高；連對第 2 題起每題 +100，上限 +500
+const quizTimeLimit = q => (q.q.length + q.options.join('').length > 70 ? 30 : 20);
+const quizPoints = (elapsed, limit) => Math.round(1000 * (1 - Math.min(elapsed / limit, 1) / 2));
+const quizStreakBonus = streak => Math.min(Math.max(streak - 1, 0) * 100, 500);
+
+const QUIZ_KEY = wkKey => `bg3:quiz:${wkKey}`;
+function quizSaved(wkKey) {
+  try { return JSON.parse(localStorage.getItem(QUIZ_KEY(wkKey)) || 'null'); } catch { return null; }
+}
+function quizSave(wkKey, rec) {
+  try { localStorage.setItem(QUIZ_KEY(wkKey), JSON.stringify(rec)); } catch { /* 無痕模式等：不存也能玩 */ }
+}
+
+function quizStopTimer() {
+  if (_quizTimer) { clearInterval(_quizTimer); _quizTimer = null; }
+}
+
+// 稱號門檻：全對且秒答約 13,500 分（含連對加成 3,500）
+function quizRank(score) {
+  if (score >= 11500) return '傳奇吟遊詩人';
+  if (score >= 9500) return '博學的法師';
+  if (score >= 7500) return '可靠的冒險者';
+  if (score >= 5000) return '常常斷片的戰士';
+  if (score >= 2500) return '剛進酒館的新手';
+  return '被心靈吞噬者吃掉腦子';
+}
+
+const quizRange = wk => `${+wk.monday.slice(5, 7)}/${+wk.monday.slice(8)}–${+wk.sunday.slice(5, 7)}/${+wk.sunday.slice(8)}`;
+
+function renderQuiz() {
+  quizStopTimer();
+  const inner = document.getElementById('quiz-inner');
+  if (!inner) return;
+  const wk = quizWeek();
+  const qs = pickWeeklyQuiz(quizBank, wk);
+  _quiz = null;
+  const head = `
+    <div class="sub-header">
+      <div class="sub-rule"><span class="rule-line"></span><span class="sub-title">柏德之門週測</span><span class="rule-line"></span></div>
+      <div class="qz-week">${wk.year} 第 ${wk.week} 週・${quizRange(wk)}</div>
+    </div>`;
+  if (!qs.length) {
+    inner.innerHTML = head + '<div class="empty-note">本週題目還沒準備好，下週一再來。</div>';
+    return;
+  }
+  const saved = quizSaved(wk.key);
+  const chapters = [...new Set(qs.map(q => q.sid))].sort((a, b) => b - a);
+  inner.innerHTML = head + `
+    <div class="qz-card qz-intro">
+      ${saved ? `
+        <div class="qz-intro-label">本週成績</div>
+        <div class="qz-big">${saved.score.toLocaleString()}<span>分</span></div>
+        <div class="qz-grid-line" aria-label="答對 ${saved.correct} 題">${saved.grid.map(c => `<i class="${c ? 'ok' : 'ng'}"></i>`).join('')}</div>
+        <div class="qz-sub">答對 ${saved.correct} / ${saved.grid.length} 題・${esc(quizRank(saved.score))}</div>
+        <div class="qz-actions">
+          <button class="qz-btn" ${act('shareQuizScore')} id="qz-share">${icon('link')} 分享成績</button>
+          <button class="qz-btn qz-btn-ghost" ${act('startQuiz', true)}>再玩一次（練習，不計分）</button>
+        </div>` : `
+        <div class="qz-intro-label">本週 ${qs.length} 題</div>
+        <ul class="qz-rules">
+          <li>每題四選一，限時 20 秒（題目長的 30 秒）</li>
+          <li>答對 500–1000 分，越快越高；連續答對另有加成</li>
+          <li>第一次作答才算成績，結束後可以分享到群組</li>
+        </ul>
+        <div class="qz-sub">題目出自 ${chapters.slice(0, 6).map(chapterOf).join('、')}${chapters.length > 6 ? ' 等' : ''}</div>
+        <div class="qz-actions"><button class="qz-btn" ${act('startQuiz', false)}>開始作答</button></div>`}
+      <div class="qz-foot">每週一 00:00 換一份新題目</div>
+    </div>`;
+}
+
+function startQuiz(practice) {
+  const wk = quizWeek();
+  _quiz = { wk, qs: pickWeeklyQuiz(quizBank, wk), i: 0, answers: [], score: 0, streak: 0,
+            practice: !!practice || !!quizSaved(wk.key) };
+  renderQuizQuestion();
+}
+
+function renderQuizQuestion() {
+  quizStopTimer();
+  const z = _quiz, q = z.qs[z.i];
+  const limit = quizTimeLimit(q);
+  const inner = document.getElementById('quiz-inner');
+  const isChar = q.options.every(o => CHARS_SET.has(o));
+  inner.innerHTML = `
+    <div class="qz-play">
+      <div class="qz-top">
+        <span class="qz-progress">${z.i + 1} / ${z.qs.length}</span>
+        <span class="qz-kind">${esc(QUIZ_KIND_LABEL[q.kind] || '')}</span>
+        <span class="qz-score">${z.score.toLocaleString()} 分${z.practice ? '・練習' : ''}</span>
+      </div>
+      <div class="qz-timer" role="progressbar" aria-label="剩餘時間"><div class="qz-timer-bar" id="qz-bar"></div><span id="qz-sec">${limit}</span></div>
+      <h2 class="qz-q">${esc(q.q)}</h2>
+      <div class="qz-opts${isChar ? ' qz-opts-char' : ''}">
+        ${q.options.map((o, n) => `
+          <button class="qz-opt qz-c${n}" data-n="${n}" ${act('quizAnswer', n)}>
+            <span class="qz-shape">${icon(QUIZ_SHAPES[n])}</span>
+            ${isChar ? `<span class="qz-av">${avImg(o, 40)}</span>` : ''}
+            <span class="qz-opt-text">${esc(o)}</span>
+            <kbd>${n + 1}</kbd>
+          </button>`).join('')}
+      </div>
+      <div class="qz-reveal" id="qz-reveal" aria-live="polite"></div>
+    </div>`;
+  document.getElementById('quiz-view').scrollTop = 0;
+  z.t0 = performance.now();
+  z.locked = false;
+  const bar = document.getElementById('qz-bar'), sec = document.getElementById('qz-sec');
+  _quizTimer = setInterval(() => {
+    const el = (performance.now() - z.t0) / 1000;
+    const left = Math.max(limit - el, 0);
+    bar.style.transform = `scaleX(${left / limit})`;
+    sec.textContent = Math.ceil(left);
+    bar.classList.toggle('low', left <= 5);
+    if (left <= 0) quizAnswer(-1);
+  }, 100);
+}
+
+function quizAnswer(n) {
+  const z = _quiz;
+  if (!z || z.locked) return;
+  z.locked = true;
+  quizStopTimer();
+  const q = z.qs[z.i];
+  const elapsed = (performance.now() - z.t0) / 1000;
+  const ok = n === q.answer;
+  let pts = 0, bonus = 0;
+  if (ok) {
+    z.streak++;
+    pts = quizPoints(elapsed, quizTimeLimit(q));
+    bonus = quizStreakBonus(z.streak);
+  } else {
+    z.streak = 0;
+  }
+  z.score += pts + bonus;
+  z.answers.push({ id: q.id, pick: n, ok, pts: pts + bonus });
+
+  document.querySelectorAll('.qz-opt').forEach(b => {
+    const k = +b.dataset.n;
+    b.disabled = true;
+    b.classList.add(k === q.answer ? 'is-right' : k === n ? 'is-wrong' : 'is-dim');
+  });
+  const last = z.i === z.qs.length - 1;
+  const msg = ok ? `答對！+${pts}${bonus ? `<small>連對 ${z.streak} 題 +${bonus}</small>` : ''}`
+                 : n < 0 ? '時間到' : '答錯了';
+  document.getElementById('qz-reveal').innerHTML = `
+    <div class="qz-verdict ${ok ? 'ok' : 'ng'}">${msg}</div>
+    ${q.source ? `<div class="qz-source"><span>${esc(chapterOf(q.sid))}</span>${esc(q.source)}</div>` : ''}
+    <button class="qz-btn" id="qz-next" ${act('quizNext')}>${last ? '看成績' : '下一題'}</button>`;
+  document.querySelector('.qz-score').textContent = `${z.score.toLocaleString()} 分${z.practice ? '・練習' : ''}`;
+  document.getElementById('qz-next').focus({ preventScroll: true });
+}
+
+function quizNext() {
+  const z = _quiz;
+  if (!z) return;
+  if (++z.i < z.qs.length) { renderQuizQuestion(); return; }
+  const rec = { score: z.score, correct: z.answers.filter(a => a.ok).length,
+                grid: z.answers.map(a => a.ok), at: Date.now() };
+  if (!z.practice) quizSave(z.wk.key, rec);
+  renderQuizResult(rec);
+}
+
+function renderQuizResult(rec) {
+  const z = _quiz;
+  const inner = document.getElementById('quiz-inner');
+  inner.innerHTML = `
+    <div class="sub-header">
+      <div class="sub-rule"><span class="rule-line"></span><span class="sub-title">柏德之門週測</span><span class="rule-line"></span></div>
+      <div class="qz-week">${z.wk.year} 第 ${z.wk.week} 週・${quizRange(z.wk)}</div>
+    </div>
+    <div class="qz-card qz-intro">
+      <div class="qz-intro-label">${z.practice ? '練習成績（不計入本週成績）' : '本週成績'}</div>
+      <div class="qz-big">${rec.score.toLocaleString()}<span>分</span></div>
+      <div class="qz-grid-line">${rec.grid.map(c => `<i class="${c ? 'ok' : 'ng'}"></i>`).join('')}</div>
+      <div class="qz-sub">答對 ${rec.correct} / ${rec.grid.length} 題・${esc(quizRank(rec.score))}</div>
+      <div class="qz-actions">
+        ${z.practice ? '' : `<button class="qz-btn" id="qz-share" ${act('shareQuizScore')}>${icon('link')} 分享成績</button>`}
+        <button class="qz-btn qz-btn-ghost" ${act('renderQuiz')}>回到週測首頁</button>
+      </div>
+    </div>
+    <div class="qz-review">
+      <div class="qz-review-title">逐題檢討</div>
+      ${z.qs.map((q, i) => {
+        const a = z.answers[i];
+        return `
+        <div class="qz-rv ${a.ok ? 'ok' : 'ng'}">
+          <div class="qz-rv-q"><span class="qz-rv-n">${i + 1}</span>${esc(q.q)}</div>
+          <div class="qz-rv-a">正解：<b>${esc(q.options[q.answer])}</b>${a.ok ? '' : `・你選：${a.pick < 0 ? '（時間到）' : esc(q.options[a.pick])}`}</div>
+          ${q.source ? `<div class="qz-rv-src">「${esc(q.source)}」</div>` : ''}
+          <button class="story-journal-link" ${act('loadSession', q.sid)}>${icon('journal')} ${esc(chapterOf(q.sid))}</button>
+        </div>`;
+      }).join('')}
+    </div>`;
+  document.getElementById('quiz-view').scrollTop = 0;
+}
+
+// 成績分享（Wordle 式文字）：手機叫出系統分享選單，桌機複製到剪貼簿
+function quizShareText(wk, rec) {
+  const url = `${location.origin}${location.pathname}#quiz`;
+  return `柏德之門週測 ${wk.year} 第 ${wk.week} 週\n${rec.grid.map(c => (c ? '🟩' : '🟥')).join('')}\n` +
+         `${rec.score.toLocaleString()} 分（答對 ${rec.correct}/${rec.grid.length}）${quizRank(rec.score)}\n${url}`;
+}
+
+function shareQuizScore() {
+  const wk = quizWeek();
+  const rec = quizSaved(wk.key) || (_quiz && !_quiz.practice && {
+    score: _quiz.score, correct: _quiz.answers.filter(a => a.ok).length, grid: _quiz.answers.map(a => a.ok) });
+  if (!rec) return;
+  const text = quizShareText(wk, rec);
+  const btn = document.getElementById('qz-share');
+  const done = () => {
+    if (!btn) return;
+    btn.textContent = '✓ 已複製，貼到群組吧';
+    setTimeout(() => { btn.innerHTML = `${icon('link')} 分享成績`; }, 1800);
+  };
+  if (navigator.share && matchMedia('(pointer: coarse)').matches) {
+    navigator.share({ text }).catch(() => {});
+  } else if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).then(done).catch(() => prompt('複製以下成績：', text));
+  } else {
+    prompt('複製以下成績：', text);
+  }
+}
+
+// 作答中：數字鍵 1–4 選答案，Enter 下一題
+function initQuizKeys() {
+  document.addEventListener('keydown', e => {
+    if (currentView !== 'quiz' || !_quiz || isModalOpen()) return;
+    if (!_quiz.locked && /^[1-4]$/.test(e.key) && +e.key <= _quiz.qs[_quiz.i].options.length) {
+      e.preventDefault(); quizAnswer(+e.key - 1);
+    }
+  });
 }
