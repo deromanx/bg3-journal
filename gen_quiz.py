@@ -236,6 +236,8 @@ def validate_plot(items, session):
             why = '出處不在原文'
         elif has_real_name(q, src, *map(str, opts)):
             why = '含本名'
+        elif '她' in q + ''.join(map(str, opts)):
+            why = '用了性別代稱「她」（prompt 已禁止，Gemini 仍會用）'
         elif BANNED_Q.search(q):
             why = '題型考記憶（誰說的／哪一章／數字）'
         elif (o := distractor_from_text(opts, ans, src, session)):
