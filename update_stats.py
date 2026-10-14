@@ -114,7 +114,7 @@ def gemini_analyze(text):
     json_match = re.search(r'\{[\s\S]*\}', output)
     if json_match:
         try:
-            return json.loads(json_match.group())
+            return json.loads(json_match.group(), strict=False)
         except json.JSONDecodeError as e:
             print(f"  ⚠ JSON 解析失敗：{e}")
             print(f"  Gemini 原始回應：{output[:400]}")
@@ -262,7 +262,7 @@ def gemini_story(session, prev_chapters):
         json_match = re.search(r'\{[\s\S]*\}', output)
         if json_match:
             try:
-                return json.loads(json_match.group())
+                return json.loads(json_match.group(), strict=False)
             except json.JSONDecodeError:
                 pass
         print(f"  ⚠ 故事 JSON 解析失敗（第 {attempt}/2 次），原始回應：{output[:200]}")
@@ -425,6 +425,11 @@ def main():
                 ch for ch in story.get("chapters", [])
                 if ch["session_id"] != session["id"]
             ]
+        if any(ch["session_id"] == session["id"] for ch in story.get("chapters", [])):
+            # 已有章節（例如先前由 gen_story.py 補過）：update_story 會直接跳過，
+            # 章數不變不代表失敗（S35 曾因此誤報「故事生成失敗」）
+            print(f"✓ 第 {session['id']} 集故事章節已存在，略過")
+            continue
         print(f"✍ 生成第 {session['id']} 集故事章節...")
         before = len(story.get("chapters", []))
         story  = update_story(story, session)

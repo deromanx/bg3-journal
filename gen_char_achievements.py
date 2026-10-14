@@ -16,7 +16,7 @@ def extract_json_arr(text):
     m = re.search(r'\[[\s\S]*\]', text)
     if m:
         try:
-            return json.loads(m.group())
+            return json.loads(m.group(), strict=False)
         except json.JSONDecodeError:
             pass
     return None

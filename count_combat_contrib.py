@@ -74,7 +74,7 @@ def gemini_count_contrib(text, sid):
     m = re.search(r'\{[\s\S]*\}', output)
     if m:
         try:
-            return json.loads(m.group())
+            return json.loads(m.group(), strict=False)
         except json.JSONDecodeError as e:
             print(f"  ⚠ JSON 解析失敗：{e}\n  回應：{output[:300]}")
     else:

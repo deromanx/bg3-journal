@@ -70,7 +70,7 @@ def gemini_extract_praise(sid, text):
     arr_match = re.search(r'\[[\s\S]*\]', output)
     if arr_match:
         try:
-            return json.loads(arr_match.group())
+            return json.loads(arr_match.group(), strict=False)
         except json.JSONDecodeError as e:
             print(f"  ⚠ JSON 解析失敗：{e}")
             print(f"  原始回應：{output[:400]}")

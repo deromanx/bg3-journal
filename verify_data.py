@@ -214,6 +214,11 @@ def check_session_sync():
     if str(latest) not in aw and latest not in aw:
         issues.append(f"獎項缺最新第 {latest} 集（awards.json 無此 key），gen_awards.py 可能漏跑")
 
+    # 核心萃取：update_stats.py 單集 Gemini 失敗只印「分析失敗，跳過」，
+    # 該集陣亡/決鬥/里程碑全缺而其他檢查照樣通過（S35 實例）
+    if not (DATA / "sessions-raw" / f"{latest}.json").exists():
+        issues.append(f"第 {latest} 集未萃取（sessions-raw/{latest}.json 不存在），重跑 update_stats.py")
+
     # 故事章節：gen_story.py 單集 JSON 解析失敗只印警告不中斷（S35 實例）
     story = load("story.json", {"chapters": []})
     if latest not in {c.get("session_id") for c in story.get("chapters", [])}:
@@ -265,18 +270,14 @@ def check_deploy_artifacts():
                 issues.append(f"data/story/{sid}.json 與 story.json 內容不同步，重跑 gen_story_split.py")
                 break
 
-    # D2. app.js / style.css 相對 HEAD 有變更時，index.html（含 ?v=）也應已變更
+    # D2. 前端資源（app.js / style.css / data JSON）相對 HEAD 有變更時，
+    #     index.html 對應版本號須已遞增（逐一比對版本號，不只看 index.html 有沒有改）
     try:
-        changed = set(subprocess.run(
-            ["git", "diff", "--name-only", "HEAD"],
-            capture_output=True, text=True, cwd=BASE, timeout=10,
-        ).stdout.split())
-        assets = {"app.js", "style.css"} & changed
-        if assets and "index.html" not in changed:
-            issues.append(f"{'/'.join(sorted(assets))} 已變更但 index.html ?v= 未遞增，"
-                          f"部署後瀏覽器會吃到舊快取")
+        from bump_versions import stale_tokens
+        for name, why in stale_tokens():
+            issues.append(f"{name} {why}，部署後瀏覽器會吃到舊快取（跑 bump_versions.py）")
     except Exception:
-        pass  # 非 git 環境（如 CI 淺複製異常）時跳過此檢查
+        pass  # 非 git 環境時跳過此檢查
     return issues
 
 

@@ -44,6 +44,10 @@ const _contentCache = {};
 const _contentPromises = {};   // 同集內容的 in-flight fetch，避免重複請求
 
 // ── 資料載入（首屏只抓必要檔，其餘分頁切換時延遲載入）────────
+// GitHub Pages 對 JSON 固定快取 10 分鐘；index.html 的 data-version 隨資料更新遞增
+// （bump_versions.py），附在每個資料請求上，避免新版 app.js 讀到舊快取資料
+const DATA_V = document.querySelector('meta[name="data-version"]')?.content || '0';
+const dataUrl = path => `${path}?d=${DATA_V}`;
 const DATA_SOURCES = {
   awards:      { url: 'data/awards.json',          fallback: {},
                  assign: d => { awards = d; } },
@@ -74,7 +78,7 @@ function loadData(...keys) {
   return Promise.all(keys.map(k => {
     if (!_dataPromises[k]) {
       const s = DATA_SOURCES[k];
-      _dataPromises[k] = fetch(s.url)
+      _dataPromises[k] = fetch(dataUrl(s.url))
         .then(r => r.json())
         .then(d => { s.assign(d); return d; })
         .catch(() => {
@@ -91,7 +95,7 @@ function loadData(...keys) {
 
 // ── 首屏載入：側欄 + 本集戰報所需 ──────────────────────────
 Promise.all([
-  fetch('data/sessions-meta.json').then(r => r.json()),
+  fetch(dataUrl('data/sessions-meta.json')).then(r => r.json()),
   loadData('awards'),
 ])
 .then(([sessionsData]) => {
@@ -262,7 +266,7 @@ function renderSidebar() {
   list.innerHTML = reversedSessions().map(s => `
     <li class="session-item${s.placeholder ? ' placeholder' : ''}${readSet.has(s.id) ? ' read' : ''}"
         data-id="${s.id}" tabindex="0" role="button"
-        onclick="loadSession(${s.id})"
+        ${act('loadSession', s.id)}
         title="${esc(s.title)}">
       <div class="item-chapter">${esc(s.chapter)}</div>
       <div class="item-date">${s.date?.replace(/-/g, '.') ?? ''}</div>
@@ -318,7 +322,7 @@ function loadSession(id) {
   } else {
     body.innerHTML = '<p style="text-align:center;color:var(--ink-light);opacity:.4;margin-top:80px;font-style:italic">✦ 載入中… ✦</p>';
     // 同集去重：多次點擊只發一次請求
-    _contentPromises[id] ||= fetch(`data/sessions/${id}.json`)
+    _contentPromises[id] ||= fetch(dataUrl(`data/sessions/${id}.json`))
       .then(r => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
@@ -355,11 +359,7 @@ function loadSession(id) {
   const prog = document.getElementById('footer-progress');
   if (prog) prog.innerHTML = `${idx + 1}<span class="fp-sep"> / </span>${sessions.length}`;
 
-  if (window.innerWidth <= 720) {
-    document.getElementById('sidebar').classList.remove('open');
-    const ov = document.getElementById('sidebar-overlay');
-    if (ov) { ov.style.opacity = '0'; ov.style.display = 'none'; }
-  }
+  closeSidebarIfMobile();
 }
 
 // ── 本集戰報 ──────────────────────────────────────────────
@@ -451,6 +451,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initKeyboard();
   initBackToTop();
   initLightbox();
+  initModalFocusTrap();
+  initActions();
   window.addEventListener('hashchange', () => {
     if (_ignoreHash) { _ignoreHash = false; return; }
     restoreFromHash();
@@ -480,6 +482,39 @@ function scrollToTop() {
 // 方向鍵與 j/k 不應操作背後的頁面
 function isModalOpen() {
   return !!document.querySelector('.lb-open, .rm-open, .pm-open, .dro-open, .rv-open');
+}
+
+// ── 彈窗可及性：對話框語意 + 焦點管理 ─────────────────────
+// 開啟：標 role=dialog / aria-modal、記下觸發元素、焦點移入彈窗；
+// 開著時 Tab 只在彈窗內循環；關閉：焦點還給觸發元素（鍵盤使用者不會迷路）
+const _FOCUSABLE = 'button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+
+function _modalOpened(overlay, label) {
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-modal', 'true');
+  overlay.setAttribute('aria-label', label);
+  if (!overlay.contains(document.activeElement)) overlay._returnFocus = document.activeElement;
+  overlay.querySelector(_FOCUSABLE)?.focus({ preventScroll: true });
+}
+
+function _modalClosed(overlay) {
+  const ret = overlay._returnFocus;
+  overlay._returnFocus = null;
+  if (ret && document.contains(ret)) ret.focus({ preventScroll: true });
+}
+
+function initModalFocusTrap() {
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Tab') return;
+    const overlay = document.querySelector('.lb-open, .rm-open, .pm-open, .dro-open, .rv-open');
+    if (!overlay) return;
+    const items = [...overlay.querySelectorAll(_FOCUSABLE)].filter(el => el.offsetParent !== null);
+    if (!items.length) { e.preventDefault(); return; }
+    const first = items[0], last = items[items.length - 1];
+    if (!overlay.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+    else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
 }
 
 function initKeyboard() {
@@ -577,6 +612,16 @@ function toggleSidebar() {
   }
 }
 
+// 手機版（與 style.css 的 720px 斷點一致）點選章節後收起側欄。
+// 用「關閉」而非 toggle：側欄已關時呼叫也不會反過來把它打開
+const MOBILE_BREAKPOINT = 720;
+function closeSidebarIfMobile() {
+  if (window.innerWidth > MOBILE_BREAKPOINT) return;
+  document.getElementById('sidebar').classList.remove('open');
+  const ov = document.getElementById('sidebar-overlay');
+  if (ov) { ov.style.opacity = '0'; ov.style.display = 'none'; }
+}
+
 // ══════════════════════════════════════════════════════════
 // 統計儀表板
 // ══════════════════════════════════════════════════════════
@@ -651,7 +696,7 @@ function renderDeathTimeline(chars) {
                   causes.map(x => `<span class="dtl-cap-cause">☠ ${esc(x)}</span>`).join('');
       const multi = causes.length > 1;
       return `<button class="swim-dot${multi ? ' swim-dot-multi' : ''}" style="left:${xOf(s).toFixed(2)}%"
-                 data-tip="${esc(tip)}" data-cap="${esc(cap)}" onclick="showDeathCause(this)"
+                 data-tip="${esc(tip)}" data-cap="${esc(cap)}" ${act('showDeathCause')}
                  aria-label="第${s}集陣亡">${multi ? `<span class="swim-dn">${causes.length}</span>` : ''}</button>`;
     }).join('');
     return `<div class="swim-lane">
@@ -811,7 +856,7 @@ function renderStats() {
     const cells = chars.map(colC => {
       if (rowC.char === colC.char) return `<td class="mm-self"></td>`;
       const rec = mmMap[rowC.char]?.[colC.char];
-      const rvOnclick = `onclick="openRivalryPoster('${esc(rowC.char)}','${esc(colC.char)}')" style="cursor:pointer"`;
+      const rvOnclick = `${act('openRivalryPoster', rowC.char, colC.char)} style="cursor:pointer"`;
       if (!rec) return `<td class="mm-empty" data-tip="${esc(rowC.char)} vs ${esc(colC.char)}&#10;無正式對戰記錄&#10;點擊查看宿敵海報" ${rvOnclick}>—</td>`;
       const cls = rec.w > rec.l ? 'mm-win' : rec.l > rec.w ? 'mm-lose' : 'mm-even';
       const decisive = rec.w + rec.l;
@@ -885,11 +930,11 @@ function renderStats() {
     </div>
 
     <nav class="stats-jumpnav">
-      <button class="sjn-btn" onclick="scrollToStat('stat-death')">☠ 死亡</button>
-      <button class="sjn-btn" onclick="scrollToStat('stat-mvp')">🏆 MVP</button>
-      ${duelRows ? `<button class="sjn-btn" onclick="scrollToStat('stat-duel')">⚔ 決鬥</button>` : ''}
-      <button class="sjn-btn" onclick="scrollToStat('stat-roast')">💬 靠北</button>
-      <button class="sjn-btn" onclick="scrollToStat('stat-praise')">🌟 稱讚</button>
+      <button class="sjn-btn" ${act('scrollToStat', 'stat-death')}>☠ 死亡</button>
+      <button class="sjn-btn" ${act('scrollToStat', 'stat-mvp')}>🏆 MVP</button>
+      ${duelRows ? `<button class="sjn-btn" ${act('scrollToStat', 'stat-duel')}>⚔ 決鬥</button>` : ''}
+      <button class="sjn-btn" ${act('scrollToStat', 'stat-roast')}>💬 靠北</button>
+      <button class="sjn-btn" ${act('scrollToStat', 'stat-praise')}>🌟 稱讚</button>
     </nav>
 
     <div class="hero-stats-row">
@@ -911,7 +956,7 @@ function renderStats() {
       <div class="stats-section">
         <div class="stats-section-title-row">
           <div class="stats-section-title">各角色死亡次數</div>
-          <button class="dro-trigger" onclick="openDeathRoulette()" title="隨機抽一句死法">🎰 死法輪盤</button>
+          <button class="dro-trigger" ${act('openDeathRoulette')} title="隨機抽一句死法">🎰 死法輪盤</button>
         </div>
         <div class="death-grid">${deathCards}</div>
       </div>
@@ -1079,7 +1124,7 @@ function renderFriendlyFire() {
   const victimRows = victimSorted.map(c => miniBar(c, victimCount[c], maxVictim, false)).join('');
 
   const pills = ['全部', ...CHAR_ORDER].map(c =>
-    `<button class="ff-pill${c === '全部' ? ' ff-pill-active' : ''}" data-ff-filter="${esc(c)}" onclick="ffSetFilter('${esc(c)}')">${esc(c)}</button>`
+    `<button class="ff-pill${c === '全部' ? ' ff-pill-active' : ''}" data-ff-filter="${esc(c)}" ${act('ffSetFilter', c)}>${esc(c)}</button>`
   ).join('');
 
   const cards = incidents.map((inc, idx) => {
@@ -1128,12 +1173,12 @@ function renderFriendlyFire() {
       <div class="ff-toolbar">
         <div class="ff-pills">${pills}</div>
         <div class="ff-sort">
-          <button class="ff-sort-btn ff-sort-active" data-ff-sort="desc" onclick="ffSetSort('desc')">最新</button>
-          <button class="ff-sort-btn" data-ff-sort="asc"  onclick="ffSetSort('asc')">最舊</button>
+          <button class="ff-sort-btn ff-sort-active" data-ff-sort="desc" ${act('ffSetSort', 'desc')}>最新</button>
+          <button class="ff-sort-btn" data-ff-sort="asc"  ${act('ffSetSort', 'asc')}>最舊</button>
         </div>
       </div>
       <div class="ff-list" id="ff-list">${cards}</div>
-      <button class="ff-expand-btn" id="ff-expand-btn" onclick="ffExpand()" style="display:none">查看全部 <span id="ff-hidden-count"></span> 筆</button>
+      <button class="ff-expand-btn" id="ff-expand-btn" ${act('ffExpand')} style="display:none">查看全部 <span id="ff-hidden-count"></span> 筆</button>
     </div>`;
 }
 
@@ -1312,10 +1357,10 @@ function applyRoastGrid() {
   if (!pager) return;
   if (totalPages <= 1) { pager.innerHTML = ''; return; }
   pager.innerHTML = `
-    <button class="rq-pg-btn" onclick="setRoastPage(${_roastPage - 1})"
+    <button class="rq-pg-btn" ${act('setRoastPage', _roastPage - 1)}
             ${_roastPage <= 1 ? 'disabled' : ''}>← 上頁</button>
     <span class="rq-pg-info">第 ${_roastPage} / ${totalPages} 頁</span>
-    <button class="rq-pg-btn" onclick="setRoastPage(${_roastPage + 1})"
+    <button class="rq-pg-btn" ${act('setRoastPage', _roastPage + 1)}
             ${_roastPage >= totalPages ? 'disabled' : ''}>下頁 →</button>`;
 }
 
@@ -1417,13 +1462,13 @@ function _quoteModalInit(kind) {
   el.className = `${pfx}-overlay`;
   el.innerHTML = `
     <div class="${pfx}-dialog" id="${pfx}-dialog">
-      <button class="${pfx}-close" onclick="closeQuoteModal('${kind}')" title="關閉 (Esc)">✕</button>
+      <button class="${pfx}-close" ${act('closeQuoteModal', kind)} title="關閉 (Esc)" aria-label="關閉">✕</button>
       <div class="${pfx}-header" id="${pfx}-header"></div>
       <div class="${pfx}-quote" id="${pfx}-quote"></div>
       <div class="${pfx}-divider"></div>
       <div class="${pfx}-desc" id="${pfx}-desc"></div>
       <div class="qm-actions">
-        <button class="qm-copy" onclick="copyQuoteImage('${kind}')" title="複製成圖片，方便分享">📋 複製圖片</button>
+        <button class="qm-copy" ${act('copyQuoteImage', kind)} title="複製成圖片，方便分享">📋 複製圖片</button>
       </div>
     </div>`;
   el.addEventListener('click', e => { if (e.target === el) closeQuoteModal(kind); });
@@ -1466,6 +1511,7 @@ function openQuoteModal(kind, q) {
 
   overlay.classList.add(`${pfx}-open`);
   document.addEventListener('keydown', _qmEscHandlers[kind]);
+  _modalOpened(overlay, kind === 'roast' ? '靠北語錄' : '稱讚語錄');
 }
 
 function closeQuoteModal(kind) {
@@ -1473,6 +1519,7 @@ function closeQuoteModal(kind) {
   const overlay = document.getElementById(`${pfx}-overlay`);
   if (!overlay) return;
   document.removeEventListener('keydown', _qmEscHandlers[kind]);
+  _modalClosed(overlay);
   overlay.classList.add(`${pfx}-closing`);
   overlay.addEventListener('transitionend', (e) => {
     if (e.target !== overlay) return;
@@ -1574,7 +1621,7 @@ function _droInit() {
       <span class="dro-corner dro-corner-tr">✦</span>
       <span class="dro-corner dro-corner-bl">✦</span>
       <span class="dro-corner dro-corner-br">✦</span>
-      <button class="dro-close" onclick="closeDeathRoulette()" title="關閉 (Esc)">✕</button>
+      <button class="dro-close" ${act('closeDeathRoulette')} title="關閉 (Esc)" aria-label="關閉">✕</button>
       <div class="dro-title-row">
         <span class="dro-title-line"></span>
         <div class="dro-title">🎰 死 法 輪 盤</div>
@@ -1600,8 +1647,8 @@ function _droInit() {
         <div class="dro-result-hint">選好對象後轉動輪盤</div>
       </div>
       <div class="dro-actions">
-        <button class="dro-btn" id="dro-spin-btn" onclick="spinDeathRoulette()">🎡 轉動輪盤</button>
-        <button class="dro-btn dro-btn-ghost" onclick="closeDeathRoulette()">關閉</button>
+        <button class="dro-btn" id="dro-spin-btn" ${act('spinDeathRoulette')}>🎡 轉動輪盤</button>
+        <button class="dro-btn dro-btn-ghost" ${act('closeDeathRoulette')}>關閉</button>
       </div>
     </div>`;
   el.addEventListener('click', e => { if (e.target === el) closeDeathRoulette(); });
@@ -1612,14 +1659,17 @@ function openDeathRoulette() {
   _droInit();
   document.getElementById('dro-result').innerHTML = '<div class="dro-result-hint">轉動輪盤，看看誰又死了</div>';
   _droBuildWheel(_droPool());
-  document.getElementById('dro-overlay').classList.add('dro-open');
+  const overlay = document.getElementById('dro-overlay');
+  overlay.classList.add('dro-open');
   document.addEventListener('keydown', _droEscHandler);
+  _modalOpened(overlay, '死法輪盤');
 }
 
 function closeDeathRoulette() {
   const overlay = document.getElementById('dro-overlay');
   if (!overlay) return;
   document.removeEventListener('keydown', _droEscHandler);
+  _modalClosed(overlay);
   overlay.classList.add('dro-closing');
   overlay.addEventListener('transitionend', e => {
     if (e.target !== overlay) return;
@@ -1654,7 +1704,7 @@ function spinDeathRoulette() {
     const color = DRO_CHAR_COLORS[r.char] || '#8a7d63';
     const sRef = r.sid ? sessions.find(s => s.id === r.sid) : null;
     const epLine = sRef
-      ? `<button class="dro-result-ep" onclick="droJumpToSession(${r.sid})" title="前往該集日誌">
+      ? `<button class="dro-result-ep" ${act('droJumpToSession', r.sid)} title="前往該集日誌">
            📖 ${esc(sRef.chapter)}・${esc(sRef.title)}${sRef.dateDisplay ? `　${esc(sRef.dateDisplay)}` : ''}
          </button>`
       : (r.sid ? `<div class="dro-result-ep-plain">📖 第 ${r.sid} 集</div>` : '');
@@ -1743,10 +1793,10 @@ function _rvInit() {
   el.className = 'rv-overlay';
   el.innerHTML = `
     <div class="rv-dialog">
-      <button class="rv-close" onclick="closeRivalryPoster()" title="關閉 (Esc)">✕</button>
+      <button class="rv-close" ${act('closeRivalryPoster')} title="關閉 (Esc)" aria-label="關閉">✕</button>
       <div class="rv-poster" id="rv-poster"></div>
       <div class="qm-actions">
-        <button class="qm-copy" onclick="copyRivalryImage()" title="複製成圖片，方便分享">📋 複製圖片</button>
+        <button class="qm-copy" ${act('copyRivalryImage')} title="複製成圖片，方便分享">📋 複製圖片</button>
       </div>
     </div>`;
   el.addEventListener('click', e => { if (e.target === el) closeRivalryPoster(); });
@@ -1794,14 +1844,17 @@ function openRivalryPoster(charA, charB) {
     ${rec.d > 0 ? `<div class="rv-draw">另有 ${rec.d} 場平手</div>` : ''}
     <div class="rv-hl-list">${hlHtml}</div>`;
 
-  document.getElementById('rv-overlay').classList.add('rv-open');
+  const overlay = document.getElementById('rv-overlay');
+  overlay.classList.add('rv-open');
   document.addEventListener('keydown', _rvEscHandler);
+  _modalOpened(overlay, `宿敵對戰：${charA} VS ${charB}`);
 }
 
 function closeRivalryPoster() {
   const overlay = document.getElementById('rv-overlay');
   if (!overlay) return;
   document.removeEventListener('keydown', _rvEscHandler);
+  _modalClosed(overlay);
   overlay.classList.add('rv-closing');
   overlay.addEventListener('transitionend', e => {
     if (e.target !== overlay) return;
@@ -1965,12 +2018,14 @@ function openLightbox(src, alt) {
   img.alt = alt || '';
   overlay.classList.add('lb-open');
   document.addEventListener('keydown', _lbEsc);
+  _modalOpened(overlay, alt ? `插圖：${alt}` : '插圖');
 }
 
 function closeLightbox() {
   const overlay = document.getElementById('lb-overlay');
   if (!overlay) return;
   document.removeEventListener('keydown', _lbEsc);
+  _modalClosed(overlay);
   // 直接移除 lb-open，靠 .lb-overlay 既有的 opacity transition 淡出
   overlay.classList.remove('lb-open');
 }
@@ -1991,13 +2046,12 @@ function renderQuoteCard(q, kind) {
   const sRef  = sessions.find(s => s.id === q.session);
   const cardTip = sRef ? `第 ${q.session} 集《${sRef.title}》` : `S${q.session}`;
   const idx = isPraise ? q._pidx : q._idx;
-  const accessor = isPraise ? '_praiseAll' : '_roastAll';
   const quoteHtml = q.quote
     ? `<div class="rq-quote">${isPraise ? esc(q.quote) : `「${esc(q.quote)}」`}</div>`
     : '';
   return `
     <div class="roast-quote-card${isPraise ? ' praise-quote-card' : ''}" data-tip="${esc(cardTip)}"
-         onclick="openQuoteModal('${kind}', ${accessor}()[${idx}])">
+         ${act('openQuoteAt', kind, idx)}>
       <div class="rq-actors">
         <div class="rq-av-group">${froms.map(avatar).join('')}</div>
         <span class="rq-arrow">${arrow}</span>
@@ -2016,7 +2070,7 @@ function renderRoastQuotes() {
 
   const filterBtns = chars.map(c => `
     <button class="rq-filter-btn" data-char="${esc(c.char)}"
-            onclick="filterRoastQuotes('${esc(c.char)}')"
+            ${act('filterRoastQuotes', c.char)}
             data-tip="${esc(c.char)}">
       <div class="rq-fav av-${esc(c.char)}">
         ${avImg(c.char)}
@@ -2032,7 +2086,7 @@ function renderRoastQuotes() {
     <div class="rq-pager" id="rq-pager">
       <button class="rq-pg-btn" disabled>← 上頁</button>
       <span class="rq-pg-info">第 1 / ${totalPages} 頁</span>
-      <button class="rq-pg-btn" onclick="setRoastPage(2)">下頁 →</button>
+      <button class="rq-pg-btn" ${act('setRoastPage', 2)}>下頁 →</button>
     </div>` : `<div id="rq-pager"></div>`;
 
   return `
@@ -2041,14 +2095,14 @@ function renderRoastQuotes() {
       <div class="rq-filter-row">
         <span class="rq-filter-label">篩選角色：</span>
         ${filterBtns}
-        <button id="rq-clear-btn" class="rq-clear-btn hidden" onclick="clearRoastFilter()">✕ 清空</button>
+        <button id="rq-clear-btn" class="rq-clear-btn hidden" ${act('clearRoastFilter')}>✕ 清空</button>
         <span class="rq-total">共 <strong id="rq-count">${quotes.length}</strong> 條</span>
       </div>
       <div class="rq-sort-row">
         <span class="rq-sort-label">排序：</span>
-        <button class="rq-sort-btn active" data-sort="desc" onclick="setRoastSort('desc')">最新</button>
-        <button class="rq-sort-btn" data-sort="asc" onclick="setRoastSort('asc')">最舊</button>
-        <button class="rq-sort-btn" data-sort="hot" onclick="setRoastSort('hot')">熱門</button>
+        <button class="rq-sort-btn active" data-sort="desc" ${act('setRoastSort', 'desc')}>最新</button>
+        <button class="rq-sort-btn" data-sort="asc" ${act('setRoastSort', 'asc')}>最舊</button>
+        <button class="rq-sort-btn" data-sort="hot" ${act('setRoastSort', 'hot')}>熱門</button>
       </div>
       <div class="roast-quotes-grid" id="rq-grid">${firstPage}</div>
       ${initPager}
@@ -2136,7 +2190,7 @@ function renderGrowthGrid(chars) {
   ).join('');
 
   const tabs = METRICS.map((m, i) =>
-    `<button class="gc-tab${i === 0 ? ' active' : ''}" data-metric="${m.key}" data-palette="${m.palette}" onclick="switchGrowthTab('${m.key}')">${m.label}</button>`
+    `<button class="gc-tab${i === 0 ? ' active' : ''}" data-metric="${m.key}" data-palette="${m.palette}" ${act('switchGrowthTab', m.key)}>${m.label}</button>`
   ).join('');
 
   return `
@@ -2211,7 +2265,7 @@ function renderRoastArrowGraph(charNames, roastMap, maxCell) {
       arrows.push(`<g class="rg-arrow-group rg-clickable"
         data-pair="${esc(pair)}"
         data-tip="${esc(from.name)} → ${esc(to.name)}：${v} 次（點擊篩選）"
-        onclick="filterRoastByPair('${esc(from.name)}','${esc(to.name)}')">
+        ${act('filterRoastByPair', from.name, to.name)}>
         <path class="rg-arrow"
           d="${d}"
           stroke="#c9a84c" stroke-width="${sw}"
@@ -2398,10 +2452,10 @@ function applyPraiseGrid() {
   if (!pager) return;
   if (totalPages <= 1) { pager.innerHTML = ''; return; }
   pager.innerHTML = `
-    <button class="rq-pg-btn" onclick="setPraisePage(${_praisePage - 1})"
+    <button class="rq-pg-btn" ${act('setPraisePage', _praisePage - 1)}
             ${_praisePage <= 1 ? 'disabled' : ''}>← 上頁</button>
     <span class="rq-pg-info">第 ${_praisePage} / ${totalPages} 頁</span>
-    <button class="rq-pg-btn" onclick="setPraisePage(${_praisePage + 1})"
+    <button class="rq-pg-btn" ${act('setPraisePage', _praisePage + 1)}
             ${_praisePage >= totalPages ? 'disabled' : ''}>下頁 →</button>`;
 }
 
@@ -2654,7 +2708,7 @@ function renderPraiseQuotes() {
 
   const filterBtns = chars.map(c => `
     <button class="pq-filter-btn rq-filter-btn" data-char="${esc(c.char)}"
-            onclick="filterPraiseQuotes('${esc(c.char)}')"
+            ${act('filterPraiseQuotes', c.char)}
             data-tip="${esc(c.char)}">
       <div class="rq-fav av-${esc(c.char)}">
         ${avImg(c.char)}
@@ -2670,7 +2724,7 @@ function renderPraiseQuotes() {
     <div class="rq-pager" id="pq-pager">
       <button class="rq-pg-btn" disabled>← 上頁</button>
       <span class="rq-pg-info">第 1 / ${totalPages} 頁</span>
-      <button class="rq-pg-btn" onclick="setPraisePage(2)">下頁 →</button>
+      <button class="rq-pg-btn" ${act('setPraisePage', 2)}>下頁 →</button>
     </div>` : `<div id="pq-pager"></div>`;
 
   return `
@@ -2679,14 +2733,14 @@ function renderPraiseQuotes() {
       <div class="rq-filter-row">
         <span class="rq-filter-label">篩選角色：</span>
         ${filterBtns}
-        <button id="pq-clear-btn" class="rq-clear-btn hidden" onclick="clearPraiseFilter()">✕ 清空</button>
+        <button id="pq-clear-btn" class="rq-clear-btn hidden" ${act('clearPraiseFilter')}>✕ 清空</button>
         <span class="rq-total">共 <strong id="pq-count">${quotes.length}</strong> 條</span>
       </div>
       <div class="rq-sort-row">
         <span class="rq-sort-label">排序：</span>
-        <button class="pq-sort-btn rq-sort-btn active" data-sort="desc" onclick="setPraiseSort('desc')">最新</button>
-        <button class="pq-sort-btn rq-sort-btn" data-sort="asc" onclick="setPraiseSort('asc')">最舊</button>
-        <button class="pq-sort-btn rq-sort-btn" data-sort="hot" onclick="setPraiseSort('hot')">熱門</button>
+        <button class="pq-sort-btn rq-sort-btn active" data-sort="desc" ${act('setPraiseSort', 'desc')}>最新</button>
+        <button class="pq-sort-btn rq-sort-btn" data-sort="asc" ${act('setPraiseSort', 'asc')}>最舊</button>
+        <button class="pq-sort-btn rq-sort-btn" data-sort="hot" ${act('setPraiseSort', 'hot')}>熱門</button>
       </div>
       <div class="roast-quotes-grid" id="pq-grid">${firstPage}</div>
       ${initPager}
@@ -2839,7 +2893,7 @@ function renderMilestones() {
               <div class="ms-title">${esc(m.title || '')}</div>
               ${m.desc ? `<div class="ms-desc">${esc(m.desc)}</div>` : ''}
               ${m.session_id
-                ? `<button class="ms-link" onclick="loadSession(${m.session_id})">前往本集 →</button>`
+                ? `<button class="ms-link" ${act('loadSession', m.session_id)}>前往本集 →</button>`
                 : ''}
             </div>
           </div>`;
@@ -3067,7 +3121,7 @@ function renderCharacters(charName) {
 
   const portraitBtns = chars.map(c => `
     <button class="cp-portrait-btn${c.char === charName ? ' active' : ''}"
-            onclick="renderCharacters('${esc(c.char)}')"
+            ${act('renderCharacters', c.char)}
             data-tip="${esc(c.player)} · ${esc(c.class)}">
       <div class="cp-pav av-${esc(c.char)}">
         ${avImg(c.char)}
@@ -3091,7 +3145,7 @@ function renderCharacters(charName) {
       <div class="cp-qsession">S${q.session}</div>
     </div>`).join('');
   const quotesToggle = quotesExtra > 0 ? `
-      <button class="cp-quotes-toggle" onclick="toggleCharQuotes(this)"
+      <button class="cp-quotes-toggle" ${act('toggleCharQuotes')}
               data-more="展開看全部（共 ${allQuotes.length} 句）" data-less="收合">展開看全部（共 ${allQuotes.length} 句）</button>` : '';
 
   const achieveHtml = (c.achievements || []).map(a => `
@@ -3268,6 +3322,47 @@ function renderInline(text) {
   return s;
 }
 
+// ── 點擊事件委派（取代 inline onclick） ─────────────────────
+// 模板用 ${act('name', ...args)} 產生 data-act / data-args 屬性，由單一監聽器依白名單派發。
+// 參數以 JSON 存放、esc() 轉義，資料含引號也不會跳脫出 JS 字串（舊 inline 寫法的隱患）。
+// 派發會沿祖先鏈逐一觸發，與 inline onclick 冒泡時內外層都執行的行為一致。
+function act(name, ...args) {
+  return `data-act="${name}"` + (args.length ? ` data-args="${esc(JSON.stringify(args))}"` : '');
+}
+
+function openQuoteAt(kind, idx) {
+  openQuoteModal(kind, QUOTE_MODAL[kind].getAll()[idx]);
+}
+
+function loadLatestSession() {
+  loadSession(reversedSessions().find(s => !s.placeholder)?.id);
+}
+
+const ACTIONS = {
+  goHome, showView, toggleSidebar, scrollToTop, shareSession, navigateSession, loadLatestSession,
+  loadSession, scrollToStat, storyScrollTo, renderCharacters, switchGrowthTab,
+  openQuoteAt, closeQuoteModal, copyQuoteImage,
+  openDeathRoulette, closeDeathRoulette, spinDeathRoulette, droJumpToSession,
+  openRivalryPoster, closeRivalryPoster, copyRivalryImage,
+  setRoastPage, setRoastSort, filterRoastQuotes, filterRoastByPair, clearRoastFilter,
+  setPraisePage, setPraiseSort, filterPraiseQuotes, clearPraiseFilter,
+  ffSetFilter, ffSetSort, ffExpand,
+};
+// 需要觸發元素本身的 handler（舊寫法傳 this）
+const ACTIONS_WITH_EL = { showDeathCause, toggleCharQuotes };
+
+function initActions() {
+  document.addEventListener('click', e => {
+    for (let el = e.target.closest('[data-act]'); el; el = el.parentElement?.closest('[data-act]')) {
+      const name = el.dataset.act;
+      if (ACTIONS_WITH_EL[name]) { ACTIONS_WITH_EL[name](el); continue; }
+      const fn = ACTIONS[name];
+      if (!fn) { console.warn('未註冊的 data-act：', name); continue; }
+      fn(...(el.dataset.args ? JSON.parse(el.dataset.args) : []));
+    }
+  });
+}
+
 function esc(s) {
   return (s ?? '')
     .replace(/&/g, '&amp;')
@@ -3325,7 +3420,7 @@ function renderStoryNav() {
   list.innerHTML = chapters.map((ch, i) => {
     const num = ROMAN[i] || (i + 1);
     return `<li class="session-item" id="story-nav-${ch.session_id}" tabindex="0" role="button"
-        onclick="storyScrollTo(${ch.session_id})">
+        ${act('storyScrollTo', ch.session_id)}>
       <div class="item-chapter">第 ${num} 章</div>
       <div class="item-title">${esc(ch.title || '')}</div>
     </li>`;
@@ -3368,7 +3463,7 @@ function storyScrollTo(sid) {
       sv.scrollTo({ top, behavior: 'smooth' });
     });
   }
-  if (window.innerWidth <= 720) toggleSidebar();
+  closeSidebarIfMobile();
 }
 
 // ── 故事逐章延遲載入 ──────────────────────────────────────
@@ -3391,7 +3486,7 @@ function loadStoryChapter(sid) {
     }
   };
   if (sid in _storyText) { fill(_storyText[sid]); return Promise.resolve(); }
-  _storyPromises[sid] ||= fetch(`data/story/${sid}.json`)
+  _storyPromises[sid] ||= fetch(dataUrl(`data/story/${sid}.json`))
     .then(r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}`);
       return r.json();

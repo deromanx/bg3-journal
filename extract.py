@@ -258,6 +258,19 @@ def parse_folder(name: str):
     date_display = f"{y} 年 {int(mo)} 月 {int(d)} 日"
     return date_iso, date_display, title or "（尚待命名）"
 
+def is_session_folder(name: str) -> bool:
+    """「YYYYMMDD-標題」或純「YYYYMMDD」才是日誌場次。
+    「20260915 PARTY」這類空白分隔的非日誌資料夾不算（S33 實例：誤判成空白集，後續 id 全位移）；
+    純日期資料夾不能排除（S35 實例：標題只寫在 docx 檔名，曾被整集靜默跳過）。"""
+    return re.match(r"^\d{8}(-|$)", name) is not None
+
+def title_from_docx(folder_name: str, docx_stem: str, title: str) -> str:
+    """資料夾未命名（純日期）時，從「YYYYMMDD-標題.docx」取標題；否則維持資料夾標題。"""
+    if "-" in folder_name:
+        return title
+    m = re.match(r"^\d{8}-(.+)$", docx_stem)
+    return m.group(1).strip() if m else title
+
 def find_pdf(folder: Path) -> bool:
     """資料夾中有 PDF 代表該集日誌已定稿，可以更新網頁"""
     return any(f.suffix.lower() == ".pdf" for f in folder.iterdir())
@@ -273,9 +286,7 @@ def main():
     try:
         entries = sorted(
             e for e in GOOGLE_DRIVE.iterdir()
-            # 「YYYYMMDD-標題」或純「YYYYMMDD」（標題改取 docx 檔名）；
-            # 「20260915 PARTY」這類空白分隔的非日誌資料夾不算
-            if e.is_dir() and re.match(r"^\d{8}(-|$)", e.name)
+            if e.is_dir() and is_session_folder(e.name)
         )
     except OSError as e:
         print(f"❌ 無法讀取 Google Drive：{e}")
@@ -290,11 +301,8 @@ def main():
 
         has_pdf   = find_pdf(folder)
         docx_path = find_docx(folder) if has_pdf else None
-        if "-" not in folder.name and docx_path:
-            # 資料夾未命名時，從「YYYYMMDD-標題.docx」取標題（S35 實例）
-            m = re.match(r"^\d{8}-(.+)$", docx_path.stem)
-            if m:
-                title = m.group(1).strip()
+        if docx_path:
+            title = title_from_docx(folder.name, docx_path.stem, title)
         placeholder = not has_pdf
 
         if docx_path:

@@ -12,7 +12,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from extract import classify, resolve_type, clean, is_meta, parse_folder  # noqa: E402
+from extract import (classify, resolve_type, clean, is_meta, parse_folder,  # noqa: E402
+                     is_session_folder, title_from_docx)
 
 FAILURES = []
 
@@ -21,6 +22,20 @@ def check(desc, actual, expected):
     if actual != expected:
         FAILURES.append(f"  ✗ {desc}: got {actual!r}, want {expected!r}")
 
+
+# ── 場次資料夾判斷（S33「20260915 PARTY」誤入、S35「20261006」被漏掉） ──
+check("日期-標題 → 場次", is_session_folder("20260922-印刷機靈、黑洞吸鼠"), True)
+check("純日期 → 場次（S35）", is_session_folder("20261006"), True)
+check("日期+空白 → 非場次（S33）", is_session_folder("20260915 PARTY"), False)
+check("MOD 開頭 → 非場次", is_session_folder("MOD20260818"), False)
+check("7 位數 → 非場次", is_session_folder("2026100-x"), False)
+check("純日期資料夾取 docx 標題",
+      title_from_docx("20261006", "20261006-無害畜生、暈眩失能、慘遭決裂", "（尚待命名）"),
+      "無害畜生、暈眩失能、慘遭決裂")
+check("有標題資料夾維持資料夾標題",
+      title_from_docx("20260922-資料夾標題", "20260922-檔名標題", "資料夾標題"), "資料夾標題")
+check("docx 檔名無日期前綴 → 維持原標題",
+      title_from_docx("20261006", "日誌草稿", "（尚待命名）"), "（尚待命名）")
 
 # ── classify()：bold 標題 ──────────────────────────────────
 check("bold 無標點 → h1", classify("誤入幽暗地域", bold=True), "h1")

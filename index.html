@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>前進柏德之門 — 冒險日誌</title>
+  <!-- data/*.json 的 cache-busting 版本號：bump_versions.py 依資料變更自動遞增 -->
+  <meta name="data-version" content="1">
   <meta name="description" content="《柏德之門3》TRPG 跑團冒險日誌：影心、阿斯代倫、曹、卡拉克、貓咕咕的史詩（笑料）之旅。完整戰報、決鬥統計、靠北語錄與瓦羅的故事集。">
   <meta property="og:type" content="website">
   <meta property="og:title" content="前進柏德之門 — 冒險日誌">
@@ -16,8 +18,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="icon" type="image/webp" href="data/images/avatars/卡拉克.webp">
-  <link rel="apple-touch-icon" href="data/images/avatars/卡拉克.webp">
-  <link rel="stylesheet" href="style.css?v=19">
+  <link rel="apple-touch-icon" sizes="180x180" href="data/images/apple-touch-icon.png">
+  <link rel="stylesheet" href="style.css?v=20">
 </head>
 <body>
 
@@ -25,7 +27,7 @@
 
   <!-- ── 側欄 ───────────────────────────────────── -->
   <aside id="sidebar">
-    <div id="sidebar-brand" onclick="goHome()" title="回到首頁" tabindex="0" role="button">
+    <div id="sidebar-brand" data-act="goHome" title="回到首頁" tabindex="0" role="button">
       <div class="brand-emblem">
         <svg viewBox="0 0 60 60" width="44" height="44" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="30" cy="30" r="28" stroke="rgba(201,168,76,0.4)" stroke-width="1"/>
@@ -51,19 +53,19 @@
 
     <!-- ── 頁面切換 Tab ───────────────────────────── -->
     <div id="sidebar-tabs">
-      <button class="stab active" data-view="journal" onclick="showView('journal')">
+      <button class="stab active" data-view="journal" data-act="showView" data-args='["journal"]'>
         <span class="stab-icon">📖</span><span class="stab-label">日誌</span>
       </button>
-      <button class="stab" data-view="characters" onclick="showView('characters')">
+      <button class="stab" data-view="characters" data-act="showView" data-args='["characters"]'>
         <span class="stab-icon">👤</span><span class="stab-label">冒險隊伍</span>
       </button>
-      <button class="stab" data-view="stats" onclick="showView('stats')">
+      <button class="stab" data-view="stats" data-act="showView" data-args='["stats"]'>
         <span class="stab-icon">📊</span><span class="stab-label">統計</span>
       </button>
-      <button class="stab" data-view="milestones" onclick="showView('milestones')">
+      <button class="stab" data-view="milestones" data-act="showView" data-args='["milestones"]'>
         <span class="stab-icon">🗺</span><span class="stab-label">里程碑</span>
       </button>
-      <button class="stab" data-view="story" onclick="showView('story')">
+      <button class="stab" data-view="story" data-act="showView" data-args='["story"]'>
         <span class="stab-icon">📕</span><span class="stab-label">瓦羅的故事集</span>
       </button>
     </div>
@@ -90,12 +92,12 @@
   </aside>
 
   <!-- ── 回頂部按鈕 ──────────────────────────────── -->
-  <button id="back-to-top" onclick="scrollToTop()" aria-label="回頂部">↑</button>
+  <button id="back-to-top" data-act="scrollToTop" aria-label="回頂部">↑</button>
 
   <!-- ── 手機漢堡按鈕 ────────────────────────────── -->
-  <button id="sidebar-toggle" aria-label="開關目錄" onclick="toggleSidebar()">☰</button>
+  <button id="sidebar-toggle" aria-label="開關目錄" data-act="toggleSidebar">☰</button>
   <!-- ── 手機側欄遮罩（點擊收合） ─────────────────── -->
-  <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+  <div id="sidebar-overlay" data-act="toggleSidebar"></div>
 
   <!-- ── 主內容 ──────────────────────────────────── -->
   <main id="content">
@@ -133,7 +135,7 @@
           <div class="cast-names">游尚傑 · 林昱宇 · 曹祐誠 · 丁丁 · 昱如</div>
           <div class="cast-roles">影心 · 阿斯代倫 · 曹 · 卡拉克 · 貓咕咕</div>
         </div>
-        <button class="welcome-cta" onclick="loadSession(sessions.slice().reverse().find(s=>!s.placeholder)?.id)">
+        <button class="welcome-cta" data-act="loadLatestSession">
           <span class="cta-arrow">⚔</span> 開始閱讀冒險日誌
         </button>
         <p id="welcome-latest" class="welcome-latest"></p>
@@ -152,7 +154,7 @@
           <span class="rule-gem">⚜</span>
           <span class="rule-line"></span>
         </div>
-        <button id="share-btn" class="hidden" onclick="shareSession()" title="分享本集連結">🔗 分享本集</button>
+        <button id="share-btn" class="hidden" data-act="shareSession" title="分享本集連結">🔗 分享本集</button>
       </header>
 
       <!-- 本集戰報（有 awards 資料才顯示） -->
@@ -161,7 +163,7 @@
       <div id="session-body"></div>
 
       <footer class="session-footer">
-        <button class="sf-card sf-prev" id="prev-btn" onclick="navigateSession(-1)">
+        <button class="sf-card sf-prev" id="prev-btn" data-act="navigateSession" data-args="[-1]">
           <span class="sf-dir">← 上一集</span>
           <span class="sf-chapter" id="sf-prev-chapter"></span>
           <span class="sf-title" id="sf-prev-title"></span>
@@ -170,7 +172,7 @@
           <div class="sf-ornament">⚔</div>
           <div class="sf-progress" id="footer-progress"></div>
         </div>
-        <button class="sf-card sf-next" id="next-btn" onclick="navigateSession(1)">
+        <button class="sf-card sf-next" id="next-btn" data-act="navigateSession" data-args="[1]">
           <span class="sf-dir">下一集 →</span>
           <span class="sf-chapter" id="sf-next-chapter"></span>
           <span class="sf-title" id="sf-next-title"></span>
@@ -202,6 +204,6 @@
 
 </div>
 
-<script src="app.js?v=22"></script>
+<script src="app.js?v=23"></script>
 </body>
 </html>
