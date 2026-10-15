@@ -75,6 +75,14 @@ def has_real_name(*texts):
 
 # ── 資料題 ─────────────────────────────────────────────────
 
+# 友傷題人工排除（2026-10-15 review）：事件描述與事實不符、或同一事件有兩位加害者造成歧義
+FF_SKIP = (
+    '在毒菇林一時手癢射擊菇菇',          # S2：卡拉克也一起射，另有「○○與曹聯手」那題
+    '閃電法術不慎打在暴雨積水的屋頂上',  # S3：AI 誤記，當天貓咕咕沒上線，電人的是影心
+    '連續把阿斯代倫和貓咕咕抓起來砸',    # S23：影心操控卡拉克，兩人都能算加害者；保留另一題
+)
+
+
 def data_questions(sessions, raws, ff_incidents):
     """只出劇情與玩家互動相關的資料題（死因、友傷）。
     不出「第幾章」「誰說的」「MVP」這類考記憶的題（使用者 2026-10-14 明確要求避開）；
@@ -97,7 +105,18 @@ def data_questions(sessions, raws, ff_incidents):
             if d.get('is_downed') or d.get('char') not in CHARS or len(d.get('note', '')) < 5:
                 continue
             notes.setdefault(d['note'], set()).add((sid, d['char']))
+    # 同一集裡不同角色的死法有共同關鍵字（如兩人都「被小貓」殺），題目分不出是誰，整組不出
+    def keys(n):
+        n = re.sub(r'[被遭死後而了的與和在把將]', '', n)
+        return {n[i:i + 2] for i in range(len(n) - 1)} - {'敵方', '陣亡', '直接', '擊殺', '擊倒', '致死'}
+    clash = set()
+    for a, ha in notes.items():
+        for b, hb in notes.items():
+            if a < b and keys(a) & keys(b) and any(sa == sb and ca != cb for sa, ca in ha for sb, cb in hb):
+                clash |= {a, b}
     for note, hits in notes.items():
+        if note in clash:
+            continue
         if len({c for _, c in hits}) == 1 and len(hits) == 1:
             sid, c = next(iter(hits))
             opts, _ = char_options(c, qid('death', sid, note))
@@ -108,9 +127,9 @@ def data_questions(sessions, raws, ff_incidents):
         sid, perp, victim, desc = inc['session'], inc.get('perp'), inc.get('victim'), inc.get('desc', '')
         if sid not in meta or perp not in CHARS or victim not in CHARS or perp == victim:
             continue
-        if perp not in desc or len(desc) < 20:
+        if perp not in desc or len(desc) < 20 or any(k in desc for k in FF_SKIP):
             continue
-        masked = desc.replace(perp, '○○')
+        masked = desc.replace(perp, '○○').replace('她', '他')   # 不用性別代稱，同情節題規則
         others = [c for c in CHARS if c not in (perp, victim)]
         random.Random(qid('ff', sid, desc)).shuffle(others)
         add(sid, 'ff', f'{perp}{inc.get("method", "")}', f"「{masked}」這是誰幹的好事？",
