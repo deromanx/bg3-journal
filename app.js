@@ -3812,12 +3812,22 @@ function quizHash(str) {
   return h >>> 0;
 }
 
-function pickWeeklyQuiz(bank, wk) {
+// 不重複出題（使用者 2026-10-15 要求）：從第一週起逐週重算題組，出過的題目排到最後，
+// 沒出過的用完才重複，重複時先挑最久以前出過的。題組仍完全由題庫＋週數決定，不需後端。
+// 注意：刪改「過去週出過的題目」會連帶改變之後各週（含本週）的題組，題目修正盡量在週末做。
+const QUIZ_FIRST_MONDAY = '2026-10-12';   // 2026-W42，週測上線第一週
+let _quizPickCache = null;
+
+function _pickOneWeek(bank, wk, lastUsed) {
   const pool = bank.filter(q => q.added < wk.monday);
   if (!pool.length) return [];
   const latest = Math.max(...pool.map(q => q.sid));
   const rank = q => quizHash(wk.key + q.id);
-  const sorted = pool.slice().sort((a, b) => rank(a) - rank(b));
+  const used = q => lastUsed.has(q.id);
+  // 沒出過的在前（依本週排序值），出過的在後（越久以前出過越前面）
+  const sorted = pool.slice().sort((a, b) =>
+    (used(a) - used(b)) || ((lastUsed.get(a.id) ?? 0) - (lastUsed.get(b.id) ?? 0)) || (rank(a) - rank(b)));
+  const fresh = sorted.filter(q => !used(q));
   const picked = new Set(), count = {};
   const take = (cands, n, capped = true) => {
     for (const q of cands) {
@@ -3826,11 +3836,30 @@ function pickWeeklyQuiz(bank, wk) {
       picked.add(q); count[q.kind] = (count[q.kind] || 0) + 1; n--;
     }
   };
-  take(sorted.filter(q => q.sid === latest && q.kind === 'plot'), QUIZ_FROM_LATEST - 1);
-  take(sorted.filter(q => q.sid === latest), QUIZ_FROM_LATEST - picked.size);
+  // 最新一集只挑沒出過的；沒新集、最新集題目用完時，名額讓給舊集數沒出過的題
+  take(fresh.filter(q => q.sid === latest && q.kind === 'plot'), QUIZ_FROM_LATEST - 1);
+  take(fresh.filter(q => q.sid === latest), QUIZ_FROM_LATEST - picked.size);
+  take(fresh.filter(q => q.sid !== latest), QUIZ_LEN - picked.size);
+  take(fresh, QUIZ_LEN - picked.size, false);              // 某題型（死因／友傷）用完：先用其他沒出過的題補，不重複
   take(sorted.filter(q => q.sid !== latest), QUIZ_LEN - picked.size);
-  take(sorted, QUIZ_LEN - picked.size, false);             // 題庫太小時放寬題型上限
+  take(sorted, QUIZ_LEN - picked.size, false);             // 整個題庫都出過才重複，題庫太小時也放寬題型上限
   return [...picked].sort((a, b) => rank(a) - rank(b));
+}
+
+function pickWeeklyQuiz(bank, wk) {
+  const key = `${bank.length}:${bank[0]?.id}:${bank[bank.length - 1]?.id}:${wk.key}`;
+  if (_quizPickCache?.key === key && _quizPickCache.bank === bank) return _quizPickCache.qs;
+  const lastUsed = new Map();                                // 題目 id → 最後出現的週序號
+  let qs = [], n = 0;
+  for (let t = new Date(QUIZ_FIRST_MONDAY + 'T12:00:00+08:00'); ; t = new Date(t.getTime() + 7 * 864e5), n++) {
+    const w = quizWeek(t);
+    if (w.monday > wk.monday) break;
+    qs = _pickOneWeek(bank, w, lastUsed);
+    if (w.key === wk.key) break;
+    qs.forEach(q => lastUsed.set(q.id, n + 1));
+  }
+  _quizPickCache = { key, bank, qs };
+  return qs;
 }
 
 // 計分（Kahoot 規則）：答對 500–1000 分，越快越高；連對第 2 題起每題 +100，上限 +500
