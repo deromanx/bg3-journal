@@ -274,7 +274,7 @@ def check_deploy_artifacts():
                 issues.append(f"data/story/{sid}.json 與 story.json 內容不同步，重跑 gen_story_split.py")
                 break
 
-    # D3. 週測題庫：題目結構合法、不含本名；最新集要有題目（情節題缺 = Gemini 失敗或額度用盡）
+    # D3. 週測題庫：題目結構合法、不含本名；最新集要有題目（情節題缺 = 還沒用 Claude 出題）
     bank = load("quiz/bank.json", {}).get("questions", [])
     real_names = ['游尚傑', '林昱宇', '曹祐誠', '丁丁', '昱如']
     bad = [q.get("id") for q in bank
@@ -293,7 +293,7 @@ def check_deploy_artifacts():
         if not latest_kinds:
             issues.append(f"週測題庫沒有第 {max(ids)} 集的題目，重跑 gen_quiz.py")
         elif "plot" not in latest_kinds:
-            issues.append(f"週測題庫缺第 {max(ids)} 集情節題（Gemini 失敗或額度用盡），改天重跑 gen_quiz.py")
+            issues.append(f"週測題庫缺第 {max(ids)} 集情節題：依 /bg3-update 步驟由 Claude 出題（import_quiz.py --dump {max(ids)}）")
     elif ids:
         issues.append("缺週測題庫 data/quiz/bank.json，重跑 gen_quiz.py")
 
