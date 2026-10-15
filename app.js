@@ -3530,7 +3530,7 @@ const ACTIONS = {
   setRoastPage, setRoastSort, filterRoastQuotes, filterRoastByPair, clearRoastFilter,
   setPraisePage, setPraiseSort, filterPraiseQuotes, clearPraiseFilter,
   ffSetFilter, ffSetSort, ffExpand,
-  renderQuiz, startQuiz, quizAnswer, quizNext, shareQuiz,
+  renderQuiz, startQuiz, quizAnswer, quizNext, shareQuiz, copyQuizImage,
 };
 // 需要觸發元素本身的 handler（舊寫法傳 this）
 const ACTIONS_WITH_EL = { showDeathCause, toggleCharQuotes };
@@ -3805,10 +3805,15 @@ function quizRound(bank = quizBank) {
   return quizRoundOf(Math.max(...bank.map(q => q.round ?? QUIZ_FIRST_SID)));
 }
 
-// FNV-1a：同一輪、同一題永遠得到同一個排序值
+// FNV-1a：同一輪、同一題永遠得到同一個排序值（挑題用，改了會讓已開放的輪次題組變動）
 function quizHash(str) {
   let h = 0x811c9dc5;
   for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); }
+  return h >>> 0;
+}
+// murmur3 fmix32：把雜湊打散均勻，排出題順序用
+function quizMix(h) {
+  h ^= h >>> 16; h = Math.imul(h, 0x85ebca6b); h ^= h >>> 13; h = Math.imul(h, 0xc2b2ae35); h ^= h >>> 16;
   return h >>> 0;
 }
 
@@ -3842,7 +3847,10 @@ function _pickOneRound(bank, rnd, lastUsed) {
   take(fresh, QUIZ_LEN - picked.size, false);              // 某題型（死因／友傷）用完：先用其他沒出過的題補，不重複
   take(sorted.filter(q => q.sid !== latest), QUIZ_LEN - picked.size);
   take(sorted, QUIZ_LEN - picked.size, false);             // 整個題庫都出過才重複，題庫太小時也放寬題型上限
-  return [...picked].sort((a, b) => rank(a) - rank(b));
+  // 出題順序另用打散過的雜湊排：FNV 的高位元混合不足，直接用 rank 排會讓同一集的題擠在一起
+  // （第 1 輪 S35 四題全落在最後，使用者 2026-10-15 回報）
+  const order = q => quizMix(quizHash(rnd.key + ':order:' + q.id));
+  return [...picked].sort((a, b) => order(a) - order(b));
 }
 
 function pickRoundQuiz(bank, rnd) {
@@ -3913,7 +3921,8 @@ function renderQuiz() {
         <div class="qz-grid-line" aria-label="答對 ${saved.correct} 題">${saved.grid.map(c => `<i class="${c ? 'ok' : 'ng'}"></i>`).join('')}</div>
         <div class="qz-sub">答對 ${saved.correct} / ${saved.grid.length} 題・${esc(quizRank(saved.score))}</div>
         <div class="qz-actions">
-          <button class="qz-btn" ${act('shareQuiz')} id="qz-share">${icon('link')} 分享成績</button>
+          <button class="qz-btn" ${act('copyQuizImage')} id="qz-copy">${icon('copy')} 複製圖片</button>
+          <button class="qz-btn qz-btn-ghost" ${act('shareQuiz')} id="qz-share">${icon('link')} 分享文字</button>
           <button class="qz-btn qz-btn-ghost" ${act('startQuiz', true)}>再玩一次（練習，不計分）</button>
         </div>` : `
         <div class="qz-intro-label">本輪 ${qs.length} 題</div>
@@ -4066,7 +4075,8 @@ function renderQuizResult(rec) {
       <div class="qz-grid-line qz-grid-anim">${rec.grid.map((c, i) => `<i class="${c ? 'ok' : 'ng'}" style="--i:${i}"></i>`).join('')}</div>
       <div class="qz-sub qz-rank-reveal">答對 ${rec.correct} / ${rec.grid.length} 題・${esc(quizRank(rec.score))}</div>
       <div class="qz-actions">
-        <button class="qz-btn" id="qz-share" ${act('shareQuiz')}>${icon('link')} 分享成績</button>
+        <button class="qz-btn" id="qz-copy" ${act('copyQuizImage')}>${icon('copy')} 複製圖片</button>
+        <button class="qz-btn qz-btn-ghost" id="qz-share" ${act('shareQuiz')}>${icon('link')} 分享文字</button>
         <button class="qz-btn qz-btn-ghost" ${act('renderQuiz')}>回到週測首頁</button>
       </div>
     </div>
@@ -4180,20 +4190,46 @@ async function _qzRenderBlob(wk, rec) {
 // 手機：系統分享選單帶圖片與文字（選 LINE 會一起貼上）。
 // 桌機：剪貼簿一次只能貼出一種內容，改為「複製文字＋下載圖片」。
 // 都不支援（舊瀏覽器）：至少分享／複製文字。
+// 一鍵複製成績圖卡到剪貼簿（同靠北金句的複製圖片）：不 await 渲染、直接把 Promise 交給 ClipboardItem，
+// 保住使用者手勢（Safari 要求）；不支援剪貼簿圖片的瀏覽器改為下載 PNG。網址印在圖卡頁尾。
+async function copyQuizImage() {
+  const wk = quizRound(), rec = quizCurrentRecord();
+  if (!rec) return;
+  const btn = document.getElementById('qz-copy');
+  const label = `${icon('copy')} 複製圖片`;
+  const done = t => { if (!btn) return; btn.textContent = t; setTimeout(() => { btn.disabled = false; btn.innerHTML = label; }, 2200); };
+  if (btn) { btn.disabled = true; btn.textContent = '產生中…'; }
+  const blobP = _qzRenderBlob(wk, rec).then(b => { if (!b) throw new Error('圖卡產生失敗'); return b; });
+  if (typeof ClipboardItem !== 'undefined' && navigator.clipboard?.write) {
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blobP })]);
+      done('✓ 已複製，直接貼上');
+      return;
+    } catch (_) { /* 落到下載後備 */ }
+  }
+  try {
+    const url = URL.createObjectURL(await blobP);
+    const a = document.createElement('a');
+    a.href = url; a.download = `柏德之門週測-第${wk.no}輪${rec.practice ? '-練習' : ''}.png`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    done('✓ 已下載圖片');
+  } catch (_) { done('✗ 失敗'); }
+}
+
+// 分享文字（含該輪分享頁連結）：手機開系統分享選單並附圖卡，桌機複製文字
 async function shareQuiz() {
   const wk = quizRound(), rec = quizCurrentRecord();
   if (!rec) return;
   const text = quizShareText(wk, rec);
   const btn = document.getElementById('qz-share');
-  const label = `${icon('link')} 分享成績`;
+  const label = `${icon('link')} 分享文字`;
   const flash = t => { if (!btn) return; btn.textContent = t; setTimeout(() => { btn.disabled = false; btn.innerHTML = label; }, 2200); };
-  if (btn) { btn.disabled = true; btn.textContent = '產生中…'; }
-  const name = `柏德之門週測-第${wk.no}輪${rec.practice ? '-練習' : ''}.png`;
-  let blob = null;
-  try { blob = await _qzRenderBlob(wk, rec); } catch (_) { /* 圖卡失敗仍分享文字 */ }
-
   if (matchMedia('(pointer: coarse)').matches && navigator.share) {
-    const file = blob && new File([blob], name, { type: 'image/png' });
+    if (btn) { btn.disabled = true; btn.textContent = '產生中…'; }
+    let blob = null;
+    try { blob = await _qzRenderBlob(wk, rec); } catch (_) { /* 圖卡失敗仍分享文字 */ }
+    const file = blob && new File([blob], `柏德之門週測-第${wk.no}輪.png`, { type: 'image/png' });
     const data = file && navigator.canShare?.({ files: [file] }) ? { files: [file], text } : { text };
     try { await navigator.share(data); flash('✓ 已開啟分享'); }
     catch (e) {
@@ -4202,20 +4238,8 @@ async function shareQuiz() {
     }
     return;
   }
-
-  let copied = false;
-  try { await navigator.clipboard.writeText(text); copied = true; } catch (_) { /* 下面提示 */ }
-  if (blob) {
-    try {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = name;
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-    } catch (_) { blob = null; }
-  }
-  if (!copied) prompt('複製以下成績：', text);
-  flash(blob ? (copied ? '✓ 已複製文字並下載圖片' : '✓ 已下載圖片') : '✓ 已複製文字');
+  try { await navigator.clipboard.writeText(text); flash('✓ 已複製文字'); }
+  catch (_) { prompt('複製以下成績：', text); }
 }
 
 // 作答中：數字鍵 1–4 選答案，Enter 下一題
