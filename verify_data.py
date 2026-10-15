@@ -281,9 +281,15 @@ def check_deploy_artifacts():
            if not (2 <= len(q.get("options", [])) <= 4)
            or len(set(q["options"])) != len(q["options"])
            or not (0 <= q.get("answer", -1) < len(q["options"]))
-           or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", q.get("added", ""))]
+           or not re.fullmatch(r"\d{4}-\d{2}-\d{2}", q.get("added", ""))
+           or not isinstance(q.get("round"), int)]
     if bad:
-        issues.append(f"週測題庫有 {len(bad)} 題結構錯誤（選項/answer/added）：{bad[:5]}，重跑 gen_quiz.py")
+        issues.append(f"週測題庫有 {len(bad)} 題結構錯誤（選項/answer/added/round）：{bad[:5]}，重跑 gen_quiz.py")
+    if bank:   # 本輪（最大 round）要有分享頁，key 規則同 gen_share_pages／前端 quizRoundOf
+        cur = max(q.get("round", 0) for q in bank)
+        page = BASE / "q" / f"{ {35: '2026-W42'}.get(cur, f'S{cur}') }.html"
+        if not page.exists():
+            issues.append(f"缺本輪週測分享頁 {page.name}，重跑 gen_share_pages.py")
     leaked = [q["id"] for q in bank if any(n in json.dumps(q, ensure_ascii=False) for n in real_names)]
     if leaked:
         issues.append(f"週測題庫有 {len(leaked)} 題含玩家本名：{leaked[:5]}")

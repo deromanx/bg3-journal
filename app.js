@@ -3778,53 +3778,52 @@ function renderStory() {
 
 // ══════════════════════════════════════════════════════════
 // 週測（Kahoot 式問答）
-// 題庫 data/quiz/bank.json 由 gen_quiz.py 產生；每週題目在前端依「週數＋題目 id」決定性挑選，
-// 所有人同一週拿到同一份題目。只用本週一（台北時間）之前加入題庫的題目，週中補題不影響本週。
-// 成績只存在玩家自己的瀏覽器（第一次完整作答才算），分享靠複製成績文字貼到群組。
+// 題庫 data/quiz/bank.json 由 gen_quiz.py 產生。「每次更新日誌開新的一輪」（使用者 2026-10-15 改）：
+// 每題帶 round＝加入題庫時的最新集數，題庫裡最大的 round 就是本輪；題組依「輪＋題目 id」決定性挑選，
+// 所有人同一輪拿到同一份題目。成績只存在玩家自己的瀏覽器（第一次完整作答才算），分享靠群組貼文。
 // ══════════════════════════════════════════════════════════
 let quizBank = [];
 const QUIZ_LEN = 10;
-const QUIZ_FROM_LATEST = 4;          // 每週約 4 題出自最新一集，其餘出自舊集數
+const QUIZ_FROM_LATEST = 4;          // 每輪約 4 題出自最新一集，其餘出自舊集數
 // 以劇情與玩家互動為主；不出「誰說的」「哪一章」這類純考記憶的題（使用者 2026-10-14 要求）
 const QUIZ_KIND_CAP = { plot: 7, ff: 2, death: 1 };
 const QUIZ_KIND_LABEL = { plot: '劇情', ff: '友傷', death: '死因' };
 const QUIZ_SHAPES = ['triangle', 'diamond', 'circle', 'square'];
-let _quiz = null;          // 進行中的一輪
+const QUIZ_FIRST_SID = 35;           // 第 1 輪＝S35（原 2026-W42 那份題組）
+// 第 1 輪沿用週測時期的 key：排序種子、成績存檔與 q/2026-W42.html 分享頁都不變
+const QUIZ_LEGACY_KEY = { 35: '2026-W42' };
+let _quiz = null;          // 進行中的一場作答
 let _quizTimer = null;
 
-// 台北時間的 ISO 週：{ key: '2026-W42', year, week, monday: 'YYYY-MM-DD', sunday }
-function quizWeek(now = new Date()) {
-  const t = new Date(now.getTime() + 8 * 3600e3);          // 平移到台北時間後一律用 UTC getter
-  const day = (t.getUTCDay() + 6) % 7;                     // 週一 = 0
-  const mon = new Date(Date.UTC(t.getUTCFullYear(), t.getUTCMonth(), t.getUTCDate() - day));
-  const thu = new Date(mon.getTime() + 3 * 864e5);         // ISO 週的年份以週四為準
-  const year = thu.getUTCFullYear();
-  const week = 1 + Math.floor((thu - Date.UTC(year, 0, 1)) / 864e5 / 7);
-  const ymd = d => d.toISOString().slice(0, 10);
-  return { key: `${year}-W${String(week).padStart(2, '0')}`, year, week,
-           monday: ymd(mon), sunday: ymd(new Date(mon.getTime() + 6 * 864e5)) };
+// 輪：{ key, sid, no, label }；no 依集數編（S36＝第 2 輪），一次更新多集時編號會跳號
+function quizRoundOf(sid) {
+  const no = sid - QUIZ_FIRST_SID + 1;
+  return { sid, no, key: QUIZ_LEGACY_KEY[sid] || `S${sid}`, label: `第 ${no} 輪・S${sid}` };
+}
+function quizRound(bank = quizBank) {
+  if (!bank.length) return null;
+  return quizRoundOf(Math.max(...bank.map(q => q.round ?? QUIZ_FIRST_SID)));
 }
 
-// FNV-1a：同一週、同一題永遠得到同一個排序值
+// FNV-1a：同一輪、同一題永遠得到同一個排序值
 function quizHash(str) {
   let h = 0x811c9dc5;
   for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); }
   return h >>> 0;
 }
 
-// 不重複出題（使用者 2026-10-15 要求）：從第一週起逐週重算題組，出過的題目排到最後，
-// 沒出過的用完才重複，重複時先挑最久以前出過的。題組仍完全由題庫＋週數決定，不需後端。
-// 注意：刪改「過去週出過的題目」會連帶改變之後各週（含本週）的題組，題目修正盡量在週末做。
-const QUIZ_FIRST_MONDAY = '2026-10-12';   // 2026-W42，週測上線第一週
+// 不重複出題（使用者 2026-10-15 要求）：從第 1 輪起逐輪重算題組，出過的題目排到最後，
+// 沒出過的用完才重複，重複時先挑最久以前出過的。題組完全由題庫決定，不需後端。
+// 注意：刪改「過去輪出過的題目」會連帶改變之後各輪（含本輪）的題組，題目修正盡量和新集一起上。
 let _quizPickCache = null;
 
-function _pickOneWeek(bank, wk, lastUsed) {
-  const pool = bank.filter(q => q.added < wk.monday);
+function _pickOneRound(bank, rnd, lastUsed) {
+  const pool = bank.filter(q => (q.round ?? QUIZ_FIRST_SID) <= rnd.sid);
   if (!pool.length) return [];
   const latest = Math.max(...pool.map(q => q.sid));
-  const rank = q => quizHash(wk.key + q.id);
+  const rank = q => quizHash(rnd.key + q.id);
   const used = q => lastUsed.has(q.id);
-  // 沒出過的在前（依本週排序值），出過的在後（越久以前出過越前面）
+  // 沒出過的在前（依本輪排序值），出過的在後（越久以前出過越前面）
   const sorted = pool.slice().sort((a, b) =>
     (used(a) - used(b)) || ((lastUsed.get(a.id) ?? 0) - (lastUsed.get(b.id) ?? 0)) || (rank(a) - rank(b)));
   const fresh = sorted.filter(q => !used(q));
@@ -3836,7 +3835,7 @@ function _pickOneWeek(bank, wk, lastUsed) {
       picked.add(q); count[q.kind] = (count[q.kind] || 0) + 1; n--;
     }
   };
-  // 最新一集只挑沒出過的；沒新集、最新集題目用完時，名額讓給舊集數沒出過的題
+  // 最新一集只挑沒出過的；最新集題目用完時，名額讓給舊集數沒出過的題
   take(fresh.filter(q => q.sid === latest && q.kind === 'plot'), QUIZ_FROM_LATEST - 1);
   take(fresh.filter(q => q.sid === latest), QUIZ_FROM_LATEST - picked.size);
   take(fresh.filter(q => q.sid !== latest), QUIZ_LEN - picked.size);
@@ -3846,19 +3845,17 @@ function _pickOneWeek(bank, wk, lastUsed) {
   return [...picked].sort((a, b) => rank(a) - rank(b));
 }
 
-function pickWeeklyQuiz(bank, wk) {
-  const key = `${bank.length}:${bank[0]?.id}:${bank[bank.length - 1]?.id}:${wk.key}`;
-  if (_quizPickCache?.key === key && _quizPickCache.bank === bank) return _quizPickCache.qs;
-  const lastUsed = new Map();                                // 題目 id → 最後出現的週序號
-  let qs = [], n = 0;
-  for (let t = new Date(QUIZ_FIRST_MONDAY + 'T12:00:00+08:00'); ; t = new Date(t.getTime() + 7 * 864e5), n++) {
-    const w = quizWeek(t);
-    if (w.monday > wk.monday) break;
-    qs = _pickOneWeek(bank, w, lastUsed);
-    if (w.key === wk.key) break;
-    qs.forEach(q => lastUsed.set(q.id, n + 1));
-  }
-  _quizPickCache = { key, bank, qs };
+function pickRoundQuiz(bank, rnd) {
+  if (!rnd) return [];
+  if (_quizPickCache?.bank === bank && _quizPickCache.key === rnd.key) return _quizPickCache.qs;
+  const rounds = [...new Set(bank.map(q => q.round ?? QUIZ_FIRST_SID))].filter(r => r <= rnd.sid).sort((a, b) => a - b);
+  const lastUsed = new Map();                                // 題目 id → 最後出現的輪序號
+  let qs = [];
+  rounds.forEach((r, n) => {
+    qs = _pickOneRound(bank, quizRoundOf(r), lastUsed);
+    if (r !== rnd.sid) qs.forEach(q => lastUsed.set(q.id, n + 1));
+  });
+  _quizPickCache = { key: rnd.key, bank, qs };
   return qs;
 }
 
@@ -3868,12 +3865,12 @@ const quizPoints = (elapsed, limit) => Math.round(1000 * (1 - Math.min(elapsed /
 const quizStreakBonus = streak => Math.min(Math.max(streak - 1, 0) * 100, 500);
 
 // quiz2：2026-10-15 W42 題組改用完整題庫重發，先前測試期的成績作廢（使用者要求）
-const QUIZ_KEY = wkKey => `bg3:quiz2:${wkKey}`;
-function quizSaved(wkKey) {
-  try { return JSON.parse(localStorage.getItem(QUIZ_KEY(wkKey)) || 'null'); } catch { return null; }
+const QUIZ_KEY = rndKey => `bg3:quiz2:${rndKey}`;
+function quizSaved(rndKey) {
+  try { return JSON.parse(localStorage.getItem(QUIZ_KEY(rndKey)) || 'null'); } catch { return null; }
 }
-function quizSave(wkKey, rec) {
-  try { localStorage.setItem(QUIZ_KEY(wkKey), JSON.stringify(rec)); } catch { /* 無痕模式等：不存也能玩 */ }
+function quizSave(rndKey, rec) {
+  try { localStorage.setItem(QUIZ_KEY(rndKey), JSON.stringify(rec)); } catch { /* 無痕模式等：不存也能玩 */ }
 }
 
 function quizStopTimer() {
@@ -3890,22 +3887,20 @@ function quizRank(score) {
   return '被心靈吞噬者吃掉腦子';
 }
 
-const quizRange = wk => `${+wk.monday.slice(5, 7)}/${+wk.monday.slice(8)}–${+wk.sunday.slice(5, 7)}/${+wk.sunday.slice(8)}`;
-
 function renderQuiz() {
   quizStopTimer();
   const inner = document.getElementById('quiz-inner');
   if (!inner) return;
-  const wk = quizWeek();
-  const qs = pickWeeklyQuiz(quizBank, wk);
+  const wk = quizRound();
+  const qs = pickRoundQuiz(quizBank, wk);
   _quiz = null;
   const head = `
     <div class="sub-header">
       <div class="sub-rule"><span class="rule-line"></span><span class="sub-title">柏德之門週測</span><span class="rule-line"></span></div>
-      <div class="qz-week">${wk.year} 第 ${wk.week} 週・${quizRange(wk)}</div>
+      <div class="qz-week">${wk ? wk.label : ''}</div>
     </div>`;
   if (!qs.length) {
-    inner.innerHTML = head + '<div class="empty-note">本週題目還沒準備好，下週一再來。</div>';
+    inner.innerHTML = head + '<div class="empty-note">題目還沒準備好，下次更新日誌再來。</div>';
     return;
   }
   const saved = quizSaved(wk.key);
@@ -3913,7 +3908,7 @@ function renderQuiz() {
   inner.innerHTML = head + `
     <div class="qz-card qz-intro">
       ${saved ? `
-        <div class="qz-intro-label">本週成績</div>
+        <div class="qz-intro-label">本輪成績</div>
         <div class="qz-big">${saved.score.toLocaleString()}<span>分</span></div>
         <div class="qz-grid-line" aria-label="答對 ${saved.correct} 題">${saved.grid.map(c => `<i class="${c ? 'ok' : 'ng'}"></i>`).join('')}</div>
         <div class="qz-sub">答對 ${saved.correct} / ${saved.grid.length} 題・${esc(quizRank(saved.score))}</div>
@@ -3921,7 +3916,7 @@ function renderQuiz() {
           <button class="qz-btn" ${act('shareQuiz')} id="qz-share">${icon('link')} 分享成績</button>
           <button class="qz-btn qz-btn-ghost" ${act('startQuiz', true)}>再玩一次（練習，不計分）</button>
         </div>` : `
-        <div class="qz-intro-label">本週 ${qs.length} 題</div>
+        <div class="qz-intro-label">本輪 ${qs.length} 題</div>
         <ul class="qz-rules">
           <li>每題四選一，限時 20 秒（題目長的 30 秒）</li>
           <li>答對 500–1000 分，越快越高；連續答對另有加成</li>
@@ -3929,7 +3924,7 @@ function renderQuiz() {
         </ul>
         <div class="qz-sub">題目出自 ${chapters.slice(0, 6).map(chapterOf).join('、')}${chapters.length > 6 ? ' 等' : ''}</div>
         <div class="qz-actions"><button class="qz-btn" ${act('startQuiz', false)}>開始作答</button></div>`}
-      <div class="qz-foot">每週一 00:00 換一份新題目</div>
+      <div class="qz-foot">每次更新日誌後開放新一輪題目</div>
     </div>`;
 }
 
@@ -3937,8 +3932,8 @@ const QUIZ_COUNTDOWN_MS = 700;   // 開場 3、2、1 每拍長度
 const quizReduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 function startQuiz(practice) {
-  const wk = quizWeek();
-  const z = _quiz = { wk, qs: pickWeeklyQuiz(quizBank, wk), i: 0, answers: [], score: 0, streak: 0,
+  const wk = quizRound();
+  const z = _quiz = { wk, qs: pickRoundQuiz(quizBank, wk), i: 0, answers: [], score: 0, streak: 0,
                       practice: !!practice || !!quizSaved(wk.key) };
   if (quizReduceMotion()) { renderQuizQuestion(); return; }
   const inner = document.getElementById('quiz-inner');
@@ -4063,10 +4058,10 @@ function renderQuizResult(rec) {
   inner.innerHTML = `
     <div class="sub-header">
       <div class="sub-rule"><span class="rule-line"></span><span class="sub-title">柏德之門週測</span><span class="rule-line"></span></div>
-      <div class="qz-week">${z.wk.year} 第 ${z.wk.week} 週・${quizRange(z.wk)}</div>
+      <div class="qz-week">${z.wk.label}</div>
     </div>
     <div class="qz-card qz-intro">
-      <div class="qz-intro-label">${z.practice ? '練習成績（不計入本週成績）' : '本週成績'}</div>
+      <div class="qz-intro-label">${z.practice ? '練習成績（不計入本輪成績）' : '本輪成績'}</div>
       <div class="qz-big"><b id="qz-final">0</b><span>分</span></div>
       <div class="qz-grid-line qz-grid-anim">${rec.grid.map((c, i) => `<i class="${c ? 'ok' : 'ng'}" style="--i:${i}"></i>`).join('')}</div>
       <div class="qz-sub qz-rank-reveal">答對 ${rec.correct} / ${rec.grid.length} 題・${esc(quizRank(rec.score))}</div>
@@ -4092,20 +4087,20 @@ function renderQuizResult(rec) {
   quizCountUp(document.getElementById('qz-final'), 0, rec.score, 1200);
 }
 
-// 每週專屬分享頁（gen_share_pages.py 產生 q/YYYY-Www.html），LINE 預覽卡才會顯示週數
+// 每輪專屬分享頁（gen_share_pages.py 產生 q/{key}.html），LINE 預覽卡才會顯示第幾輪
 const quizShareUrl = wk => `${location.origin}${location.pathname.replace(/[^/]*$/, '')}q/${wk.key}.html`;
 
 function quizShareText(wk, rec) {
   const url = quizShareUrl(wk);
-  return `柏德之門週測 ${wk.year} 第 ${wk.week} 週${rec.practice ? '（練習）' : ''}\n${rec.grid.map(c => (c ? '🟩' : '🟥')).join('')}\n` +
+  return `柏德之門週測 ${wk.label}${rec.practice ? '（練習）' : ''}\n${rec.grid.map(c => (c ? '🟩' : '🟥')).join('')}\n` +
          `${rec.score.toLocaleString()} 分（答對 ${rec.correct}/${rec.grid.length}）${quizRank(rec.score)}\n${url}`;
 }
 
 // ── 成績圖卡（方形 PNG，沿用語錄卡的 canvas 工具）────────────
-// 結算頁分享剛玩完的那一輪（含練習）；週測首頁分享本週正式成績
+// 結算頁分享剛玩完的那一場（含練習）；週測首頁分享本輪正式成績
 function quizCurrentRecord() {
   if (_quiz?.lastRec && document.getElementById('qz-final')) return _quiz.lastRec;
-  return quizSaved(quizWeek().key);
+  return quizSaved(quizRound()?.key);
 }
 
 async function _qzRenderBlob(wk, rec) {
@@ -4124,7 +4119,7 @@ async function _qzRenderBlob(wk, rec) {
   ctx.fillStyle = crimson; ctx.font = `bold 30px ${FONT}`;
   ctx.fillText('柏 德 之 門 週 測', W / 2, 88);
   ctx.fillStyle = mute; ctx.font = `17px ${FONT}`;
-  ctx.fillText(`${wk.year} 第 ${wk.week} 週　${quizRange(wk)}${rec.practice ? '　練習' : ''}`, W / 2, 120);
+  ctx.fillText(`${wk.label}${rec.practice ? '　練習' : ''}`, W / 2, 120);
 
   ctx.fillStyle = crimson; ctx.font = `bold 108px ${FONT}`;
   const num = rec.score.toLocaleString();
@@ -4186,14 +4181,14 @@ async function _qzRenderBlob(wk, rec) {
 // 桌機：剪貼簿一次只能貼出一種內容，改為「複製文字＋下載圖片」。
 // 都不支援（舊瀏覽器）：至少分享／複製文字。
 async function shareQuiz() {
-  const wk = quizWeek(), rec = quizCurrentRecord();
+  const wk = quizRound(), rec = quizCurrentRecord();
   if (!rec) return;
   const text = quizShareText(wk, rec);
   const btn = document.getElementById('qz-share');
   const label = `${icon('link')} 分享成績`;
   const flash = t => { if (!btn) return; btn.textContent = t; setTimeout(() => { btn.disabled = false; btn.innerHTML = label; }, 2200); };
   if (btn) { btn.disabled = true; btn.textContent = '產生中…'; }
-  const name = `柏德之門週測-${wk.key}${rec.practice ? '-練習' : ''}.png`;
+  const name = `柏德之門週測-第${wk.no}輪${rec.practice ? '-練習' : ''}.png`;
   let blob = null;
   try { blob = await _qzRenderBlob(wk, rec); } catch (_) { /* 圖卡失敗仍分享文字 */ }
 

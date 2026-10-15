@@ -9,7 +9,6 @@
 
 import html
 import json
-from datetime import date, timedelta
 from pathlib import Path
 
 BASE_DIR = Path(__file__).parent
@@ -63,13 +62,14 @@ def describe(s: dict, awards: dict) -> str:
     return desc if len(desc) <= DESC_MAX else desc[:DESC_MAX - 1] + "…"
 
 
-# ── 週測分享頁 q/{YYYY}-W{WW}.html ───────────────────────────
-# 分享成績的連結指向本週專屬頁，LINE 預覽卡才會顯示「第 N 週」而非網站首頁。
-# 週數由前端計算、pipeline 不一定每週跑，所以從上線週起預先產生到兩年後。
+# ── 週測分享頁 q/{key}.html ─────────────────────────────────
+# 分享成績的連結指向該輪專屬頁，LINE 預覽卡才會顯示「第 N 輪」而非網站首頁。
+# 每次更新日誌開新一輪（2026-10-15 起，原為每週一輪）；key 與前端 quizRoundOf() 一致：
+# 第 1 輪（S35）沿用 2026-W42，其後為 S{集數}。
 QUIZ_DIR = BASE_DIR / "q"
-QUIZ_START = date(2026, 10, 12)        # 週測上線週（2026-W42）的週一
-QUIZ_AHEAD_WEEKS = 104
-QUIZ_DESC = "每週 10 題，考劇情和隊友互坑的名場面。限時作答、越快越高分，來比比看誰最懂這團。"
+QUIZ_FIRST_SID = 35
+QUIZ_LEGACY_KEY = {35: "2026-W42"}
+QUIZ_DESC = "每次更新日誌開新一輪，10 題考劇情和隊友互坑的名場面。限時作答、越快越高分，來比比看誰最懂這團。"
 QUIZ_TEMPLATE = """<!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -96,23 +96,22 @@ QUIZ_TEMPLATE = """<!DOCTYPE html>
 """
 
 
-def quiz_pages():
+def quiz_pages(latest_sid):
     QUIZ_DIR.mkdir(exist_ok=True)
-    last = date.today() + timedelta(weeks=QUIZ_AHEAD_WEEKS)
-    mon, count, total = QUIZ_START, 0, 0
-    while mon <= last:
-        y, w, _ = mon.isocalendar()
-        sun = mon + timedelta(days=6)
-        key = f"{y}-W{w:02d}"
-        title = html.escape(f"柏德之門週測｜{y} 第 {w} 週（{mon.month}/{mon.day}–{sun.month}/{sun.day}）")
+    keep, count = set(), 0
+    for sid in range(QUIZ_FIRST_SID, latest_sid + 1):
+        key = QUIZ_LEGACY_KEY.get(sid, f"S{sid}")
+        title = html.escape(f"柏德之門週測｜第 {sid - QUIZ_FIRST_SID + 1} 輪・S{sid}")
         page = QUIZ_TEMPLATE.format(title=title, desc=html.escape(QUIZ_DESC), site=SITE, key=key)
         out = QUIZ_DIR / f"{key}.html"
+        keep.add(out.name)
         if not out.exists() or out.read_text() != page:
             out.write_text(page)
             count += 1
-        total += 1
-        mon += timedelta(weeks=1)
-    print(f"週測分享頁：共 {total} 週，更新 {count} 頁 → q/")
+    stale = [f for f in QUIZ_DIR.glob("*.html") if f.name not in keep]
+    for f in stale:            # 週制時期預產的 2026-W43… 頁，改制後用不到
+        f.unlink()
+    print(f"週測分享頁：共 {len(keep)} 輪，更新 {count} 頁、移除 {len(stale)} 頁 → q/")
 
 
 def main():
@@ -134,7 +133,7 @@ def main():
             out.write_text(page)
             count += 1
     print(f"分享頁：共 {sum(1 for s in meta if not s.get('placeholder'))} 集，更新 {count} 頁 → s/")
-    quiz_pages()
+    quiz_pages(max(s["id"] for s in meta if not s.get("placeholder")))
 
 
 if __name__ == "__main__":

@@ -353,18 +353,22 @@ def main():
     qs = data_questions(sessions, raws, load_json(DATA / 'ff-stats.json', {}).get('incidents', []))
     qs += plot_questions(plot)
 
-    # 同 id 去重；保留舊題的 added，週中重建不會讓本週題目變動
-    old = {q['id']: q.get('added') for q in load_json(BANK_F, {}).get('questions', [])}
+    # 同 id 去重；保留舊題的 added／round，重建不會讓已開放的輪次題組變動。
+    # round＝題目加入題庫時的最新集數；前端以題庫最大 round 為本輪（每次更新日誌開新一輪）
+    prev = {q['id']: q for q in load_json(BANK_F, {}).get('questions', [])}
+    old = {i: q.get('added') for i, q in prev.items()}
     added = args.added or today()
+    cur_round = max(s['id'] for s in sessions)
     seen, bank = set(), []
     for q in qs:
         if q['id'] in seen:
             continue
         seen.add(q['id'])
         q['added'] = old.get(q['id']) or added
+        q['round'] = prev.get(q['id'], {}).get('round') or cur_round
         bank.append(q)
     bank.sort(key=lambda q: (q['sid'], q['kind'], q['id']))
-    save_json(BANK_F, {'_note': '週測題庫（gen_quiz.py 產生）；前端依週數挑題，只用本週一之前加入的題目',
+    save_json(BANK_F, {'_note': '週測題庫（gen_quiz.py 產生）；round＝加入時的最新集數，前端以最大 round 為本輪、只用 round≤本輪的題目',
                        'questions': bank})
 
     from collections import Counter

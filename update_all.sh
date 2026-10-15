@@ -138,7 +138,7 @@ run python3 gen_session_stats.py
 
 # 10.58 週測題庫（資料題純本地重建；情節題改由 Claude 讀原文出題，不耗 Gemini，2026-10-15 起。
 #      pipeline 跑完後依 /bg3-update 步驟用 import_quiz.py 匯入，再重跑 gen_quiz.py --no-gemini。
-#      verify_data 在那之前會報「缺第 N 集情節題」，屬預期）
+#      verify_data 在那之前會報「缺第 N 集情節題」，屬預期；上線即開新一輪，情節題匯入前不要 commit）
 run python3 gen_quiz.py --no-gemini
 
 # 10.6 故事集拆檔（story.json → data/story/ 逐章小檔，前端延遲載入用；純本地）
