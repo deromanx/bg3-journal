@@ -3867,7 +3867,8 @@ const quizTimeLimit = q => (q.q.length + q.options.join('').length > 70 ? 30 : 2
 const quizPoints = (elapsed, limit) => Math.round(1000 * (1 - Math.min(elapsed / limit, 1) / 2));
 const quizStreakBonus = streak => Math.min(Math.max(streak - 1, 0) * 100, 500);
 
-const QUIZ_KEY = wkKey => `bg3:quiz:${wkKey}`;
+// quiz2：2026-10-15 W42 題組改用完整題庫重發，先前測試期的成績作廢（使用者要求）
+const QUIZ_KEY = wkKey => `bg3:quiz2:${wkKey}`;
 function quizSaved(wkKey) {
   try { return JSON.parse(localStorage.getItem(QUIZ_KEY(wkKey)) || 'null'); } catch { return null; }
 }
