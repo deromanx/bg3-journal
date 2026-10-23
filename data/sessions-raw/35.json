@@ -25,6 +25,21 @@
       "char": "影心",
       "note": "遭小貓爪擊而死",
       "is_downed": false
+    },
+    {
+      "char": "貓咕咕",
+      "note": "被阿斯代倫附傷打死",
+      "is_downed": false
+    },
+    {
+      "char": "曹",
+      "note": "被阿斯代倫附傷打死",
+      "is_downed": false
+    },
+    {
+      "char": "阿斯代倫",
+      "note": "攻擊小貓反傷自滅",
+      "is_downed": false
     }
   ],
   "duels": [],

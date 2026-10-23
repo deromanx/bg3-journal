@@ -20,24 +20,15 @@
       "char": "影心",
       "note": "被曹一箭射死",
       "is_downed": true
-    }
-  ],
-  "duels": [
-    {
-      "winner": "阿斯代倫",
-      "loser": "影心",
-      "draw": false
     },
     {
-      "winner": "曹",
-      "loser": "影心",
-      "draw": false
+      "char": "影心",
+      "note": "被阿斯代倫徒手揍死",
+      "is_downed": false
     }
   ],
-  "duel_highlights": [
-    "影心手賤丟阿斯代倫招雷術並躲回營地設伏，卻被阿斯代倫近身兩拳徒手錘死，還觸發了站著死的奇葩Bug。",
-    "影心復活後轉移目標用電爪攻擊曹，曹反手一箭打出70滴血直接將影心秒殺再次倒地。"
-  ],
+  "duels": [],
+  "duel_highlights": [],
   "roasts": [
     {
       "from": "阿斯代倫",

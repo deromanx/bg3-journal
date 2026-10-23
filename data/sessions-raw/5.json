@@ -14,18 +14,12 @@
   ],
   "duels": [
     {
-      "winner": "阿斯代倫",
-      "loser": "影心",
-      "draw": false
-    },
-    {
       "winner": "貓咕咕",
       "loser": "影心",
       "draw": false
     }
   ],
   "duel_highlights": [
-    "阿斯代倫假裝整理物品，趁影心不備將其從獅子王斷崖推下。",
     "影心自信向貓咕咕發起決鬥，反遭對方四環灼熱射線瞬間秒殺。"
   ],
   "roasts": [

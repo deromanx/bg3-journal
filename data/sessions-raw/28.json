@@ -5,7 +5,18 @@
     "best_quote": "媽的原本要一萬，殺價之後免費？",
     "worst_moment": "曹在愛情占卜中被明薩拉無視，隊友無情嘲笑他平常自詡的感情破滅。"
   },
-  "deaths": [],
+  "deaths": [
+    {
+      "char": "影心",
+      "note": "被卡拉克抱起摔死",
+      "is_downed": false
+    },
+    {
+      "char": "曹",
+      "note": "補血反被影心砍死",
+      "is_downed": false
+    }
+  ],
   "duels": [
     {
       "winner": "貓咕咕",

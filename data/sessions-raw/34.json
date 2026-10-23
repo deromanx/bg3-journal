@@ -10,18 +10,15 @@
       "char": "影心",
       "note": "被天使打倒",
       "is_downed": true
-    }
-  ],
-  "duels": [
+    },
     {
-      "winner": "影心",
-      "loser": "曹",
-      "draw": false
+      "char": "影心",
+      "note": "被卡拉克誤砍倒地",
+      "is_downed": true
     }
   ],
-  "duel_highlights": [
-    "影心在地下室嘗試傷害測試時，用雷電攻擊曹，意外召喚出光耀天使。"
-  ],
+  "duels": [],
+  "duel_highlights": [],
   "roasts": [
     {
       "from": [
