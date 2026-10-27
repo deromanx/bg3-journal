@@ -160,7 +160,7 @@ WARNS=$(grep -E '^[[:space:]]*⚠ ' "$LOG" | grep -v '第 1/2 次' || true)
 if [[ -n "$WARNS" ]]; then
     echo
     echo "════════════════════════════════════════════════════════"
-    echo "⛔ Pipeline 跑完但有 $(printf '%s\n' "$WARNS" | wc -l | tr -d ' ') 項警告（完整 log：$LOG）："
+    echo "⛔ Pipeline 跑完但有 $(printf '%s\n' "$WARNS" | wc -l | tr -d ' ') 項警告（完整 log：${LOG}）："
     printf '%s\n' "$WARNS" | sed 's/^[[:space:]]*/  /'
     echo "   → 依警告重跑對應腳本（增量、idempotent），再跑 verify_data.py 確認後才 commit。"
     exit 3
