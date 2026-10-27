@@ -685,5 +685,26 @@
     "roasts": 20,
     "praises": 8,
     "ff": 9
+  },
+  "36": {
+    "deaths": 0,
+    "downed": 0,
+    "fallen_by": {},
+    "duels": [],
+    "roasts": 20,
+    "praises": 2,
+    "ff": 3
+  },
+  "37": {
+    "deaths": 1,
+    "downed": 1,
+    "fallen_by": {
+      "阿斯代倫": 1,
+      "貓咕咕": 1
+    },
+    "duels": [],
+    "roasts": 28,
+    "praises": 6,
+    "ff": 2
   }
 }

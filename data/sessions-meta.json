@@ -278,5 +278,21 @@
     "dateDisplay": "2026 年 10 月 6 日",
     "title": "無害畜生、暈眩失能、慘遭決裂",
     "placeholder": false
+  },
+  {
+    "id": 36,
+    "chapter": "第三十六章",
+    "date": "2026-10-15",
+    "dateDisplay": "2026 年 10 月 15 日",
+    "title": "象拔蚌、Oreo、下水道紮營",
+    "placeholder": false
+  },
+  {
+    "id": 37,
+    "chapter": "第三十七章",
+    "date": "2026-10-20",
+    "dateDisplay": "2026 年 10 月 20 日",
+    "title": "單殺、蘋果牛奶、下水道探險",
+    "placeholder": false
   }
 ]
