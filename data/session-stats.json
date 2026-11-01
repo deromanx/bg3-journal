@@ -234,7 +234,7 @@
     },
     "duels": [],
     "roasts": 2,
-    "praises": 20,
+    "praises": 19,
     "ff": 6
   },
   "15": {
@@ -496,8 +496,8 @@
     "downed": 0,
     "fallen_by": {},
     "duels": [],
-    "roasts": 30,
-    "praises": 23,
+    "roasts": 29,
+    "praises": 14,
     "ff": 2
   },
   "25": {
@@ -508,8 +508,8 @@
       "阿斯代倫": 1
     },
     "duels": [],
-    "roasts": 25,
-    "praises": 6,
+    "roasts": 22,
+    "praises": 3,
     "ff": 2
   },
   "26": {
@@ -522,8 +522,8 @@
         "loser": "曹"
       }
     ],
-    "roasts": 54,
-    "praises": 20,
+    "roasts": 48,
+    "praises": 7,
     "ff": 2
   },
   "27": {
@@ -534,7 +534,7 @@
       "卡拉克": 1
     },
     "duels": [],
-    "roasts": 21,
+    "roasts": 18,
     "praises": 7,
     "ff": 3
   },
@@ -566,7 +566,7 @@
         ]
       }
     ],
-    "roasts": 13,
+    "roasts": 12,
     "praises": 13,
     "ff": 4
   },
@@ -580,7 +580,7 @@
       "卡拉克": 1
     },
     "duels": [],
-    "roasts": 25,
+    "roasts": 23,
     "praises": 3,
     "ff": 1
   },
@@ -635,8 +635,8 @@
       "曹": 1
     },
     "duels": [],
-    "roasts": 23,
-    "praises": 5,
+    "roasts": 22,
+    "praises": 3,
     "ff": 3
   },
   "32": {
@@ -647,8 +647,8 @@
       "貓咕咕": 1
     },
     "duels": [],
-    "roasts": 22,
-    "praises": 7,
+    "roasts": 21,
+    "praises": 4,
     "ff": 1
   },
   "33": {
@@ -656,7 +656,7 @@
     "downed": 0,
     "fallen_by": {},
     "duels": [],
-    "roasts": 14,
+    "roasts": 13,
     "praises": 1,
     "ff": 0
   },
@@ -667,8 +667,8 @@
       "影心": 2
     },
     "duels": [],
-    "roasts": 31,
-    "praises": 8,
+    "roasts": 26,
+    "praises": 7,
     "ff": 2
   },
   "35": {
@@ -682,8 +682,8 @@
       "阿斯代倫": 1
     },
     "duels": [],
-    "roasts": 20,
-    "praises": 8,
+    "roasts": 17,
+    "praises": 4,
     "ff": 9
   },
   "36": {
@@ -691,8 +691,8 @@
     "downed": 0,
     "fallen_by": {},
     "duels": [],
-    "roasts": 20,
-    "praises": 2,
+    "roasts": 19,
+    "praises": 1,
     "ff": 3
   },
   "37": {
@@ -703,7 +703,7 @@
       "貓咕咕": 1
     },
     "duels": [],
-    "roasts": 28,
+    "roasts": 25,
     "praises": 6,
     "ff": 2
   }
