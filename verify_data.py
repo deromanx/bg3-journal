@@ -283,6 +283,58 @@ def check_social_dups():
 
 
 # ── D. 部署產物檢查 ─────────────────────────────────────────────
+def check_pronouns():
+    """AI 文案欄位不得用「她／妳」（使用者定案：所有角色一律用「他」）。
+
+    只掃 AI 產生的 prose；逐字台詞（quote / quotes[].text）照錄不檢查。
+    """
+    pat = re.compile("[她妳]")
+    hits = []
+
+    def scan(fname, label, s):
+        if isinstance(s, str) and pat.search(s):
+            hits.append(f"{fname} {label}")
+
+    for ch in load("story.json", {"chapters": []}).get("chapters", []):
+        scan("story.json", f"S{ch.get('session_id')}", ch.get("text", "") + ch.get("title", ""))
+    for c in load("character-stats.json", {}).get("characters", []):
+        for k in ("ai_intro", "death_narrative"):
+            scan("character-stats.json", f"{c.get('char')}.{k}", c.get(k))
+        for n in c.get("death_notes", []):
+            scan("character-stats.json", f"{c.get('char')}.death_notes", n)
+        for a in c.get("achievements", []) or []:
+            scan("character-stats.json", f"{c.get('char')}.achievements", (a.get("name") or "") + (a.get("desc") or ""))
+    for sid, a in load("awards.json", {}).items():
+        for k in ("highlight", "mvp_reason", "worst_moment"):
+            scan("awards.json", f"S{sid}.{k}", a.get(k) if isinstance(a, dict) else None)
+    for m in load("milestones.json", []):
+        scan("milestones.json", f"S{m.get('session_id')}", (m.get("title") or "") + (m.get("desc") or ""))
+    for i in load("ff-stats.json", {}).get("incidents", []):
+        scan("ff-stats.json", f"S{i.get('session')}", i.get("desc"))
+    for fname in ("roast-stats.json", "praise-stats.json"):
+        d = load(fname, {})
+        for k in ("highlights", "quotes"):
+            for e in d.get(k, []):
+                scan(fname, f"S{e.get('session')}.{k}.desc", e.get("desc"))
+    if not hits:
+        return []
+    return [f"AI 文案用了「她／妳」{len(hits)} 處（一律改「他」）：{hits[:6]}"]
+
+
+def check_death_refs():
+    """death_narrative 提到的集數必須出自該角色的 death_notes（擋把倒地／決鬥寫成陣亡）。"""
+    issues = []
+    for c in load("character-stats.json", {}).get("characters", []):
+        noted = {int(x) for n in c.get("death_notes", []) for x in re.findall(r"第(\d+)集", str(n))}
+        narr = c.get("death_narrative") or ""
+        cited = {int(x) for x in re.findall(r"(?:S|第)(\d+)集?", narr)}
+        bad = sorted(cited - noted)
+        if bad:
+            issues.append(f"{c.get('char')}: death_narrative 提到 S{bad} 但陣亡紀錄沒有這集的死亡，"
+                          f"重跑 gen_char_summaries.py")
+    return issues
+
+
 def check_deploy_artifacts():
     """分享 stub 與 sessions 同步；asset 有變更時 ?v= 應已遞增。"""
     issues = []
@@ -357,7 +409,7 @@ def main():
     cs, gt = ground_truth()
     structural = check_structural(cs, gt)
     prose = check_prose(cs, gt, args.warn)
-    sync = check_session_sync() + check_social_dups()
+    sync = check_session_sync() + check_social_dups() + check_pronouns() + check_death_refs()
     deploy = check_deploy_artifacts()
 
     print("═" * 56)

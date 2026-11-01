@@ -17,6 +17,7 @@ from pathlib import Path
 
 from common import BASE, DATA, load_json, save_json, content_fingerprint
 import llm
+from placeholders import PRONOUN_RULE
 SESSIONS_RAW_DIR = DATA / "sessions-raw"
 
 CHAR_NAMES = ["影心", "阿斯代倫", "曹", "卡拉克", "貓咕咕"]
@@ -103,6 +104,7 @@ def gemini_analyze(text, sid=None):
 - duels 只算正式決鬥（雙方約好、宣告開打的對決）；惡作劇、偷襲、亂入搗亂、報復性互打都不算決鬥勝負，
   其中造成的陣亡/倒地改記在 deaths
 - 平局時 draw=true，winner 和 loser 填任一方即可
+{PRONOUN_RULE}
 - milestones 只記錄本集最重要的 1-3 件大事"""
 
     result = llm.run(prompt, task="analyze", ident=sid, text=text, timeout=600)
@@ -245,6 +247,7 @@ def gemini_story(session, prev_chapters):
 {text}
 
 請以純 JSON 格式回傳（不加說明文字或 markdown）：
+{PRONOUN_RULE}
 {{"title": "本章標題（10字內，文學風格）", "text": "小說正文（純文字，段落以空行分隔）"}}"""
 
     for attempt in range(1, 3):

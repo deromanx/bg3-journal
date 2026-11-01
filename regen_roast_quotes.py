@@ -10,6 +10,7 @@ from pathlib import Path
 
 from common import BASE, DATA, load_json, save_json
 import llm
+from placeholders import PRONOUN_RULE
 
 CHAR_NAMES = ["影心", "阿斯代倫", "曹", "卡拉克", "貓咕咕"]
 
@@ -52,6 +53,7 @@ def gemini_extract_roasts(sid, text):
 - 真心的誇獎、羨慕、認可不算靠北（那屬於稱讚統計）；同一句話不可能同時是靠北又是稱讚，語氣以嘲諷為主才列
 - 自嘲也算（from 和 to 相同）
 - 若本集無靠北事件，回傳空陣列 []
+{PRONOUN_RULE}
 - 直接回傳 JSON，不加任何其他文字"""
 
     result = llm.run(prompt, task="roast", ident=sid, text=text, timeout=600)

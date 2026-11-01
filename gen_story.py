@@ -11,6 +11,7 @@ from pathlib import Path
 
 from common import BASE, DATA, load_json, save_json
 import llm
+from placeholders import PRONOUN_RULE
 
 def session_to_text(session):
     lines = [f"集數：{session['chapter']} 《{session['title']}》"]
@@ -47,6 +48,7 @@ def gemini_story(session, prev_chapters):
 {text}
 
 請以純 JSON 格式回傳（不加說明文字或 markdown）：
+{PRONOUN_RULE}
 {{"title": "本章文學標題（10字內）", "text": "小說正文（純文字，段落以空行分隔）"}}"""
 
     result = llm.run(prompt, task="story", ident=sid, text=text, timeout=600)

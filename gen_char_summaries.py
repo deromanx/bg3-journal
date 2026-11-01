@@ -7,7 +7,7 @@ gen_char_summaries.py — 用 Gemini 全量重生成角色 ai_intro 與 death_na
 
 import json, subprocess, re
 from pathlib import Path
-from placeholders import GUIDE as PLACEHOLDER_GUIDE
+from placeholders import GUIDE as PLACEHOLDER_GUIDE, PRONOUN_RULE
 
 from common import BASE, DATA, load_json, save_json
 import llm
@@ -40,22 +40,25 @@ def build_char_context(c, sessions, roast_stats, praise_stats):
     # 死亡紀錄
     death_notes = c.get('death_notes', [])
     if death_notes:
-        lines.append("死亡記錄：" + "；".join(str(n) for n in death_notes[:10]))
+        lines.append(f"死亡記錄（完整 {len(death_notes)} 筆，death_narrative 只能從這裡挑）：" + "；".join(str(n) for n in death_notes))
 
-    # 被靠北的事件（前 5 條）
-    matrix = roast_stats.get('matrix', [])
-    received_roasts = [r for r in matrix if r.get('to') == c['char']][:5]
-    if received_roasts:
-        snippets = []
-        for r in received_roasts:
-            snippets.append(f"{r.get('from','?')} 靠北：{r.get('desc','')[:40]}")
-        lines.append("被靠北事件：" + "；".join(snippets))
+    # 被靠北的事件（matrix 只有次數沒有描述，改從 quotes 取；跨集均勻取 8 條）
+    def _to(e):
+        v = e.get('to')
+        return v if isinstance(v, list) else [v]
+    def _spread(items, n):
+        if len(items) <= n:
+            return items
+        step = len(items) / n
+        return [items[int(i * step)] for i in range(n)]
+    received = [q for q in roast_stats.get('quotes', []) if c['char'] in _to(q) and q.get('desc')]
+    if received:
+        lines.append("被靠北事件：" + "；".join(f"S{q['session']} {q['desc'][:50]}" for q in _spread(received, 8)))
 
-    # 被稱讚的事件（前 3 條）
-    praise_quotes = [q for q in praise_stats.get('quotes', []) if c['char'] in (q.get('to') or [])][:3]
-    if praise_quotes:
-        snippets = [q.get('quote','')[:40] for q in praise_quotes]
-        lines.append("被稱讚：" + "；".join(snippets))
+    # 被稱讚的事件（跨集均勻取 5 條）
+    praised = [q for q in praise_stats.get('quotes', []) if c['char'] in _to(q)]
+    if praised:
+        lines.append("被稱讚：" + "；".join(f"S{q['session']} {(q.get('desc') or q.get('quote',''))[:50]}" for q in _spread(praised, 5)))
 
     # 集數標題（讓 Gemini 知道故事走到哪）
     titles = [f"S{s['id']}《{s['title']}》" for s in sessions if not s.get('placeholder')]
@@ -79,6 +82,10 @@ def gemini_generate(char_name, context):
 要求：
 1. ai_intro：60-100字，幽默、有個性。必須：①點出該角色在隊伍中的定位或特技、②提到至少一個具體的梗或事件、③末尾一句話點出性格。禁止使用「未嘗敗績」「全場第一」等可能過時的宣言。
 2. death_narrative：40-70字，簡潔有諷刺感。依時間序描述該角色最有代表性的幾次死法。若死亡次數為0，寫「至今毫髮無傷，不知是實力還是運氣。」
+   death_narrative 提到的每一次死亡，集數與死法都必須出自上方「死亡記錄」；倒地（被打倒後救起）與營地正式決鬥都不是陣亡，不可寫成死亡。
+3. 角色資料沒有的事件不要自己補；寧可少寫，不要加戲。
+
+{PRONOUN_RULE}
 
 回傳格式（JSON，不加說明）：
 {{

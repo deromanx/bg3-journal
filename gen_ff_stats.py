@@ -11,6 +11,7 @@ from pathlib import Path
 
 from common import BASE, DATA, load_json, save_json
 import llm
+from placeholders import PRONOUN_RULE
 CHAR_NAMES = ["影心", "阿斯代倫", "曹", "卡拉克", "貓咕咕"]
 
 def validate_char(v):
@@ -50,6 +51,7 @@ def gemini_extract_ff(sid, text):
 規則：
 - 角色名只能是：影心、阿斯代倫、曹、卡拉克、貓咕咕
 - 若本集無友軍傷害事件，回傳空陣列 []
+{PRONOUN_RULE}
 - 直接回傳 JSON，不加任何其他文字"""
 
     result = llm.run(prompt, task="ff", ident=sid, text=text, timeout=600)

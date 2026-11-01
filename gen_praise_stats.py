@@ -11,6 +11,7 @@ from pathlib import Path
 
 from common import BASE, DATA, load_json, save_json
 import llm
+from placeholders import PRONOUN_RULE
 CHAR_NAMES = ["影心", "阿斯代倫", "曹", "卡拉克", "貓咕咕"]
 
 def as_list(v):
@@ -59,6 +60,7 @@ def gemini_extract_praise(sid, text):
 - 帶嘲諷、反差、拿來損第三人的話不算稱讚（那屬於靠北統計）；同一句話不可能同時是稱讚又是靠北
 - 不含對 NPC/怪物的稱讚
 - 若本集無稱讚事件，回傳空陣列 []
+{PRONOUN_RULE}
 - 直接回傳 JSON，不加任何其他文字"""
 
     result = llm.run(prompt, task="praise", ident=sid, text=text, timeout=600)

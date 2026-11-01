@@ -7,7 +7,7 @@ gen_char_achievements.py — 用 Gemini 全量重生成角色 achievements 欄�
 
 import json, subprocess, re
 from pathlib import Path
-from placeholders import GUIDE as PLACEHOLDER_GUIDE
+from placeholders import GUIDE as PLACEHOLDER_GUIDE, PRONOUN_RULE
 
 from common import BASE, DATA, load_json, save_json
 import llm
@@ -62,6 +62,19 @@ def build_char_context(c, sessions_meta, roast_stats, ff_stats, awards):
     if recv:
         lines.append("最常被靠北：" + "、".join(f"{r['from']}（{r['count']}次）" for r in recv))
 
+    # 代表事件（被靠北／被稱讚，跨集均勻取樣，給成就找具體梗；matrix 只有次數）
+    def _to(e):
+        v = e.get('to')
+        return v if isinstance(v, list) else [v]
+    def _spread(items, n):
+        if len(items) <= n:
+            return items
+        step = len(items) / n
+        return [items[int(i * step)] for i in range(n)]
+    recv_q = [q for q in roast_stats.get('quotes', []) if c['char'] in _to(q) and q.get('desc')]
+    if recv_q:
+        lines.append("被靠北事件：" + "；".join(f"S{q['session']} {q['desc'][:50]}" for q in _spread(recv_q, 8)))
+
     # 友軍傷害
     ff_incidents = ff_stats.get('incidents', [])
     ff_perp  = [i for i in ff_incidents if i.get('perp')   == c['char']]
@@ -89,8 +102,10 @@ def gemini_generate(char_name, context):
 1. 每個成就包含：icon（單一emoji）、name（6-10字的幽默稱號）、desc（30-60字，幽默有梗，必須引用具體事件）
 2. 三個成就應涵蓋不同面向（例如：戰鬥特色、人設梗、特定代表事件）
 3. 累計統計數字一律用上述佔位符（如 {{deaths}}、{{mvp}}），不要寫實際數字
-4. 禁止出現「未嘗敗績」「全場第一」等可能因集數增加而過時的宣告
+4. 禁止出現「未嘗敗績」「全場第一」「冠絕全團」「全團之最」「最常」等排名或可能因集數增加而過時的宣告
 5. 如果有決鬥敗績，禁止說「不敗」
+6. 只用角色資料裡有的事件，不要自己補劇情；提到某集的死亡，集數與死法必須出自「死亡記錄」（倒地與決鬥落敗不算死亡）
+{PRONOUN_RULE}
 
 回傳格式（純JSON陣列，不加說明）：
 [

@@ -6,6 +6,7 @@
 
 import json, subprocess, sys, argparse, re
 import llm
+from placeholders import PRONOUN_RULE
 from pathlib import Path
 
 BASE = Path(__file__).parent
@@ -45,6 +46,7 @@ def gen_highlight(session: dict) -> str:
 
 日誌內容：
 {text[:3000]}
+{PRONOUN_RULE}
 """
     return call_gemini(prompt, session["id"], text[:3000])
 

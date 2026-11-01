@@ -11,6 +11,7 @@ from pathlib import Path
 
 from common import BASE, DATA, load_json, save_json
 import llm
+from placeholders import PRONOUN_RULE
 CHAR_NAMES = ["影心", "阿斯代倫", "曹", "卡拉克", "貓咕咕"]
 
 def session_to_text(session):
@@ -29,6 +30,7 @@ def gemini_awards(text, sid):
 - MVP：本集表現最突出的角色（戰鬥表現、關鍵決策、搞笑貢獻均可）
 - 最佳金句：最有趣、最有記憶點的一句話（原文引用）
 - 最慘時刻：本集最慘、最丟臉或最惱人的事件描述（30字內）
+{PRONOUN_RULE}
 
 跑團記錄（第{sid}集）：
 {text}
