@@ -41,7 +41,10 @@ Google Drive docx ──extract.py──▶ data/sessions.json + sessions/{id}.j
 旗標可組合：`--roast-all` / `--praise-all` / `--ff-all` / `--quotes-all` / `--skip-chars`。
 任一步失敗即停、已完成步驟已落盤，修正後直接重跑。輸出自動留檔於 `logs/`。
 
-內容生成走 Gemini CLI 免費額度（每日約 20 次呼叫），pipeline 開跑會先顯示本次預估用量。
+內容生成經 `llm.py` 統一呼叫，兩種模式：
+
+- **claude（預設）**：不呼叫外部 API。缺答案的 prompt 排進 `data/llm/pending/`（日誌原文抽成獨立檔、同集只存一份），pipeline 以 **exit 4** 停下；在 Claude Code session 內依 `python3 llm_queue.py list` 作答、答案寫進 `data/llm/answers/` 後重跑，通常兩輪完成。答案以 prompt 雜湊快取，日誌回頭修改會自動產生新待辦。
+- **gemini（備援）**：`./update_all.sh --gemini`，走 Gemini CLI 免費額度（每日約 20 次呼叫）。
 
 ## 本機設定
 

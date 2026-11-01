@@ -10,6 +10,7 @@ import json, subprocess, re, argparse
 from pathlib import Path
 
 from common import BASE, DATA, load_json, save_json
+import llm
 CHAR_NAMES = ["影心", "阿斯代倫", "曹", "卡拉克", "貓咕咕"]
 
 def as_list(v):
@@ -54,14 +55,13 @@ def gemini_extract_praise(sid, text):
 規則：
 - 角色名只能是：影心、阿斯代倫、曹、卡拉克、貓咕咕
 - from 和 to 都可以是字串（單人）或陣列（多人）
+- **同一事件只列一筆**：同一個表現引發的連續稱讚（多人接力誇同一人、同一人連誇好幾句）合併成一筆——參與者併進 from 陣列，quote 挑最精華的一句
+- 帶嘲諷、反差、拿來損第三人的話不算稱讚（那屬於靠北統計）；同一句話不可能同時是稱讚又是靠北
 - 不含對 NPC/怪物的稱讚
 - 若本集無稱讚事件，回傳空陣列 []
 - 直接回傳 JSON，不加任何其他文字"""
 
-    result = subprocess.run(
-        ["gemini", "-p", prompt],
-        capture_output=True, text=True, timeout=600
-    )
+    result = llm.run(prompt, task="praise", ident=sid, text=text, timeout=600)
     if result.returncode != 0:
         print(f"  ⚠ Gemini 錯誤：{result.stderr[:300]}")
         return None

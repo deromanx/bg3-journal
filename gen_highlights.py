@@ -5,6 +5,7 @@
 """
 
 import json, subprocess, sys, argparse, re
+import llm
 from pathlib import Path
 
 BASE = Path(__file__).parent
@@ -25,12 +26,9 @@ def extract_text(content: list) -> str:
         lines.append(prefix + item["v"])
     return "\n".join(lines)
 
-def call_gemini(prompt: str) -> str:
-    result = subprocess.run(
-        ["gemini", "-p", prompt],
-        capture_output=True, text=True,
-        env={**__import__("os").environ, "NODE_OPTIONS": ""},
-    )
+def call_gemini(prompt: str, sid=None, text=None) -> str:
+    result = llm.run(prompt, task="highlight", ident=sid, text=text,
+                     env={**__import__("os").environ, "NODE_OPTIONS": ""})
     if result.returncode != 0:
         raise RuntimeError(result.stderr.strip())
     # Strip markdown fences if present
@@ -48,7 +46,7 @@ def gen_highlight(session: dict) -> str:
 日誌內容：
 {text[:3000]}
 """
-    return call_gemini(prompt)
+    return call_gemini(prompt, session["id"], text[:3000])
 
 def main():
     parser = argparse.ArgumentParser()

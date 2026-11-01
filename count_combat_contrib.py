@@ -12,6 +12,7 @@ import json, subprocess, re, argparse
 from pathlib import Path
 
 from common import BASE, DATA, load_json, save_json, content_fingerprint
+import llm
 CHAR_NAMES = ["影心", "阿斯代倫", "曹", "卡拉克", "貓咕咕"]
 PROCESSED_FILE = DATA / ".combat_contrib_processed.json"
 
@@ -62,10 +63,7 @@ def gemini_count_contrib(text, sid):
 
 若某角色本集沒有關鍵貢獻，不需列出。若整集沒有，回傳 {{"contributions": []}}"""
 
-    result = subprocess.run(
-        ["gemini", "-p", prompt],
-        capture_output=True, text=True, timeout=300
-    )
+    result = llm.run(prompt, task="contrib", ident=sid, text=text, timeout=300)
     if result.returncode != 0:
         print(f"  ⚠ Gemini 錯誤：{result.stderr[:200]}")
         return None

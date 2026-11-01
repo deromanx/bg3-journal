@@ -16,6 +16,7 @@ import json, subprocess, sys, re, argparse
 from pathlib import Path
 
 from common import BASE, DATA, load_json, save_json, content_fingerprint
+import llm
 SESSIONS_RAW_DIR = DATA / "sessions-raw"
 
 CHAR_NAMES = ["影心", "阿斯代倫", "曹", "卡拉克", "貓咕咕"]
@@ -57,7 +58,7 @@ def session_to_text(session):
     return "\n".join(lines)
 
 # ── Gemini 分析 ─────────────────────────────────────────────────
-def gemini_analyze(text):
+def gemini_analyze(text, sid=None):
     prompt = f"""你是柏德之門3跑團日誌的數據分析員。分析以下日誌並以純JSON格式回傳（不加任何說明文字或markdown）。
 
 日誌內容：
@@ -104,10 +105,7 @@ def gemini_analyze(text):
 - 平局時 draw=true，winner 和 loser 填任一方即可
 - milestones 只記錄本集最重要的 1-3 件大事"""
 
-    result = subprocess.run(
-        ["gemini", "-p", prompt],
-        capture_output=True, text=True, timeout=600
-    )
+    result = llm.run(prompt, task="analyze", ident=sid, text=text, timeout=600)
 
     if result.returncode != 0:
         print(f"  ⚠ Gemini 錯誤：{result.stderr[:300]}")
@@ -251,10 +249,7 @@ def gemini_story(session, prev_chapters):
 
     for attempt in range(1, 3):
         try:
-            result = subprocess.run(
-                ["gemini", "-p", prompt],
-                capture_output=True, text=True, timeout=600
-            )
+            result = llm.run(prompt, task="story_us", ident=sid, text=text, timeout=600)
         except subprocess.TimeoutExpired:
             print(f"  ⚠ 故事生成超時（第 {attempt}/2 次）")
             continue
@@ -397,7 +392,7 @@ def main():
         sid = session["id"]
         print(f"📖 {session['chapter']} 《{session['title']}》")
         text   = session_to_text(session)
-        result = gemini_analyze(text)
+        result = gemini_analyze(text, sid)
         if not result:
             print("  ⚠ 分析失敗，跳過\n")
             continue
@@ -421,6 +416,10 @@ def main():
     print("✓ 統計 JSON 已儲存\n")
 
     # ── 階段三：故事生成
+    # Claude 模式交給 gen_story.py 統一出題，避免同一章出現兩份不同 prompt 的待辦
+    if llm.mode() == "claude":
+        print("ℹ️  Claude 模式：故事章節由 gen_story.py 產生待辦")
+        return
     failed = []
     for session in newly_extracted:
         if args.reprocess:

@@ -11,7 +11,13 @@
 #   --praise-all   稱讚統計全量重跑
 #   --ff-all       友軍傷害統計全量重跑
 #   --quotes-all   角色名言錄全量重抽（改了抽取邏輯時才需要）
-#   --skip-chars   跳過角色介紹重生成（省 ~10 次 Gemini 呼叫）
+#   --skip-chars   跳過角色介紹重生成（省 ~10 次 LLM 呼叫）
+#   --gemini       改用 Gemini CLI 免費額度（備援；需用 zsh -ic 執行以載入 key）
+#
+# LLM 模式（llm.py，2026-11-01 起預設 claude）：
+#   claude：不呼叫外部 API。缺答案的 prompt 排進 data/llm/pending/，pipeline 以
+#           exit 4 停下；在 Claude Code session 內依 `python3 llm_queue.py list`
+#           作答後重跑本腳本，直到 exit 0（通常 2 輪：萃取 → 其餘各項）。
 #
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -27,7 +33,7 @@ trap 'echo; echo "❌ 上一步失敗，pipeline 已停止。已完成步驟的�
 run() { echo; echo "▶ $*"; "$@"; }
 
 # ── 旗標解析（可自由組合） ──────────────────────────────────
-ROAST_ALL=0; PRAISE_ALL=0; FF_ALL=0; QUOTES_ALL=0; SKIP_CHARS=0
+ROAST_ALL=0; PRAISE_ALL=0; FF_ALL=0; QUOTES_ALL=0; SKIP_CHARS=0; LLM_MODE=claude
 for arg in "$@"; do
     case "$arg" in
         --roast-all)  ROAST_ALL=1 ;;
@@ -35,9 +41,26 @@ for arg in "$@"; do
         --ff-all)     FF_ALL=1 ;;
         --quotes-all) QUOTES_ALL=1 ;;
         --skip-chars) SKIP_CHARS=1 ;;
-        *) echo "未知旗標：${arg}（可用：--roast-all --praise-all --ff-all --quotes-all --skip-chars）" >&2; exit 1 ;;
+        --gemini)     LLM_MODE=gemini ;;
+        *) echo "未知旗標：${arg}（可用：--roast-all --praise-all --ff-all --quotes-all --skip-chars --gemini）" >&2; exit 1 ;;
     esac
 done
+export BG3_LLM="$LLM_MODE"
+echo "ℹ️  LLM 模式：${LLM_MODE}"
+
+# Claude 模式：有待作答的 prompt 就以 exit 4 停下並列出（不算失敗）
+stop_if_pending() {
+    [[ "$LLM_MODE" == claude ]] || return 0
+    local n
+    n=$(python3 llm_queue.py count)
+    if (( n > 0 )); then
+        echo
+        echo "════════════════════════════════════════════════════════"
+        echo "⏸ 有 ${n} 項待 Claude 作答（$1）。作答後重跑同一指令。"
+        python3 llm_queue.py list
+        exit 4
+    fi
+}
 
 # 0. extract.py 回歸測試（標題層級判斷歷史上改壞過兩次；先擋再跑）
 run python3 tests/test_extract.py
@@ -71,14 +94,16 @@ print(min(ids) if ids else max(s['id'] for s in non_ph), len(ids))
 # 角色介紹+成就固定 10 次（--skip-chars 可省）。全量旗標另計、不在此估算內。
 EST=$(( STALE_COUNT * 10 + (SKIP_CHARS == 1 ? 0 : 10) ))
 echo
-echo "ℹ️  待更新集數：${STALE_COUNT}（從 S${LATEST} 起）；本次 Gemini 呼叫預估 ~${EST} 次（每日上限約 20）"
-if (( EST > 20 )); then
+echo "ℹ️  待更新集數：${STALE_COUNT}（從 S${LATEST} 起）；本次 LLM 呼叫預估 ~${EST} 次"
+if [[ "$LLM_MODE" == gemini ]] && (( EST > 20 )); then
     echo "⚠️  預估超出每日免費配額，可能中途遇 TerminalQuotaError。"
     echo "    建議：加 --skip-chars 省 10 次；或分天跑（pipeline 可中斷重跑，不會重複計數）。"
 fi
 
 # 2. 統計、里程碑、故事（內建超時容錯）
 run python3 update_stats.py
+# 下游（gen_awards 補缺、gen_quote_by 判說話者）依賴本步萃取結果：先停下讓 Claude 作答
+stop_if_pending "各集萃取"
 
 # 3. 角色細項統計
 run python3 count_praised.py
@@ -147,6 +172,8 @@ run python3 gen_story_split.py
 # 10.7 Cache busting：app.js / style.css / 前端 data JSON 相對 HEAD 有變更、
 #      但 index.html 對應版本號仍與 HEAD 相同時自動遞增（須在 verify_data 之前）
 run python3 bump_versions.py
+
+stop_if_pending "統計／亮點／故事等各項"
 
 # 11. 資料一致性驗證（最後關卡；--warn 只警告不阻斷 pipeline）
 run python3 verify_data.py --warn

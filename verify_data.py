@@ -247,6 +247,41 @@ def check_session_sync():
     return issues
 
 
+# ── C2. 靠北／稱讚重複檢查（最新集）────────────────────────────
+def check_social_dups():
+    """同一事件只能呈現一次：最新集的 roast／praise 不得有相同原句。
+
+    只抓可確定的情形（正規化後原句相同或互相包含）：
+      - 同一句同時被列為靠北與稱讚
+      - 同一份清單內同一句列兩次
+    「同一事件被拆成多句多筆」無法可靠自動判斷，由作答時依 prompt 規則合併。
+    只檢查最新集：歷史資料另行清理，避免每次更新都被舊帳卡住。
+    """
+    meta = load("sessions-meta.json", [])
+    ids = [m["id"] for m in meta if not m.get("placeholder")]
+    if not ids:
+        return []
+    sid = max(ids)
+    norm = lambda t: re.sub(r"[^\w]", "", t or "")
+    def pick(name):
+        return [q for q in load(name, {}).get("quotes", []) if q.get("session") == sid]
+    def same(a, b):
+        x, y = norm(a.get("quote")), norm(b.get("quote"))
+        return len(x) >= 4 and len(y) >= 4 and (x in y or y in x)
+    roast, praise = pick("roast-stats.json"), pick("praise-stats.json")
+    issues = []
+    for a in roast:
+        for b in praise:
+            if same(a, b):
+                issues.append(f"S{sid} 同一句同時列為靠北與稱讚：「{a.get('quote')}」，依語氣只留一邊")
+    for label, qs in (("靠北", roast), ("稱讚", praise)):
+        for i, a in enumerate(qs):
+            for b in qs[i + 1:]:
+                if same(a, b):
+                    issues.append(f"S{sid} {label}重複列同一句：「{a.get('quote')}」／「{b.get('quote')}」，合併為一筆")
+    return issues
+
+
 # ── D. 部署產物檢查 ─────────────────────────────────────────────
 def check_deploy_artifacts():
     """分享 stub 與 sessions 同步；asset 有變更時 ?v= 應已遞增。"""
@@ -322,7 +357,7 @@ def main():
     cs, gt = ground_truth()
     structural = check_structural(cs, gt)
     prose = check_prose(cs, gt, args.warn)
-    sync = check_session_sync()
+    sync = check_session_sync() + check_social_dups()
     deploy = check_deploy_artifacts()
 
     print("═" * 56)

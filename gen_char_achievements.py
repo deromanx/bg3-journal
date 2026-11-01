@@ -10,6 +10,7 @@ from pathlib import Path
 from placeholders import GUIDE as PLACEHOLDER_GUIDE
 
 from common import BASE, DATA, load_json, save_json
+import llm
 SESSIONS_RAW_DIR = DATA / "sessions-raw"
 
 def extract_json_arr(text):
@@ -98,10 +99,7 @@ def gemini_generate(char_name, context):
   {{"icon": "emoji", "name": "成就名稱", "desc": "成就描述"}}
 ]"""
 
-    result = subprocess.run(
-        ["gemini", "-p", prompt],
-        capture_output=True, text=True, timeout=600
-    )
+    result = llm.run(prompt, task="char_achv", ident=char_name, text=None, timeout=600)
     if result.returncode != 0:
         print(f"  ⚠ Gemini 錯誤：{result.stderr[:200]}")
         return None

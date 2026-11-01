@@ -10,6 +10,7 @@ import json, subprocess, re, argparse
 from pathlib import Path
 
 from common import BASE, DATA, load_json, save_json
+import llm
 CHAR_NAMES = ["影心", "阿斯代倫", "曹", "卡拉克", "貓咕咕"]
 
 def session_to_text(session):
@@ -40,10 +41,7 @@ def gemini_awards(text, sid):
   "worst_moment": "最慘時刻描述（30字內）"
 }}"""
 
-    result = subprocess.run(
-        ["gemini", "-p", prompt],
-        capture_output=True, text=True, timeout=300
-    )
+    result = llm.run(prompt, task="awards", ident=sid, text=text, timeout=300)
     if result.returncode != 0:
         print(f"  ⚠ Gemini 錯誤：{result.stderr[:200]}")
         return None

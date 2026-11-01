@@ -5,6 +5,7 @@
 """
 
 import json, subprocess, os, re, argparse
+import llm
 from pathlib import Path
 
 BASE        = Path(__file__).parent
@@ -12,9 +13,9 @@ SESSIONS_F  = BASE / "data" / "sessions.json"
 AWARDS_F    = BASE / "data" / "awards.json"
 CHARS       = ['影心', '阿斯代倫', '曹', '卡拉克', '貓咕咕']
 
-def call_gemini(prompt):
-    r = subprocess.run(["gemini", "-p", prompt], capture_output=True, text=True,
-                       env={**os.environ, "NODE_OPTIONS": ""})
+def call_gemini(prompt, sid=None, text=None):
+    r = llm.run(prompt, task="quote_by", ident=sid, text=text,
+                env={**os.environ, "NODE_OPTIONS": ""})
     if r.returncode != 0:
         raise RuntimeError(r.stderr.strip())
     return r.stdout.strip()
@@ -38,7 +39,7 @@ def guess_speaker(quote, session):
 日誌節錄：
 {text}
 """
-    ans = call_gemini(prompt).strip()
+    ans = call_gemini(prompt, session['id'], text).strip()
     # 擷取第一個出現的角色名
     for c in CHARS:
         if c in ans:

@@ -15,6 +15,7 @@ import json, subprocess, re, argparse
 from pathlib import Path
 
 from common import BASE, DATA, load_json, save_json
+import llm
 
 CHAR_NAMES = ["影心", "阿斯代倫", "曹", "卡拉克", "貓咕咕"]
 
@@ -50,10 +51,7 @@ def gemini_extract_quotes(sid, text):
 - 若本集全無值得收錄的台詞，回傳空陣列 []
 - 直接回傳 JSON，不加任何其他文字"""
 
-    result = subprocess.run(
-        ["gemini", "-p", prompt],
-        capture_output=True, text=True, timeout=600
-    )
+    result = llm.run(prompt, task="char_quotes", ident=sid, text=text, timeout=600)
 
     if result.returncode != 0:
         print(f"  ⚠ Gemini 錯誤：{result.stderr[:300]}")

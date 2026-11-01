@@ -9,6 +9,7 @@ import json, subprocess, re, sys, argparse
 from pathlib import Path
 
 from common import BASE, DATA, load_json, save_json
+import llm
 
 CHAR_NAMES = ["影心", "阿斯代倫", "曹", "卡拉克", "貓咕咕"]
 
@@ -47,14 +48,13 @@ def gemini_extract_roasts(sid, text):
 - 多人同時靠北一個人：from 用陣列，to 用字串
 - 一個人同時靠北多人（少見）：from 用字串，to 用陣列
 - 不含決鬥嘲諷、不含對 NPC/怪物的吐槽
+- **同一事件只列一筆**：同一個起因引發的連續吐槽（多人接力嘴同一人、同一人連講好幾句）合併成一筆——參與者併進 from 陣列，quote 挑最精華的一句，desc 涵蓋整段；不要每句話各列一筆
+- 真心的誇獎、羨慕、認可不算靠北（那屬於稱讚統計）；同一句話不可能同時是靠北又是稱讚，語氣以嘲諷為主才列
 - 自嘲也算（from 和 to 相同）
 - 若本集無靠北事件，回傳空陣列 []
 - 直接回傳 JSON，不加任何其他文字"""
 
-    result = subprocess.run(
-        ["gemini", "-p", prompt],
-        capture_output=True, text=True, timeout=600
-    )
+    result = llm.run(prompt, task="roast", ident=sid, text=text, timeout=600)
 
     if result.returncode != 0:
         print(f"  ⚠ Gemini 錯誤：{result.stderr[:300]}")

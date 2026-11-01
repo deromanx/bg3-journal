@@ -10,6 +10,7 @@ from pathlib import Path
 from placeholders import GUIDE as PLACEHOLDER_GUIDE
 
 from common import BASE, DATA, load_json, save_json
+import llm
 
 def extract_json_obj(text):
     m = re.search(r'\{[\s\S]*\}', text)
@@ -85,10 +86,7 @@ def gemini_generate(char_name, context):
   "death_narrative": "..."
 }}"""
 
-    result = subprocess.run(
-        ["gemini", "-p", prompt],
-        capture_output=True, text=True, timeout=600
-    )
+    result = llm.run(prompt, task="char_summary", ident=char_name, text=None, timeout=600)
     if result.returncode != 0:
         print(f"  ⚠ Gemini 錯誤：{result.stderr[:200]}")
         return None
